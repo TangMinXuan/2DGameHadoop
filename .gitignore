@@ -30,3 +30,25 @@ UserSettings/
 # ProjectSettings/  -> 必须入库
 # Packages/        -> 必须入库（包含 manifest.json / packages-lock.json）
 # 所有 .meta 文件  -> 必须入库（保持 GUID 与引用稳定）
+
+# 额外添加
+mono_crash*
+# —— 插件示例/样本/测试/文档（任何路径）——
+Assets/**/[Ee]xamples*/**
+Assets/**/[Ee]xample*/**
+Assets/**/[Ss]amples*/**
+Assets/**/Samples/**           # UPM 样本导入到 Assets/Samples/...
+Assets/**/[Dd]emo*/**
+Assets/**/[Tt]utorials/**
+
+Assets/**/[Tt]ests*/**
+Assets/**/[Dd]ocumentation*/**
+Assets/**/Documentation~/**    # UPM 约定的文档目录
+
+# TextMesh Pro 额外
+/Assets/TextMesh Pro/Examples & Extras/**
+
+# DOTween 额外（更精准的兜底）
+/Assets/**/Demigiant/**/Examples/** 
+/Assets/**/DOTween*/Examples/** 
+/Assets/**/DOTweenPro*/Examples/**
