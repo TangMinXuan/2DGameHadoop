@@ -1,0 +1,32 @@
+* text=auto eol=lf
+
+# Unity 文本资产走 SmartMerge（UnityYAMLMerge）
+*.unity      merge=unityyamlmerge
+*.prefab     merge=unityyamlmerge
+*.asset      merge=unityyamlmerge
+*.anim       merge=unityyamlmerge
+*.controller merge=unityyamlmerge
+*.mat        merge=unityyamlmerge
+*.meta       merge=unityyamlmerge
+*.playable   merge=unityyamlmerge
+*.overrideController merge=unityyamlmerge
+
+# 常见二进制（禁止文本 diff/merge）
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.psd   binary
+*.tif   binary
+*.tiff  binary
+*.fbx   binary
+*.obj   binary
+*.blend binary
+*.wav   binary
+*.aif   binary
+*.aiff  binary
+*.mp3   binary
+*.mp4   binary
+*.mov   binary
+*.zip   binary
+*.7z    binary
+*.unitypackage binary

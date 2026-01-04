@@ -1,0 +1,32 @@
+# ---- Unity 生成目录（必须忽略）----
+Library/
+Temp/
+Obj/
+Logs/
+MemoryCaptures/
+Build/
+Builds/
+
+# Addressables/AssetBundle（如果产物放到工程里，建议忽略）
+ServerData/
+# StreamingAssets/aa/    # 若把 Addressables Player 内容放这里，可按需忽略
+
+# ---- 用户本机/IDE/系统文件 ----
+.DS_Store
+.vscode/
+.idea/
+.vs/
+
+# Unity 用户本地设置（一般不共享）
+UserSettings/
+
+# （可选）C# 工程文件通常可再生，习惯上忽略
+*.csproj
+*.sln
+*.user
+*.unityproj
+
+# ---- 切记不要忽略 ----
+# ProjectSettings/  -> 必须入库
+# Packages/        -> 必须入库（包含 manifest.json / packages-lock.json）
+# 所有 .meta 文件  -> 必须入库（保持 GUID 与引用稳定）
