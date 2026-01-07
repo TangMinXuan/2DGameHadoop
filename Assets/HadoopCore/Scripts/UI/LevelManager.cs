@@ -5,10 +5,8 @@ using HadoopCore.Scripts.Utils;
 using TMPro;
 using UnityEngine.UI;
 
-namespace HadoopCore.Scripts.UI
-{
-    public class LevelManager : MonoBehaviour
-    {
+namespace HadoopCore.Scripts.UI {
+    public class LevelManager : MonoBehaviour {
         [SerializeField] private GameObject pausePanel;
         [SerializeField] private GameObject uiRootCanvas;
         [SerializeField] private GameObject player;
@@ -19,8 +17,7 @@ namespace HadoopCore.Scripts.UI
         private InputAction _esc;
 
 
-        void Awake()
-        {
+        void Awake() {
             _playerInput = GetComponent<PlayerInput>();
             _esc = _playerInput.actions["Esc"];
             _esc.performed += EscBtnListener;
@@ -31,8 +28,7 @@ namespace HadoopCore.Scripts.UI
             LevelEventCenter.OnGameRestart += GameRestart;
         }
 
-        void OnDestroy()
-        {
+        void OnDestroy() {
             LevelEventCenter.OnGamePaused -= Pause;
             LevelEventCenter.OnGameResumed -= Resume;
             LevelEventCenter.OnGameOver -= GameOver;
@@ -40,31 +36,25 @@ namespace HadoopCore.Scripts.UI
             _esc.performed -= EscBtnListener;
         }
 
-        public void ConsumeBtnListener()
-        {
+        public void ConsumeBtnListener() {
             Resume();
         }
 
-        public Transform GetPlayerTransform()
-        {
+        public Transform GetPlayerTransform() {
             return player.transform;
         }
 
-        private void EscBtnListener(InputAction.CallbackContext ctx)
-        {
+        private void EscBtnListener(InputAction.CallbackContext ctx) {
             _isPaused = !_isPaused;
-            if (_isPaused)
-            {
+            if (_isPaused) {
                 Pause();
             }
-            else
-            {
+            else {
                 Resume();
             }
         }
 
-        private void Pause()
-        {
+        private void Pause() {
             _isPaused = true;
 
             _cachedScale = Time.timeScale;
@@ -78,8 +68,7 @@ namespace HadoopCore.Scripts.UI
             UIUtil.SetUIVisible(pausePanel.GetComponent<CanvasGroup>(), _isPaused);
         }
 
-        private void Resume()
-        {
+        private void Resume() {
             _isPaused = false;
             Time.timeScale = _cachedScale;
             AudioListener.pause = false;
@@ -90,19 +79,16 @@ namespace HadoopCore.Scripts.UI
             UIUtil.SetUIVisible(pausePanel.GetComponent<CanvasGroup>(), _isPaused);
         }
 
-        private void GameOver()
-        {
+        private void GameOver() {
             Debug.Log("Game Over");
             // Pause();
         }
 
-        private void GameRestart()
-        {
+        private void GameRestart() {
             Debug.Log("Game Restarted");
         }
 
-        private void GameSuccess()
-        {
+        private void GameSuccess() {
             Debug.Log("Game Success");
         }
     }

@@ -1,9 +1,7 @@
 using System;
 
-namespace HadoopCore.Scripts.UI
-{
-    public static class LevelEventCenter
-    {
+namespace HadoopCore.Scripts.UI {
+    public static class LevelEventCenter {
         // 声明事件 (Action可以理解为 方法指针)
         public static event Action OnGamePaused;
         public static event Action OnGameResumed;
@@ -11,7 +9,7 @@ namespace HadoopCore.Scripts.UI
         public static event Action OnGameSuccess;
         public static event Action OnGameRestart;
         public static event Action OnPlayerDied;
-        
+
         // 发布事件
         public static void TriggerGamePaused() => OnGamePaused?.Invoke();
         public static void TriggerGameResumed() => OnGameResumed?.Invoke();

@@ -1,7 +1,4 @@
-namespace HadoopCore.Scripts.Attribute
-{
-    public class Override : System.Attribute
-    { 
-        
+namespace HadoopCore.Scripts.Attribute {
+    public class Override : System.Attribute {
     }
 }

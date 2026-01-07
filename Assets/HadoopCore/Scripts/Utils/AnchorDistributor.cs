@@ -1,22 +1,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace HadoopCore.Scripts.UI
-{
-    
-     // TODO: 
-     // 还是会有上下颠倒的问题, 需要后面花时间重点看一下代码
-     
+namespace HadoopCore.Scripts.UI {
+    // TODO: 
+    // 还是会有上下颠倒的问题, 需要后面花时间重点看一下代码
+
     [ExecuteAlways]
-    public class AnchorDistributor : MonoBehaviour
-    {
+    public class AnchorDistributor : MonoBehaviour {
         [Header("Container (default: this)")] public RectTransform container;
 
         [Header("Items to distribute (default: direct children)")]
         public List<RectTransform> items;
 
-        public enum Order
-        {
+        public enum Order {
             TopToBottom,
             BottomToTop
         }
@@ -37,27 +33,22 @@ namespace HadoopCore.Scripts.UI
 
         [Header("Editor")] public bool autoUpdate = true;
 
-        void OnValidate()
-        {
+        void OnValidate() {
             if (autoUpdate) Apply();
         }
 
-        void Reset()
-        {
+        void Reset() {
             Apply();
         }
 
         [ContextMenu("Apply Now")]
-        public void Apply()
-        {
+        public void Apply() {
             if (container == null) container = transform as RectTransform;
 
             // auto collect direct children if empty
-            if (items == null || items.Count == 0)
-            {
+            if (items == null || items.Count == 0) {
                 items = new List<RectTransform>();
-                foreach (Transform c in container)
-                {
+                foreach (Transform c in container) {
                     if (c is RectTransform rt) items.Add(rt);
                 }
             }
@@ -80,8 +71,7 @@ namespace HadoopCore.Scripts.UI
             float clampedFillY = Mathf.Clamp01(fillY);
             float innerHalf = clampedFillY * cellH * 0.5f;
 
-            for (int i = 0; i < items.Count; i++)
-            {
+            for (int i = 0; i < items.Count; i++) {
                 var rt = items[i];
                 if (rt == null) continue;
 
