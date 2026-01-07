@@ -34,8 +34,31 @@ namespace HadoopCore.Scripts.Utils
         
         public static GameObject FindChild(GameObject begin, string childName)
         {
-            Transform child = begin.transform.Find(childName);
-            return child != null ? child.gameObject : null;
+            if (begin == null || string.IsNullOrEmpty(childName)) return null;
+
+            // 以前的 Transform.Find(childName) 只保证能找到“符合路径/名字的某个直接子节点”。
+            // 这里改为：循环遍历整个子层级（DFS），只按名字匹配。
+            return FindChildRecursive(begin.transform, childName);
+        }
+
+        private static GameObject FindChildRecursive(Transform root, string childName)
+        {
+            if (root == null) return null;
+
+            for (int i = 0; i < root.childCount; i++)
+            {
+                Transform child = root.GetChild(i);
+                if (child == null) continue;
+
+                if (child.name == childName)
+                    return child.gameObject;
+
+                GameObject deeper = FindChildRecursive(child, childName);
+                if (deeper != null)
+                    return deeper;
+            }
+
+            return null;
         }
         
         public static GameObject FindParent(GameObject begin, string parentName = null)

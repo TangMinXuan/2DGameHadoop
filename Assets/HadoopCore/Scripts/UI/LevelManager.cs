@@ -10,7 +10,8 @@ namespace HadoopCore.Scripts.UI
     public class LevelManager : MonoBehaviour
     {
         [SerializeField] private GameObject pausePanel;
-        [SerializeField] private GameObject UIRootCanvas;
+        [SerializeField] private GameObject uiRootCanvas;
+        [SerializeField] private GameObject player;
 
         private bool _isPaused;
         private float _cachedScale = 1f; // 缓存时间缩放值. 缺少这个变量会导致下落的物体停止在半空
@@ -42,6 +43,11 @@ namespace HadoopCore.Scripts.UI
         public void ConsumeBtnListener()
         {
             Resume();
+        }
+
+        public Transform GetPlayerTransform()
+        {
+            return player.transform;
         }
 
         private void EscBtnListener(InputAction.CallbackContext ctx)
