@@ -1,6 +1,7 @@
 using System.Collections;
 using HadoopCore.Scripts.Attribute;
 using HadoopCore.Scripts.InterfaceAbility;
+using HadoopCore.Scripts.Manager;
 using HadoopCore.Scripts.UI;
 using HadoopCore.Scripts.Utils;
 using UnityEngine;

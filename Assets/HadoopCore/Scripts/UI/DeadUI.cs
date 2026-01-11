@@ -1,11 +1,13 @@
 using System;
 using Cinemachine;
 using DG.Tweening;
+using HadoopCore.Scripts.Manager;
 using HadoopCore.Scripts.Utils;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
 
 namespace HadoopCore.Scripts.UI {
     [Serializable]
@@ -38,6 +40,8 @@ namespace HadoopCore.Scripts.UI {
         [SerializeField] private GameObject transitionUI;
         [SerializeField] private GameObject retryBtn;
         [SerializeField] private GameObject exitBtn;
+
+        [SerializeField] private Camera uiCamera;
 
         private float _initialOrthographicSize = 8f;
 
@@ -93,7 +97,6 @@ namespace HadoopCore.Scripts.UI {
 
             // 4. Retry Menu
             _seq.AppendCallback(() => {
-                Debug.Log("播放Retry Menu进场动画");
                 if (MenuDOTweenAnimation != null) {
                     MenuDOTweenAnimation.DORestart();
                 }
@@ -101,8 +104,32 @@ namespace HadoopCore.Scripts.UI {
         }
 
         public void onRetryBtnClick() {
-            transitionUI.GetComponent<TransitionUI>()
-                .CloseFromRect(retryBtn.GetComponent<RectTransform>(), Camera.current, 1f);
+            // 确保不会带着慢动作重载
+            Time.timeScale = 1f;
+
+            // 防止重复点击
+            if (retryBtn != null) retryBtn.SetActive(false);
+            if (exitBtn != null) exitBtn.SetActive(false);
+
+            var t = transitionUI != null ? transitionUI.GetComponent<TransitionUI>() : null;
+            if (t == null) {
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                return;
+            }
+
+            // Camera.current 在 UI 点击事件里经常是 null，这里用更稳定的 camera
+            var cam = uiCamera;
+            if (cam == null) {
+                var canvas = GetComponentInParent<Canvas>();
+                if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay) {
+                    cam = canvas.worldCamera;
+                }
+
+                if (cam == null) cam = Camera.main;
+            }
+
+            t.CloseFromRect(retryBtn.GetComponent<RectTransform>(), cam, 1f,
+                onComplete: () => { SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); });
         }
 
         public void onExitBtnClick() {
@@ -161,7 +188,6 @@ namespace HadoopCore.Scripts.UI {
                             })
                         .SetUpdate(true)
                         .SetEase(Ease.InOutSine); // 与上面保持一致
-                    Debug.Log("TweenDutchShake: OnComplete called 镜头晃动结束, Dutch = " + _vCamDeath.m_Lens.Dutch);
                     var lens = _vCamDeath.m_Lens;
                     lens.Dutch = 0f; // 第 x 轮完成时强制归零收口
                     _vCamDeath.m_Lens = lens;
@@ -178,7 +204,6 @@ namespace HadoopCore.Scripts.UI {
                 ))
                 .AppendInterval(durationAfterComplete)
                 .OnComplete(() => {
-                    Debug.Log("TweenBloomIn: OnComplete called 泛光结束");
                     if (deathFXRefs.bloom != null)
                         deathFXRefs.bloom.intensity.value = 0;
                 });
@@ -194,12 +219,12 @@ namespace HadoopCore.Scripts.UI {
                 ))
                 .AppendInterval(durationAfterComplete)
                 .OnComplete(() => {
-                    Debug.Log("TweenColorAdjustmentsIn: OnComplete called 画面变亮结束");
                     if (deathFXRefs.colorAdjustments != null)
                         deathFXRefs.colorAdjustments.postExposure.value = 0;
                 });
         }
 
+        // Part3.3: CenterBar
         private Tween TweenShowCenterBarNew(RectTransform bar, CanvasGroup cg, float targetHeight,
             float targetAlpha = 0.35f, float durationAfterComplete = 3f) {
             // 初始状态：高度为 0（保持当前宽度），透明度为 0
@@ -240,13 +265,13 @@ namespace HadoopCore.Scripts.UI {
                 // 4) 可选：像 TweenColorAdjustmentsIn 一样在末尾多等一段再 Complete
                 .AppendInterval(durationAfterComplete)
                 .OnComplete(() => {
-                    Debug.Log("TweenShowCenterBarNew: OnComplete called");
                     // 恢复初始状态（隐藏）
                     bar.sizeDelta = new Vector2(size.x, 0f);
                     cg.alpha = 0f;
                 });
         }
 
+        // Part3.4: WastedText
         private Tween TweenShowWastedTextNew(TMP_Text wastedText, CanvasGroup cg, float durationAfterComplete = 3f) {
             RectTransform rt = (RectTransform)wastedText.transform;
 
@@ -291,55 +316,10 @@ namespace HadoopCore.Scripts.UI {
                 // 4) 可选：末尾多等一段再 Complete（结构上对齐 TweenColorAdjustmentsIn）
                 .AppendInterval(durationAfterComplete)
                 .OnComplete(() => {
-                    Debug.Log("TweenShowWastedTextNew: OnComplete called");
                     // 恢复初始状态（隐藏+回到初始 scale）
                     cg.alpha = 0f;
                     rt.localScale = Vector3.one * 1.2f;
                 });
-        }
-
-        // Part3.3: CenterBar
-        private Sequence TweenShowCenterBar(RectTransform bar, CanvasGroup cg, float targetHeight,
-            float targetAlpha = 0.35f) {
-            // 初始状态：高度为 0（保持当前宽度）
-            Vector2 size = bar.sizeDelta;
-            bar.sizeDelta = new Vector2(size.x, 0f);
-            cg.alpha = 0f;
-
-            var seq = DOTween.Sequence();
-
-            // 高度增长（你要"缓慢变高"）
-            seq.Join(bar.DOSizeDelta(new Vector2(size.x, targetHeight), 0.30f).SetEase(Ease.OutCubic));
-            // 透明度淡入（到目标 alpha）
-            seq.Join(cg.DOFade(targetAlpha, 0.25f).SetEase(Ease.OutCubic));
-
-            // 可选：轻微 overshoot（更有"压迫感"）
-            seq.Append(bar.DOSizeDelta(new Vector2(size.x, targetHeight * 1.05f), 0.08f).SetEase(Ease.OutSine));
-            seq.Append(bar.DOSizeDelta(new Vector2(size.x, targetHeight), 0.10f).SetEase(Ease.InSine));
-
-            return seq;
-        }
-
-        // Part3.4: WastedText
-        private Sequence TweenShowWastedText(TMP_Text wastedText, CanvasGroup cg) {
-            RectTransform rt = (RectTransform)wastedText.transform;
-
-            // 初始状态
-            cg.alpha = 0f;
-            rt.localScale = Vector3.one * 1.2f;
-
-            var seq = DOTween.Sequence();
-
-            // 0.10s：淡入 + 缩放回到 1
-            seq.Join(cg.DOFade(1f, 0.10f).SetEase(Ease.OutCubic));
-            seq.Join(rt.DOScale(1f, 0.10f).SetEase(Ease.OutCubic));
-
-            // 0.08s：轻微放大到 1.04
-            seq.Append(rt.DOScale(1.04f, 0.08f).SetEase(Ease.OutSine));
-            // 0.10s：回到 1
-            seq.Append(rt.DOScale(1f, 0.10f).SetEase(Ease.InSine));
-
-            return seq;
         }
 
 
@@ -348,7 +328,6 @@ namespace HadoopCore.Scripts.UI {
         }
 
         private void OnDisable() {
-            Debug.Log("OnDisable called");
             ResetDeathUI();
         }
 
@@ -385,3 +364,4 @@ namespace HadoopCore.Scripts.UI {
         }
     }
 }
+

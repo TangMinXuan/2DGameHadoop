@@ -1,6 +1,7 @@
 using System;
 using Cinemachine;
 using DG.Tweening;
+using HadoopCore.Scripts.Manager;
 using HadoopCore.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.UI;

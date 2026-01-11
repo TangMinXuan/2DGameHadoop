@@ -1,4 +1,6 @@
 using DG.Tweening;
+using System;
+using HadoopCore.Scripts.Manager;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -43,9 +45,9 @@ namespace HadoopCore.Scripts.UI {
 
         // ---------- Public API ----------
 
-        public void CloseFromWorld(Vector3 worldPos, Camera worldCamera, float duration) {
+        public void CloseFromWorld(Vector3 worldPos, Camera worldCamera, float duration, Action onComplete = null) {
             var uv = WorldToUV(worldPos, worldCamera);
-            CloseFromUV(uv, duration);
+            CloseFromUV(uv, duration, onComplete);
         }
 
         public void OpenFromWorld(Vector3 worldPos, Camera worldCamera, float duration) {
@@ -53,9 +55,9 @@ namespace HadoopCore.Scripts.UI {
             OpenFromUV(uv, duration);
         }
 
-        public void CloseFromRect(RectTransform rect, Camera uiCamera, float duration) {
+        public void CloseFromRect(RectTransform rect, Camera uiCamera, float duration, Action onComplete = null) {
             var uv = RectToUV(rect, uiCamera);
-            CloseFromUV(uv, duration);
+            CloseFromUV(uv, duration, onComplete);
         }
 
         public void OpenFromRect(RectTransform rect, Camera uiCamera, float duration) {
@@ -63,14 +65,15 @@ namespace HadoopCore.Scripts.UI {
             OpenFromUV(uv, duration);
         }
 
-        public void CloseFromUV(Vector2 centerUV, float duration) {
+        public void CloseFromUV(Vector2 centerUV, float duration, Action onComplete = null) {
             Prepare(centerUV);
             float radiusMax = ComputeRadiusMax(centerUV);
             SetRadius(radiusMax);
             _radiusTween?.Kill();
             _radiusTween = DOTween.To(() => radiusMax, r => SetRadius(r), -1f, duration)
                 .SetEase(Ease.OutQuart)
-                .SetUpdate(true);
+                .SetUpdate(true)
+                .OnComplete(() => onComplete?.Invoke());
         }
 
         public void OpenFromUV(Vector2 centerUV, float duration) {

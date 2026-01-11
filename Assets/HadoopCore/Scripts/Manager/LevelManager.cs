@@ -1,14 +1,8 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using DG.Tweening;
-using HadoopCore.Scripts.Utils;
-using TMPro;
-using UnityEngine.UI;
 
-namespace HadoopCore.Scripts.UI {
+namespace HadoopCore.Scripts.Manager {
     public class LevelManager : MonoBehaviour {
-        [SerializeField] private GameObject pausePanel;
-        [SerializeField] private GameObject uiRootCanvas;
         [SerializeField] private GameObject player;
 
         private bool _isPaused;
@@ -35,23 +29,18 @@ namespace HadoopCore.Scripts.UI {
             LevelEventCenter.OnGameRestart -= GameRestart;
             _esc.performed -= EscBtnListener;
         }
-
-        public void ConsumeBtnListener() {
-            Resume();
+        
+        private void EscBtnListener(InputAction.CallbackContext ctx) {
+            _isPaused = !_isPaused;
+            if (_isPaused) {
+                LevelEventCenter.TriggerGamePaused();
+            } else {
+                LevelEventCenter.TriggerGameResumed();
+            }
         }
 
         public Transform GetPlayerTransform() {
             return player.transform;
-        }
-
-        private void EscBtnListener(InputAction.CallbackContext ctx) {
-            _isPaused = !_isPaused;
-            if (_isPaused) {
-                Pause();
-            }
-            else {
-                Resume();
-            }
         }
 
         private void Pause() {
@@ -63,9 +52,6 @@ namespace HadoopCore.Scripts.UI {
             AudioListener.pause = true; // 全局音频暂停
             Cursor.visible = true; // 桌面端可见鼠标
             Cursor.lockState = CursorLockMode.None;
-            // 可选：广播一个事件，让有“非缩放时间”的系统自行停住
-            // EventBus.Raise(GamePaused);
-            UIUtil.SetUIVisible(pausePanel.GetComponent<CanvasGroup>(), _isPaused);
         }
 
         private void Resume() {
@@ -76,7 +62,6 @@ namespace HadoopCore.Scripts.UI {
             // Cursor.visible = false;
             // Cursor.lockState = CursorLockMode.Locked;
             // EventBus.Raise(GameResumed);
-            UIUtil.SetUIVisible(pausePanel.GetComponent<CanvasGroup>(), _isPaused);
         }
 
         private void GameOver() {

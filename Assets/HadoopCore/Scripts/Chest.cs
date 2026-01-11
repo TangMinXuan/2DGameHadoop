@@ -1,6 +1,7 @@
 using System;
 using HadoopCore.Scripts.Attribute;
 using HadoopCore.Scripts.InterfaceAbility;
+using HadoopCore.Scripts.Manager;
 using HadoopCore.Scripts.UI;
 using UnityEngine;
 

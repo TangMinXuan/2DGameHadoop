@@ -1,6 +1,6 @@
 using System;
 
-namespace HadoopCore.Scripts.UI {
+namespace HadoopCore.Scripts.Manager {
     public static class LevelEventCenter {
         // 声明事件 (Action可以理解为 方法指针)
         public static event Action OnGamePaused;
