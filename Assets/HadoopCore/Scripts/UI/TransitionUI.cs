@@ -36,7 +36,7 @@ namespace HadoopCore.Scripts.UI {
 
         private void Start() {
             // 游戏从主角视角开始
-            OpenFromWorld(levelManager.GetComponent<LevelManager>().GetPlayerTransform().position, Camera.main, 2f);
+            OpenFromWorld(levelManager.GetComponent<LevelManager>().GetPlayerTransform().position, Camera.main, 1f);
         }
 
         private void OnDestroy() {

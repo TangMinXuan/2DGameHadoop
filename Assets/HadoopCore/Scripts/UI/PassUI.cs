@@ -1,10 +1,8 @@
-using System;
 using Cinemachine;
 using DG.Tweening;
 using HadoopCore.Scripts.Manager;
 using HadoopCore.Scripts.Utils;
 using UnityEngine;
-using UnityEngine.UI;
 
 
 namespace HadoopCore.Scripts.UI {
@@ -13,6 +11,7 @@ namespace HadoopCore.Scripts.UI {
         [SerializeField] private GameObject transitionUI;
         [SerializeField] private GameObject nextLevelBtn;
         [SerializeField] private GameObject exitBtn;
+        [SerializeField] private GameObject levelManager;
         private CinemachineVirtualCamera _vCamGameplay;
         private CanvasGroup _canvasGroup;
         private Sequence _seq;
@@ -29,12 +28,13 @@ namespace HadoopCore.Scripts.UI {
             UIUtil.SetUIVisible(_canvasGroup, false);
         }
 
-        public void onNextLevelBtnClick() {
+        public void OnNextLevelBtnClick() {
             transitionUI.GetComponent<TransitionUI>()
                 .CloseFromRect(nextLevelBtn.GetComponent<RectTransform>(), Camera.current, 1f);
+            levelManager.GetComponent<LevelManager>().LoadScene("Level_2");
         }
 
-        public void onExitBtnClick() {
+        public void OnExitBtnClick() {
             transitionUI.GetComponent<TransitionUI>()
                 .CloseFromRect(exitBtn.GetComponent<RectTransform>(), Camera.current, 1f);
         }
@@ -44,18 +44,23 @@ namespace HadoopCore.Scripts.UI {
             _seq = DOTween.Sequence()
                 .SetId("PassPresentation")
                 .SetUpdate(true);
-            _seq.Join(TweenZoomIn(5f).SetEase(Ease.Linear));
-            _seq.InsertCallback(1f, () => { MenuDOTweenAnimation.DOPlay(); });
+            _seq.Join(TweenZoomIn(5f));
+            _seq.InsertCallback(2f, () => { MenuDOTweenAnimation.DOPlay(); });
         }
 
 
-        private Tween TweenZoomIn(float orthographicSize) {
-            return DOTween.To(
-                () => _vCamGameplay.m_Lens.OrthographicSize,
-                x => _vCamGameplay.m_Lens.OrthographicSize = x,
-                orthographicSize,
-                0.35f
-            );
+        private Sequence TweenZoomIn(float orthographicSize) {
+            Vector2 playerPos = levelManager.GetComponent<LevelManager>().GetPlayerTransform().position;
+            return DOTween.Sequence()
+                .SetUpdate(true)
+                .Join(_vCamGameplay.transform.DOMove(new Vector3(playerPos.x, playerPos.y + 2, _vCamGameplay.transform.position.z), 
+                        1f)
+                    .SetEase(Ease.OutBack))
+                .Join(DOTween.To(() => _vCamGameplay.m_Lens.OrthographicSize, 
+                    x => _vCamGameplay.m_Lens.OrthographicSize = x, 
+                    orthographicSize, 
+                    1f)
+                    .SetEase(Ease.OutBack));
         }
 
         private void OnDisable() {

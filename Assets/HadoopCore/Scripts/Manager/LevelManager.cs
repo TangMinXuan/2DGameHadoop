@@ -1,9 +1,11 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 namespace HadoopCore.Scripts.Manager {
     public class LevelManager : MonoBehaviour {
         [SerializeField] private GameObject player;
+        [SerializeField] private GameObject transitionUI;
 
         private bool _isPaused;
         private float _cachedScale = 1f; // 缓存时间缩放值. 缺少这个变量会导致下落的物体停止在半空
@@ -12,6 +14,9 @@ namespace HadoopCore.Scripts.Manager {
 
 
         void Awake() {
+            // 确保 LevelManager 在场景切换时不被销毁
+            DontDestroyOnLoad(gameObject);
+            
             _playerInput = GetComponent<PlayerInput>();
             _esc = _playerInput.actions["Esc"];
             _esc.performed += EscBtnListener;
@@ -75,6 +80,14 @@ namespace HadoopCore.Scripts.Manager {
 
         private void GameSuccess() {
             Debug.Log("Game Success");
+        }
+
+        /// <summary>
+        /// 加载指定名称的场景
+        /// </summary>
+        /// <param name="sceneName">场景名称</param>
+        public void LoadScene(string sceneName) {
+            SceneManager.LoadScene(sceneName);
         }
     }
 }
