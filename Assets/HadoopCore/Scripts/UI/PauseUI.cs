@@ -1,3 +1,4 @@
+using System;
 using DG.Tweening;
 using HadoopCore.Scripts.Manager;
 using HadoopCore.Scripts.Utils;
@@ -10,13 +11,12 @@ namespace HadoopCore.Scripts.UI {
         [SerializeField] private GameObject resumeBtn;
         [SerializeField] private GameObject retryBtn;
         [SerializeField] private GameObject exitBtn;
+        [SerializeField] private GameObject menu;
         private CanvasGroup _canvasGroup;
-        private DOTweenAnimation MenuDOTweenAnimation;
         private Sequence _seq;
         
         private void Awake() {
             _canvasGroup = GetComponent<CanvasGroup>();
-            MenuDOTweenAnimation = MySugarUtil.TryToFindComponent(gameObject, "Menu", MenuDOTweenAnimation);
 
             LevelEventCenter.OnGamePaused += OnGamePaused;
             LevelEventCenter.OnGameResumed += OnGameResumed;
@@ -24,9 +24,7 @@ namespace HadoopCore.Scripts.UI {
         }
 
         public void OnResumeBtnClick() {
-            transitionUI.GetComponent<TransitionUI>()
-                .CloseFromRect(retryBtn.GetComponent<RectTransform>(), Camera.main, 1f);
-            
+            LevelEventCenter.TriggerGameResumed();
         }
         
         public void OnRetryBtnClick() {
@@ -41,13 +39,30 @@ namespace HadoopCore.Scripts.UI {
             
         }
 
+        // TODO: 注册事件中, 不加[SerializeField]会导致引用被清空
         private void OnGamePaused() {
             UIUtil.SetUIVisible(_canvasGroup, true);
-            MenuDOTweenAnimation.DOPlay();
+            var anims = menu.GetComponents<DOTweenAnimation>();
+            DOTweenAnimation menuAnimIn = Array.Find(anims, a => a.id == "Menu_In");
+            DOTweenAnimation menuAnimOut = Array.Find(anims, a => a.id == "Menu_Out");
+            menuAnimOut.DOKill(complete: true);      
+            menuAnimIn.DORestart();    
         }
 
         private void OnGameResumed() {
-            UIUtil.SetUIVisible(_canvasGroup, false);
+            var anims = menu.GetComponents<DOTweenAnimation>();
+            DOTweenAnimation menuAnimIn = Array.Find(anims, a => a.id == "Menu_In");
+            DOTweenAnimation menuAnimOut = Array.Find(anims, a => a.id == "Menu_Out");
+            menuAnimIn.DOKill(complete: true);
+            menuAnimOut.DORestart();
+            menuAnimOut.tween?.OnComplete(() => {
+                UIUtil.SetUIVisible(_canvasGroup, false);
+            });
+        }
+
+        private void OnDestroy() {
+            LevelEventCenter.OnGamePaused -= OnGamePaused;
+            LevelEventCenter.OnGameResumed -= OnGameResumed;
         }
     }
 }
