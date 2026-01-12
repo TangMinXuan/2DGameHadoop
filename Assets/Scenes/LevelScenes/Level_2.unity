@@ -476,11 +476,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac0b09e7857660247b1477e93731de29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!1 &443261136 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1956078450934742015, guid: 40dd006ce970d4a67a1a69d7d0473169, type: 3}
-  m_PrefabInstance: {fileID: 6617981363613926724}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &628645960
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -633,11 +628,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 5111828320218500145, guid: 40dd006ce970d4a67a1a69d7d0473169, type: 3}
   m_PrefabInstance: {fileID: 6617981363613926724}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &776580890 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5566303904163157462, guid: 40dd006ce970d4a67a1a69d7d0473169, type: 3}
-  m_PrefabInstance: {fileID: 6617981363613926724}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &893300222 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3406012691857803935, guid: e4c32a6a35a5d41e0aa2e3e320c055ef, type: 3}
@@ -671,10 +661,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   transitionUI: {fileID: 747866167}
-  resumeBtn: {fileID: 443261136}
-  retryBtn: {fileID: 0}
-  exitBtn: {fileID: 776580890}
-  menu: {fileID: 6617981363613926727}
+  menuRefs:
+    obj: {fileID: 6617981363613926727}
 --- !u!1 &1359854582 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7859965303661390640, guid: 4ed298d787abd4e33b8fbaa7b52e9a9e, type: 3}
@@ -3923,7 +3911,7 @@ MonoBehaviour:
   isRelative: 0
   isFrom: 0
   isIndependentUpdate: 1
-  autoKill: 0
+  autoKill: 1
   autoGenerate: 1
   isActive: 1
   isValid: 1
@@ -4030,7 +4018,7 @@ MonoBehaviour:
   isRelative: 0
   isFrom: 0
   isIndependentUpdate: 1
-  autoKill: 0
+  autoKill: 1
   autoGenerate: 1
   isActive: 1
   isValid: 1
