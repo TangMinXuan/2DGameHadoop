@@ -1,5 +1,6 @@
 using System;
 using DG.Tweening;
+using HadoopCore.Scripts.Annotation;
 using HadoopCore.Scripts.Manager;
 using HadoopCore.Scripts.Utils;
 using UnityEngine;
@@ -11,8 +12,8 @@ namespace HadoopCore.Scripts.UI {
         [NonSerialized] public GameObject resumeBtn;
         [NonSerialized] public GameObject retryBtn;
         [NonSerialized] public GameObject exitBtn;
-        [NonSerialized] public DOTweenAnimation menuAnimIn;
-        [NonSerialized] public DOTweenAnimation menuAnimOut;
+        [NonSerialized, DontNeedAutoFind] public DOTweenAnimation menuAnimIn;
+        [NonSerialized, DontNeedAutoFind] public DOTweenAnimation menuAnimOut;
     }
 
     public class PauseUI : MonoBehaviour {
@@ -22,6 +23,8 @@ namespace HadoopCore.Scripts.UI {
         private CanvasGroup _canvasGroup;
         
         private void Awake() {
+            MySugarUtil.AutoFindObjects(this, gameObject);
+            
             _canvasGroup = GetComponent<CanvasGroup>();
 
             // 使用 MySugarUtil 查找 Menu 对象和三个按钮

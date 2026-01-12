@@ -1,6 +1,7 @@
 using System;
 using Cinemachine;
 using DG.Tweening;
+using HadoopCore.Scripts.Annotation;
 using HadoopCore.Scripts.Manager;
 using HadoopCore.Scripts.Utils;
 using TMPro;
@@ -13,18 +14,18 @@ namespace HadoopCore.Scripts.UI {
     [Serializable]
     internal class DeathFXRefs {
         public GameObject obj;
-        [NonSerialized] public Vignette vignette;
-        [NonSerialized] public Bloom bloom;
-        [NonSerialized] public ColorAdjustments colorAdjustments;
+        [NonSerialized, DontNeedAutoFind] public Vignette vignette;
+        [NonSerialized, DontNeedAutoFind] public Bloom bloom;
+        [NonSerialized, DontNeedAutoFind] public ColorAdjustments colorAdjustments;
     }
 
     [Serializable]
     internal class DeathContentRefs {
         public GameObject obj;
-        [NonSerialized] public RectTransform centerBarRt;
-        [NonSerialized] public CanvasGroup centerBarCg;
-        [NonSerialized] public TMP_Text wastedTMP;
-        [NonSerialized] public CanvasGroup wastedCg;
+        [NonSerialized, DontNeedAutoFind] public RectTransform centerBarRt;
+        [NonSerialized, DontNeedAutoFind] public CanvasGroup centerBarCg;
+        [NonSerialized, DontNeedAutoFind] public TMP_Text wastedTMP;
+        [NonSerialized, DontNeedAutoFind] public CanvasGroup wastedCg;
     }
 
 
@@ -46,6 +47,8 @@ namespace HadoopCore.Scripts.UI {
         private float _initialOrthographicSize = 8f;
 
         private void Awake() {
+            MySugarUtil.AutoFindObjects(this, gameObject);
+            
             _canvasGroup = GetComponent<CanvasGroup>();
             deathFXRefs.obj = MySugarUtil.TryToFindObject(gameObject, "DeathFX", deathFXRefs.obj);
             deathFXRefs.obj.GetComponent<Volume>().profile.TryGet(out deathFXRefs.vignette);

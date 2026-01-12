@@ -19,6 +19,7 @@ namespace HadoopCore.Scripts.UI {
         private DOTweenAnimation MenuDOTweenAnimation;
 
         private void Awake() {
+            MySugarUtil.AutoFindObjects(this, gameObject);
             _canvasGroup = GetComponent<CanvasGroup>();
             _vCamGameplay = cameraRig.GetComponentInChildren<CinemachineVirtualCamera>();
             _initialOrthographicSize = _vCamGameplay.m_Lens.OrthographicSize;

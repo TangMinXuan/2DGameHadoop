@@ -871,9 +871,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b5c49a6810a422fabdfa3937d87542c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  transitionUI: {fileID: 5111828320218500145}
+  transitionUI: {fileID: 0}
   menuRefs:
-    obj: {fileID: 9137704649591796117}
+    obj: {fileID: 0}
 --- !u!1 &3373035623223036868
 GameObject:
   m_ObjectHideFlags: 0
@@ -2574,12 +2574,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cameraRig: {fileID: 0}
   deathFXRefs:
-    obj: {fileID: 4087447902058398770}
+    obj: {fileID: 0}
   deathContentRefs:
-    obj: {fileID: 5578750948435306278}
-  transitionUI: {fileID: 5111828320218500145}
-  retryBtn: {fileID: 7635212480949089797}
-  exitBtn: {fileID: 6503161150705402783}
+    obj: {fileID: 0}
+  transitionUI: {fileID: 0}
+  retryBtn: {fileID: 0}
+  exitBtn: {fileID: 0}
   uiCamera: {fileID: 0}
 --- !u!1 &7635212480949089797
 GameObject:
@@ -2911,9 +2911,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cameraRig: {fileID: 0}
-  transitionUI: {fileID: 5111828320218500145}
-  nextLevelBtn: {fileID: 1134051016513485040}
-  exitBtn: {fileID: 9179609557935400967}
+  transitionUI: {fileID: 0}
+  nextLevelBtn: {fileID: 0}
+  exitBtn: {fileID: 0}
   levelManager: {fileID: 0}
 --- !u!1 &8596356700794902628
 GameObject:

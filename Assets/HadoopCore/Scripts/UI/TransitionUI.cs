@@ -1,6 +1,7 @@
 using DG.Tweening;
 using System;
 using HadoopCore.Scripts.Manager;
+using HadoopCore.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,6 +19,8 @@ namespace HadoopCore.Scripts.UI {
         private static readonly int SoftnessId = Shader.PropertyToID("_Softness");
 
         private void Awake() {
+            MySugarUtil.AutoFindObjects(this, gameObject);
+            
             _canvasGroup = GetComponent<CanvasGroup>();
             if (blockerImage == null) {
                 blockerImage = GetComponentInChildren<Image>(true);

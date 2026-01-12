@@ -1,11 +1,12 @@
+using HadoopCore.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 namespace HadoopCore.Scripts.Manager {
     public class LevelManager : MonoBehaviour {
-        [SerializeField] private GameObject player;
-        [SerializeField] private GameObject transitionUI;
+        private GameObject player;
+        private GameObject transitionUI;
 
         private bool _isPaused;
         private float _cachedScale = 1f; // 缓存时间缩放值. 缺少这个变量会导致下落的物体停止在半空
@@ -16,6 +17,8 @@ namespace HadoopCore.Scripts.Manager {
         void Awake() {
             // 确保 LevelManager 在场景切换时不被销毁
             DontDestroyOnLoad(gameObject);
+            
+            MySugarUtil.AutoFindObjects(this, gameObject);
             
             _playerInput = GetComponent<PlayerInput>();
             _esc = _playerInput.actions["Esc"];
