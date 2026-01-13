@@ -7,7 +7,6 @@ using UnityEngine.UI;
 
 namespace HadoopCore.Scripts.UI {
     public class TransitionUI : MonoBehaviour {
-        [SerializeField] private GameObject levelManager;
         [SerializeField] private Image blockerImage;
         [SerializeField] private float defaultSoftness = 0.02f;
 
@@ -37,10 +36,6 @@ namespace HadoopCore.Scripts.UI {
             SetSoftness(defaultSoftness);
         }
 
-        private void Start() {
-            // 游戏从主角视角开始
-            OpenFromWorld(levelManager.GetComponent<LevelManager>().GetPlayerTransform().position, Camera.main, 1f);
-        }
 
         private void OnDestroy() {
             _radiusTween?.Kill();

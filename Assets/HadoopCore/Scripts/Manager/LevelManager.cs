@@ -1,3 +1,4 @@
+using HadoopCore.Scripts.UI;
 using HadoopCore.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -5,6 +6,8 @@ using UnityEngine.SceneManagement;
 
 namespace HadoopCore.Scripts.Manager {
     public class LevelManager : MonoBehaviour {
+        public static LevelManager Instance { get; private set; }
+
         private GameObject player;
         private GameObject transitionUI;
 
@@ -15,11 +18,16 @@ namespace HadoopCore.Scripts.Manager {
 
 
         void Awake() {
-            // 确保 LevelManager 在场景切换时不被销毁
+            // Persistent manager: prevent duplicates across scene loads
+            if (Instance != null && Instance != this) {
+                Destroy(gameObject);
+                return;
+            }
+            Instance = this;
             DontDestroyOnLoad(gameObject);
-            
-            MySugarUtil.AutoFindObjects(this, gameObject);
-            
+            RefreshSceneReferences();
+            SceneManager.sceneLoaded += OnSceneLoaded;
+
             _playerInput = GetComponent<PlayerInput>();
             _esc = _playerInput.actions["Esc"];
             _esc.performed += EscBtnListener;
@@ -29,13 +37,34 @@ namespace HadoopCore.Scripts.Manager {
             LevelEventCenter.OnGameOver += GameOver;
             LevelEventCenter.OnGameRestart += GameRestart;
         }
+        
+        public void JumpToNextLevel() {
+            string currentSceneName = GetCurrentSceneName();
+            int currentLevelNumber = int.Parse(currentSceneName.Split('_')[1]);
+            string nextSceneName = "Level_" + (currentLevelNumber + 1);
+            LoadScene(nextSceneName);
+        }
 
         void OnDestroy() {
+            // 只有当这是真正的单例实例时，才需要清理事件订阅
+            // 如果是重复实例，在Awake中就return了，事件根本没订阅
+            if (Instance != this) {
+                return;
+            }
+
             LevelEventCenter.OnGamePaused -= Pause;
             LevelEventCenter.OnGameResumed -= Resume;
             LevelEventCenter.OnGameOver -= GameOver;
             LevelEventCenter.OnGameRestart -= GameRestart;
-            _esc.performed -= EscBtnListener;
+            
+            // 空值检查：防止在Awake中检测到重复实例后直接return，导致_esc未初始化
+            if (_esc != null) {
+                _esc.performed -= EscBtnListener;
+            }
+
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+
+            Instance = null;
         }
         
         private void EscBtnListener(InputAction.CallbackContext ctx) {
@@ -48,7 +77,12 @@ namespace HadoopCore.Scripts.Manager {
         }
 
         public Transform GetPlayerTransform() {
-            return player.transform;
+            // Unity "fake null" handling: destroyed objects compare == null
+            if (player == null) {
+                RefreshSceneReferences();
+            }
+
+            return player != null ? player.transform : null;
         }
 
         private void Pause() {
@@ -89,8 +123,49 @@ namespace HadoopCore.Scripts.Manager {
         /// 加载指定名称的场景
         /// </summary>
         /// <param name="sceneName">场景名称</param>
-        public void LoadScene(string sceneName) {
+        private void LoadScene(string sceneName) {
             SceneManager.LoadScene(sceneName);
+        }
+
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode) {
+            RefreshSceneReferences();
+        }
+
+        private void RefreshSceneReferences() {
+            // Rebind scene objects after scene load (old references become destroyed)
+            MySugarUtil.AutoFindObjects(this, gameObject);
+
+            // 触发开屏效果
+            PlayOpeningTransition();
+        }
+
+        /// <summary>
+        /// 播放场景开场的过渡效果
+        /// </summary>
+        private void PlayOpeningTransition() {
+            if (transitionUI == null || player == null) {
+                Debug.LogWarning("[LevelManager] Cannot play opening transition: TransitionUI or Player not found.");
+                return;
+            }
+
+            var transitionUIComponent = transitionUI.GetComponent<TransitionUI>();
+            if (transitionUIComponent == null) {
+                Debug.LogWarning("[LevelManager] TransitionUI component not found on TransitionUI GameObject.");
+                return;
+            }
+
+            var playerTf = player.transform;
+            if (playerTf != null && Camera.main != null) {
+                transitionUIComponent.OpenFromWorld(playerTf.position, Camera.main, 1f);
+            }
+        }
+
+        /// <summary>
+        /// 获取当前场景的名字
+        /// </summary>
+        /// <returns>当前活动场景的名称</returns>
+        private string GetCurrentSceneName() {
+            return SceneManager.GetActiveScene().name;
         }
     }
 }

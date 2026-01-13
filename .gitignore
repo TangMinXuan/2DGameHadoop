@@ -34,3 +34,4 @@ UserSettings/
 # 白名单模式 Assets中的东西, 自己一个一个去选
 /Assets/Plugins/**
 /Assets/TextMesh Pro/**
+/Assets/Coplay/**

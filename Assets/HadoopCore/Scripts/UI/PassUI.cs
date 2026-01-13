@@ -32,7 +32,7 @@ namespace HadoopCore.Scripts.UI {
         public void OnNextLevelBtnClick() {
             transitionUI.GetComponent<TransitionUI>()
                 .CloseFromRect(nextLevelBtn.GetComponent<RectTransform>(), Camera.current, 1f);
-            levelManager.GetComponent<LevelManager>().LoadScene("Level_2");
+            levelManager.GetComponent<LevelManager>().JumpToNextLevel();
         }
 
         public void OnExitBtnClick() {
