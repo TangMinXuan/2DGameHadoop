@@ -17,4 +17,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/HadoopCore/Scenes/LevelScenes/Level_3.unity
     guid: 531bdbdb6d9524506a4726acd567bfb4
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelSelectMenu.unity
+    guid: d134a1e9627e2480f852e6d51ec82f9a
   m_configObjects: {}
