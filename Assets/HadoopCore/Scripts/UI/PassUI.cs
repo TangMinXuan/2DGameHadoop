@@ -85,9 +85,15 @@ namespace HadoopCore.Scripts.UI {
             int bestTimeToShow = remainingSeconds;
             var saveData = LevelManager.Instance != null ? LevelManager.Instance.GetSaveData() : null;
             if (saveData != null) {
-                string levelName = SceneManager.GetActiveScene().name;
-                if (saveData.Levels != null && saveData.Levels.TryGetValue(levelName, out var progress) && progress != null) {
-                    bestTimeToShow = Mathf.Max(progress.BestTime, remainingSeconds);
+                string levelName = LevelManager.Instance.GetCurrentSceneName();
+                if (saveData.Levels != null && saveData.Levels.TryGetValue(levelName, out var levelProgress) && levelProgress != null) {
+                    int oldBestTime = levelProgress.BestTime;
+                    bestTimeToShow = Mathf.Max(levelProgress.BestTime, remainingSeconds);
+                    
+                    if (remainingSeconds > oldBestTime) {
+                        levelProgress.BestTime = remainingSeconds;
+                        LevelManager.Instance.WriteSaveData(saveData);
+                    }
                 }
             }
             SetTMP(bestTimeValue, bestTimeToShow.ToString());

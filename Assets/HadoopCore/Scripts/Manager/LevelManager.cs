@@ -58,6 +58,22 @@ namespace HadoopCore.Scripts.Manager {
             return SaveSystem.LoadOrCreate();
         }
 
+        /// <summary>
+        /// 将存档数据写入到磁盘
+        /// </summary>
+        /// <param name="saveData">要保存的数据</param>
+        public void WriteSaveData(GameSaveData saveData) {
+            SaveSystem.Save(saveData);
+        }
+        
+        /// <summary>
+        /// 获取当前场景的名字
+        /// </summary>
+        /// <returns>当前活动场景的名称</returns>
+        public string GetCurrentSceneName() {
+            return SceneManager.GetActiveScene().name;
+        }
+
         
         void OnDestroy() {
             // 只有当这是真正的单例实例时，才需要清理事件订阅
@@ -163,14 +179,6 @@ namespace HadoopCore.Scripts.Manager {
             if (playerTf != null && Camera.main != null) {
                 transitionUIComponent.OpenFromWorld(playerTf.position, Camera.main, 1f);
             }
-        }
-
-        /// <summary>
-        /// 获取当前场景的名字
-        /// </summary>
-        /// <returns>当前活动场景的名称</returns>
-        private string GetCurrentSceneName() {
-            return SceneManager.GetActiveScene().name;
         }
     }
 }

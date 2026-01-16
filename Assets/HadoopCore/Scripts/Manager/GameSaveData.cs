@@ -59,6 +59,6 @@ namespace HadoopCore.Scripts.Manager {
 
         [JsonProperty("bestStars")] public int BestStars { get; set; } = 0;
 
-        [JsonProperty("bestTime")] public int BestTime { get; set; } = 60;
+        [JsonProperty("bestTime")] public int BestTime { get; set; } = 0;
     }
 }

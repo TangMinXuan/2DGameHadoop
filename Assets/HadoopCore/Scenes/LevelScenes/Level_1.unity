@@ -139,6 +139,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: UIRootCanvas
       objectReference: {fileID: 0}
+    - target: {fileID: 4295057666977905462, guid: 40dd006ce970d4a67a1a69d7d0473169, type: 3}
+      propertyPath: m_text
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5160564727978744021, guid: 40dd006ce970d4a67a1a69d7d0473169, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -397,7 +401,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4548086217327835012, guid: 706a608a90467485696f3690c75f31e2, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6094847888541951735, guid: 706a608a90467485696f3690c75f31e2, type: 3}
       propertyPath: m_Size.y
@@ -526,7 +530,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4548086217327835012, guid: 706a608a90467485696f3690c75f31e2, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6094847888541951735, guid: 706a608a90467485696f3690c75f31e2, type: 3}
       propertyPath: m_Size.y
