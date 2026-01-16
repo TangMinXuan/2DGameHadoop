@@ -57,10 +57,8 @@ namespace HadoopCore.Scripts.Manager {
     public sealed class LevelProgress {
         [JsonProperty("unlocked")] public bool Unlocked { get; set; } = false;
 
-        [JsonProperty("stars")] public int Stars { get; set; } = 0;
+        [JsonProperty("bestStars")] public int BestStars { get; set; } = 0;
 
-        [JsonProperty("bestTimeMs")] public long BestTimeMs { get; set; } = -1; // -1 = 未记录
-
-        [JsonProperty("bestScore")] public int BestScore { get; set; } = 0;
+        [JsonProperty("bestTime")] public int BestTime { get; set; } = 60;
     }
 }

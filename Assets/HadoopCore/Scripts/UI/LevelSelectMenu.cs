@@ -45,7 +45,7 @@ namespace HadoopCore.Scripts.UI {
                 
                 // Check if level is unlocked
                 bool isUnlocked = saveData.Levels.ContainsKey(levelItem.name) && saveData.Levels[levelItem.name].Unlocked;
-                int stars = isUnlocked ? saveData.Levels[levelItem.name].Stars : 0;
+                int stars = isUnlocked ? saveData.Levels[levelItem.name].BestStars : 0;
                 
                 // Configure level item based on unlock status
                 ConfigureLevelItem(levelItem, isUnlocked, stars, levelItem.name);

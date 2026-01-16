@@ -38,6 +38,7 @@ namespace HadoopCore.Scripts.Manager {
             LevelEventCenter.OnGameRestart += GameRestart;
         }
         
+        // ===== Public API =====
         public void JumpToNextLevel() {
             string currentSceneName = GetCurrentSceneName();
             int currentLevelNumber = int.Parse(currentSceneName.Split('_')[1]);
@@ -57,6 +58,7 @@ namespace HadoopCore.Scripts.Manager {
             return SaveSystem.LoadOrCreate();
         }
 
+        
         void OnDestroy() {
             // 只有当这是真正的单例实例时，才需要清理事件订阅
             // 如果是重复实例，在Awake中就return了，事件根本没订阅
@@ -148,7 +150,6 @@ namespace HadoopCore.Scripts.Manager {
         /// </summary>
         private void PlayOpeningTransition() {
             if (transitionUI == null || player == null) {
-                Debug.LogWarning("[LevelManager] Cannot play opening transition: TransitionUI or Player not found.");
                 return;
             }
 

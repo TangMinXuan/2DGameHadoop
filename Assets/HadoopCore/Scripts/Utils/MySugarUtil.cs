@@ -66,9 +66,6 @@ namespace HadoopCore.Scripts.Utils {
                         if (found != null) {
                             field.SetValue(target, found);
                         }
-                        else {
-                            Debug.LogWarning($"[AutoFindObjects] 未找到: {type.Name}.{field.Name} (查找名称: {objectName})");
-                        }
                     }
                 }
                 // 2. 处理 [Serializable] 引用类(如 XXXRefs)

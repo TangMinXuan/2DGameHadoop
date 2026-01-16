@@ -135,14 +135,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1391999441}
     m_Modifications:
-    - target: {fileID: 858661751317591965, guid: 40dd006ce970d4a67a1a69d7d0473169, type: 3}
-      propertyPath: cameraRig
-      value: 
-      objectReference: {fileID: 2024553090}
-    - target: {fileID: 858661751317591965, guid: 40dd006ce970d4a67a1a69d7d0473169, type: 3}
-      propertyPath: levelManager
-      value: 
-      objectReference: {fileID: 1059288692}
     - target: {fileID: 4278656511887785166, guid: 40dd006ce970d4a67a1a69d7d0473169, type: 3}
       propertyPath: m_Name
       value: UIRootCanvas
@@ -227,14 +219,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 6473482600648567373, guid: 40dd006ce970d4a67a1a69d7d0473169, type: 3}
-      propertyPath: levelManager
-      value: 
-      objectReference: {fileID: 1059288692}
-    - target: {fileID: 6810683776785054968, guid: 40dd006ce970d4a67a1a69d7d0473169, type: 3}
-      propertyPath: cameraRig
-      value: 
-      objectReference: {fileID: 2024553090}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -302,11 +286,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1b94d84e50e9a4b19bf500284d0a7a95, type: 3}
---- !u!1 &1059288692 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7859965303661390640, guid: 4ed298d787abd4e33b8fbaa7b52e9a9e, type: 3}
-  m_PrefabInstance: {fileID: 5063446802959963142}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1097625006
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -427,6 +406,10 @@ PrefabInstance:
     - target: {fileID: 6094847888541951735, guid: 706a608a90467485696f3690c75f31e2, type: 3}
       propertyPath: m_Offset.y
       value: 13.940243
+      objectReference: {fileID: 0}
+    - target: {fileID: 7605089416267053677, guid: 706a608a90467485696f3690c75f31e2, type: 3}
+      propertyPath: m_Size.y
+      value: 40
       objectReference: {fileID: 0}
     - target: {fileID: 8820890977635722424, guid: 706a608a90467485696f3690c75f31e2, type: 3}
       propertyPath: m_LocalPosition.x
@@ -552,6 +535,10 @@ PrefabInstance:
     - target: {fileID: 6094847888541951735, guid: 706a608a90467485696f3690c75f31e2, type: 3}
       propertyPath: m_Offset.y
       value: 13.857422
+      objectReference: {fileID: 0}
+    - target: {fileID: 7605089416267053677, guid: 706a608a90467485696f3690c75f31e2, type: 3}
+      propertyPath: m_Size.y
+      value: 40
       objectReference: {fileID: 0}
     - target: {fileID: 8820890977635722424, guid: 706a608a90467485696f3690c75f31e2, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1481,11 +1468,6 @@ Tilemap:
 Transform:
   m_CorrespondingSourceObject: {fileID: 3433471183308629380, guid: 70dbb3fbbb49b4bafacb50ad1fd68e6e, type: 3}
   m_PrefabInstance: {fileID: 2726394215704862470}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &2024553090 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5593382341253464632, guid: df0a509af53e447e0b2e43e09ce14041, type: 3}
-  m_PrefabInstance: {fileID: 1799380808}
   m_PrefabAsset: {fileID: 0}
 --- !u!108 &677505210366843811
 Light:

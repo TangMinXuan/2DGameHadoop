@@ -109,7 +109,7 @@ public static class SaveSystem
         data.SetSetting("language", "en");
 
         // 默认关卡：例如 Level_1 解锁
-        data.Levels["Level_1"] = new LevelProgress { Unlocked = true, Stars = 0 };
+        data.Levels["Level_1"] = new LevelProgress { Unlocked = true, BestStars = 0 };
 
         // extra：你想预留也可以不写任何东西
         // data.SetExtra("somethingFuture", new { a = 1, b = "x" });

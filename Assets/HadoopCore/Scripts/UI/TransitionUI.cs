@@ -43,27 +43,27 @@ namespace HadoopCore.Scripts.UI {
 
         // ---------- Public API ----------
 
-        public void CloseFromWorld(Vector3 worldPos, Camera worldCamera, float duration, Action onComplete = null) {
+        public Tween CloseFromWorld(Vector3 worldPos, Camera worldCamera, float duration, Action onComplete = null) {
             var uv = WorldToUV(worldPos, worldCamera);
-            CloseFromUV(uv, duration, onComplete);
+            return CloseFromUV(uv, duration, onComplete);
         }
 
-        public void OpenFromWorld(Vector3 worldPos, Camera worldCamera, float duration) {
+        public Tween OpenFromWorld(Vector3 worldPos, Camera worldCamera, float duration) {
             var uv = WorldToUV(worldPos, worldCamera);
-            OpenFromUV(uv, duration);
+            return OpenFromUV(uv, duration);
         }
 
-        public void CloseFromRect(RectTransform rect, Camera uiCamera, float duration, Action onComplete = null) {
+        public Tween CloseFromRect(RectTransform rect, Camera uiCamera, float duration, Action onComplete = null) {
             var uv = RectToUV(rect, uiCamera);
-            CloseFromUV(uv, duration, onComplete);
+            return CloseFromUV(uv, duration, onComplete);
         }
 
-        public void OpenFromRect(RectTransform rect, Camera uiCamera, float duration) {
+        public Tween OpenFromRect(RectTransform rect, Camera uiCamera, float duration) {
             var uv = RectToUV(rect, uiCamera);
-            OpenFromUV(uv, duration);
+            return OpenFromUV(uv, duration);
         }
 
-        public void CloseFromUV(Vector2 centerUV, float duration, Action onComplete = null) {
+        public Tween CloseFromUV(Vector2 centerUV, float duration, Action onComplete = null) {
             Prepare(centerUV);
             float radiusMax = ComputeRadiusMax(centerUV);
             SetRadius(radiusMax);
@@ -72,9 +72,10 @@ namespace HadoopCore.Scripts.UI {
                 .SetEase(Ease.OutQuart)
                 .SetUpdate(true)
                 .OnComplete(() => onComplete?.Invoke());
+            return _radiusTween;
         }
 
-        public void OpenFromUV(Vector2 centerUV, float duration) {
+        public Tween OpenFromUV(Vector2 centerUV, float duration) {
             Prepare(centerUV);
             float radiusMax = ComputeRadiusMax(centerUV);
             SetRadius(-1f);
@@ -83,6 +84,7 @@ namespace HadoopCore.Scripts.UI {
                 .SetUpdate(true)
                 .SetEase(Ease.Linear)
                 .OnComplete(() => SetOverlayVisible(false));
+            return _radiusTween;
         }
 
         // ---------- Helpers ----------

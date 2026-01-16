@@ -137,7 +137,8 @@ namespace HadoopCore.Scripts.UI {
 
         public void onExitBtnClick() {
             transitionUI.GetComponent<TransitionUI>()
-                .CloseFromRect(exitBtn.GetComponent<RectTransform>(), Camera.current, 1f);
+                .CloseFromRect(exitBtn.GetComponent<RectTransform>(), Camera.current, 1f)
+                .OnComplete(() => LevelManager.Instance.LoadScene("LevelSelectMenu"));
         }
 
         // Part1.1: 镜头拉近 
