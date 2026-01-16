@@ -44,6 +44,14 @@ namespace HadoopCore.Scripts.Manager {
             string nextSceneName = "Level_" + (currentLevelNumber + 1);
             LoadScene(nextSceneName);
         }
+        
+        public void JumpToLevel(string levelId) {
+            LoadScene("Level_" + levelId);
+        }
+
+        public GameSaveData GetSaveData() {
+            return SaveSystem.LoadOrCreate();
+        }
 
         void OnDestroy() {
             // 只有当这是真正的单例实例时，才需要清理事件订阅
