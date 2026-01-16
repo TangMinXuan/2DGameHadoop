@@ -45,8 +45,12 @@ namespace HadoopCore.Scripts.Manager {
             LoadScene(nextSceneName);
         }
         
-        public void JumpToLevel(string levelId) {
-            LoadScene("Level_" + levelId);
+        /// <summary>
+        /// 加载指定名称的场景
+        /// </summary>
+        /// <param name="sceneName">场景名称</param>
+        public void LoadScene(string sceneName) {
+            SceneManager.LoadScene(sceneName);
         }
 
         public GameSaveData GetSaveData() {
@@ -125,14 +129,6 @@ namespace HadoopCore.Scripts.Manager {
 
         private void GameSuccess() {
             Debug.Log("Game Success");
-        }
-
-        /// <summary>
-        /// 加载指定名称的场景
-        /// </summary>
-        /// <param name="sceneName">场景名称</param>
-        private void LoadScene(string sceneName) {
-            SceneManager.LoadScene(sceneName);
         }
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode) {

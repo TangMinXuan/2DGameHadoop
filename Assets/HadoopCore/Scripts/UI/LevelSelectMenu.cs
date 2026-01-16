@@ -5,11 +5,13 @@ using HadoopCore.Scripts.Utils;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
 
 namespace HadoopCore.Scripts.UI {
     public class LevelSelectMenu : MonoBehaviour {
         
         [SerializeField] private GameObject levelGridContainer;
+        [SerializeField] private GameObject startsValue;
         [SerializeField, DontNeedAutoFind] private GameObject levelItemPrefab;
         
         // Sprites for level item background
@@ -29,7 +31,9 @@ namespace HadoopCore.Scripts.UI {
         private void Start() {
             GameSaveData saveData = LevelManager.Instance.GetSaveData();
             
-            int totalLevels = 20;
+            startsValue.GetComponent<TMP_Text>().text = saveData.TotalStarts.ToString();
+                
+            int totalLevels = 20; // TODO 分页
             for (int i = 1; i <= totalLevels; i++) {
                 string levelId = i.ToString();
                 GameObject levelItem = Instantiate(levelItemPrefab, levelGridContainer.transform);
@@ -40,43 +44,58 @@ namespace HadoopCore.Scripts.UI {
                 levelNumberText.text = levelId;
                 
                 // Check if level is unlocked
-                bool isUnlocked = saveData.Levels.ContainsKey(levelId) && saveData.Levels[levelId].Unlocked;
-                int stars = isUnlocked ? saveData.Levels[levelId].Stars : 0;
+                bool isUnlocked = saveData.Levels.ContainsKey(levelItem.name) && saveData.Levels[levelItem.name].Unlocked;
+                int stars = isUnlocked ? saveData.Levels[levelItem.name].Stars : 0;
                 
                 // Configure level item based on unlock status
-                ConfigureLevelItem(levelItem, isUnlocked, stars, levelId);
+                ConfigureLevelItem(levelItem, isUnlocked, stars, levelItem.name);
                 
                 _levelItems.Add(levelItem);
             }
         }
 
-        private void ConfigureLevelItem(GameObject levelItem, bool isUnlocked, int stars, string levelId) {
+        private void ConfigureLevelItem(GameObject levelItem, bool isUnlocked, int stars, string level) {
             // Get references
             var bgImage = levelItem.transform.Find("Bg").GetComponent<Image>();
             var lockIcon = levelItem.transform.Find("LockIcon").gameObject;
             var starBar = levelItem.transform.Find("StarBar").gameObject;
-            var button = levelItem.transform.Find("Button").GetComponent<Button>();
+
+            // Button moved to root of LevelItem prefab
+            var button = levelItem.GetComponent<Button>();
+            var buttonGraphic = levelItem.GetComponent<Image>(); // transparent raycast surface
 
             if (isUnlocked) {
                 // Unlocked state
                 bgImage.sprite = bgUnlockSprite;
                 lockIcon.SetActive(false);
                 starBar.SetActive(true);
-                button.gameObject.SetActive(true);
-                button.interactable = true;
-                
+
+                if (buttonGraphic != null)
+                    buttonGraphic.raycastTarget = true;
+
+                if (button != null) {
+                    button.enabled = true;
+                    button.interactable = true;
+                    button.onClick.RemoveAllListeners();
+                    button.onClick.AddListener(() => PlayClickFeedbackAndEnterLevel(levelItem.transform, button, level));
+                }
+
                 // Configure stars (0-3)
                 ConfigureStars(starBar.transform, stars);
-                
-                // Setup button click
-                button.onClick.RemoveAllListeners();
-                button.onClick.AddListener(() => OnLevelButtonClicked(levelId));
             } else {
                 // Locked state
                 bgImage.sprite = bgLockSprite;
                 lockIcon.SetActive(true);
                 starBar.SetActive(false);
-                button.gameObject.SetActive(false);
+
+                if (button != null) {
+                    button.onClick.RemoveAllListeners();
+                    button.interactable = false;
+                    button.enabled = false;
+                }
+
+                if (buttonGraphic != null)
+                    buttonGraphic.raycastTarget = false;
             }
         }
 
@@ -91,14 +110,39 @@ namespace HadoopCore.Scripts.UI {
                 
                 var starImage = starTransform.GetComponent<Image>();
                 if (starImage != null) {
-                    // If star index <= earned stars, show filled; otherwise show empty
                     starImage.sprite = (i <= earnedStars) ? starFilledSprite : starEmptySprite;
                 }
             }
         }
 
-        public void OnLevelButtonClicked(string levelId) {
-            LevelManager.Instance.JumpToLevel(levelId);
+        private void PlayClickFeedbackAndEnterLevel(Transform levelItemTransform, Button button, string level)
+        {
+            if (levelItemTransform == null)
+            {
+                OnLevelButtonClicked(level);
+                return;
+            }
+
+            // Prevent double click during feedback
+            if (button != null)
+                button.interactable = false;
+
+            string tweenId = $"LevelItemClickScale_{levelItemTransform.GetInstanceID()}";
+            DOTween.Kill(tweenId);
+
+            levelItemTransform.localScale = Vector3.one;
+
+            Sequence seq = DOTween.Sequence()
+                .SetId(tweenId)
+                .Append(levelItemTransform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
+                .Append(levelItemTransform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
+                .OnComplete(() => OnLevelButtonClicked(level));
+
+            seq.Play();
+        }
+
+        public void OnLevelButtonClicked(string level) {
+            LevelManager.Instance.LoadScene(level);
         }
     }
 }

@@ -11,7 +11,6 @@ namespace HadoopCore.Scripts.UI {
         [SerializeField] private GameObject transitionUI;
         [SerializeField] private GameObject nextLevelBtn;
         [SerializeField] private GameObject exitBtn;
-        [SerializeField] private GameObject levelManager;
         private CinemachineVirtualCamera _vCamGameplay;
         private CanvasGroup _canvasGroup;
         private Sequence _seq;
@@ -32,7 +31,7 @@ namespace HadoopCore.Scripts.UI {
         public void OnNextLevelBtnClick() {
             transitionUI.GetComponent<TransitionUI>()
                 .CloseFromRect(nextLevelBtn.GetComponent<RectTransform>(), Camera.current, 1f);
-            levelManager.GetComponent<LevelManager>().JumpToNextLevel();
+            LevelManager.Instance.JumpToNextLevel();
         }
 
         public void OnExitBtnClick() {
@@ -51,7 +50,7 @@ namespace HadoopCore.Scripts.UI {
 
 
         private Sequence TweenZoomIn(float orthographicSize) {
-            Vector2 playerPos = levelManager.GetComponent<LevelManager>().GetPlayerTransform().position;
+            Vector2 playerPos = LevelManager.Instance.GetPlayerTransform().position;
             return DOTween.Sequence()
                 .SetUpdate(true)
                 .Join(_vCamGameplay.transform.DOMove(new Vector3(playerPos.x, playerPos.y + 2, _vCamGameplay.transform.position.z), 

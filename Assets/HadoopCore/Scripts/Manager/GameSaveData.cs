@@ -9,6 +9,7 @@ namespace HadoopCore.Scripts.Manager {
         
         [JsonProperty("schemaVersion")] public int SchemaVersion { get; set; } = 1;
         [JsonProperty("version")] public string Version { get; set; } = "0.0.0";
+        [JsonProperty("totalStarts")] public int TotalStarts { get; set; } = 0;
         [JsonProperty("settings")] public Dictionary<string, JToken> Settings { get; set; } = new();
         [JsonProperty("levels")] public Dictionary<string, LevelProgress> Levels { get; set; } = new();
         [JsonProperty("extra")] public Dictionary<string, JToken> Extra { get; set; } = new();
