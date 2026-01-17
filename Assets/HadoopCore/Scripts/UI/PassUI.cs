@@ -68,11 +68,17 @@ namespace HadoopCore.Scripts.UI {
             RefreshContent();
 
             UIUtil.SetUIVisible(_canvasGroup, true);
+            
             _seq = DOTween.Sequence()
                 .SetId("PassPresentation")
                 .SetUpdate(true);
             _seq.Join(TweenZoomIn(5f));
             _seq.InsertCallback(2f, () => { MenuDOTweenAnimation.DOPlay(); });
+            _seq.Insert(3f, TweenStarsEnter(new[] {
+                start_1.GetComponent<RectTransform>(),
+                start_2.GetComponent<RectTransform>(),
+                start_3.GetComponent<RectTransform>()
+            }));
         }
 
         private void RefreshContent() {
@@ -121,20 +127,19 @@ namespace HadoopCore.Scripts.UI {
         }
 
         private void ApplyStars(int stars) {
-            ApplyStar(start_1, 1 <= stars);
-            ApplyStar(start_2, 2 <= stars);
-            ApplyStar(start_3, 3 <= stars);
-        }
-
-        private void ApplyStar(GameObject starObj, bool filled) {
-            if (starObj == null) return;
-            var img = starObj.GetComponent<Image>();
-            if (img == null) return;
-
             // User will assign sprites later; keep current sprite if missing.
             if (start == null || unstart == null) return;
-
-            img.sprite = filled ? start : unstart;
+            
+            ApplyStarToGameObject(start_1, 1 <= stars);
+            ApplyStarToGameObject(start_2, 2 <= stars);
+            ApplyStarToGameObject(start_3, 3 <= stars);
+            
+            void ApplyStarToGameObject(GameObject starObj, bool filled) {
+                if (starObj == null) return;
+                var img = starObj.GetComponent<Image>();
+                if (img == null) return;
+                img.sprite = filled ? start : unstart;
+            }
         }
 
         private static void SetTMP(GameObject go, string text) {
@@ -158,6 +163,24 @@ namespace HadoopCore.Scripts.UI {
                     1f)
                     .SetEase(Ease.OutBack));
         }
+        
+        private Sequence TweenStarsEnter(RectTransform[] stars) {
+            const float dur = 0.45f;
+            const float stagger = 0.12f;
+
+            var root = DOTween.Sequence()
+                .SetUpdate(true);
+
+            for (int i = 0; i < stars.Length; i++) {
+                RectTransform rt = stars[i];
+                rt.localScale = Vector3.zero;
+                float startTime = i * stagger;
+                root.Insert(startTime, rt.DOScale(Vector3.one, dur).SetEase(Ease.OutBack));
+            }
+
+            return root;
+        }
+        
 
         private void OnDisable() {
             if (_seq != null && _seq.IsActive()) {
