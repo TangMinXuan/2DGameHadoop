@@ -111,9 +111,6 @@ public static class SaveSystem
         // 默认关卡：例如 Level_1 解锁
         data.Levels["Level_1"] = new LevelProgress { Unlocked = true, BestStars = 0 };
 
-        // extra：你想预留也可以不写任何东西
-        // data.SetExtra("somethingFuture", new { a = 1, b = "x" });
-
         return data;
     }
 }

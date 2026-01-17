@@ -77,33 +77,43 @@ namespace HadoopCore.Scripts.UI {
 
         private void RefreshContent() {
             int remainingSeconds = _inGameUI != null ? _inGameUI.GetRemainingSeconds() : 0;
-
+            var saveData = LevelManager.Instance.GetSaveData();
+            if (saveData == null) {
+                SetTMP(timeValue, remainingSeconds.ToString());
+                SetTMP(bestTimeValue, remainingSeconds.ToString());
+                ApplyStars(CalculateStars(remainingSeconds));
+            }
+            saveData.Levels.TryGetValue(LevelManager.Instance.GetCurrentSceneName(), out var levelProgress);
+            levelProgress ??= new LevelProgress().WithUnlocked(true);
+            
             // 1) TimeRemain
             SetTMP(timeValue, remainingSeconds.ToString());
 
             // 2) BestTimeRemain
-            int bestTimeToShow = remainingSeconds;
-            var saveData = LevelManager.Instance != null ? LevelManager.Instance.GetSaveData() : null;
-            if (saveData != null) {
-                string levelName = LevelManager.Instance.GetCurrentSceneName();
-                if (saveData.Levels != null && saveData.Levels.TryGetValue(levelName, out var levelProgress) && levelProgress != null) {
-                    int oldBestTime = levelProgress.BestTime;
-                    bestTimeToShow = Mathf.Max(levelProgress.BestTime, remainingSeconds);
-                    
-                    if (remainingSeconds > oldBestTime) {
-                        levelProgress.BestTime = remainingSeconds;
-                        LevelManager.Instance.WriteSaveData(saveData);
-                    }
-                }
-            }
+            int bestTimeToShow = Mathf.Max(levelProgress.BestTime, remainingSeconds);
             SetTMP(bestTimeValue, bestTimeToShow.ToString());
 
             // 3) Stars
-            int stars = CalculateStarsByRemainingSeconds(remainingSeconds);
+            int stars = CalculateStars(remainingSeconds);
             ApplyStars(stars);
+            
+            // 4) Update Save Data
+            bool isUpdated = false;
+            if (remainingSeconds > levelProgress.BestTime) {
+                levelProgress.BestTime = remainingSeconds;
+                isUpdated = true;
+            }
+            if (stars > levelProgress.BestStars) {
+                levelProgress.BestStars = stars;
+                isUpdated = true;
+            }
+            if (isUpdated) {
+                saveData.Levels[LevelManager.Instance.GetCurrentSceneName()] = levelProgress;
+                saveData.UpdateTotalStars();
+            }
         }
 
-        private static int CalculateStarsByRemainingSeconds(int remainingSeconds) {
+        private static int CalculateStars(int remainingSeconds) {
             if (remainingSeconds >= 55) return 3;
             if (remainingSeconds >= 50) return 2;
             if (remainingSeconds >= 30) return 1;

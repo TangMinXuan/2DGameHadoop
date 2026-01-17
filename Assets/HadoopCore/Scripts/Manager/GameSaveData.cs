@@ -51,6 +51,34 @@ namespace HadoopCore.Scripts.Manager {
                 return defaultValue;
             }
         }
+
+        // -----------------------
+        // 便捷方法：TotalStars & Save
+        // -----------------------
+        /// <summary>
+        /// 计算并更新总星数，如果比当前值大则更新
+        /// </summary>
+        /// <returns>是否更新了TotalStarts</returns>
+        public void UpdateTotalStars() {
+            int newTotal = 0;
+            foreach (var level in Levels.Values) {
+                if (level != null) {
+                    newTotal += level.BestStars;
+                }
+            }
+            
+            if (newTotal > TotalStarts) {
+                TotalStarts = newTotal;
+                Save();
+            }
+        }
+
+        /// <summary>
+        /// 将当前存档数据保存到磁盘
+        /// </summary>
+        private void Save() {
+            SaveSystem.Save(this);
+        }
     }
 
     [Serializable]
@@ -60,5 +88,20 @@ namespace HadoopCore.Scripts.Manager {
         [JsonProperty("bestStars")] public int BestStars { get; set; } = 0;
 
         [JsonProperty("bestTime")] public int BestTime { get; set; } = 0;
+        
+        public LevelProgress WithUnlocked(bool unlocked) {
+            Unlocked = unlocked;
+            return this;
+        }
+
+        public LevelProgress WithBestStars(int bestStars) {
+            BestStars = bestStars;
+            return this;
+        }
+
+        public LevelProgress WithBestTime(int bestTime) {
+            BestTime = bestTime;
+            return this;
+        }
     }
 }

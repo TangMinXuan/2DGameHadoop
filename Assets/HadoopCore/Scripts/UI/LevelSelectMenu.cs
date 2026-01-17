@@ -31,9 +31,16 @@ namespace HadoopCore.Scripts.UI {
         private void Start() {
             GameSaveData saveData = LevelManager.Instance.GetSaveData();
             
+            // 1) 右上角的星星数量
+            saveData.UpdateTotalStars();
             startsValue.GetComponent<TMP_Text>().text = saveData.TotalStarts.ToString();
-                
-            int totalLevels = 20; // TODO 分页
+            
+            /**
+             * TODO:
+             * 1. 分页
+             * 2. 根据星星总数解锁关卡
+             */
+            int totalLevels = 20; 
             for (int i = 1; i <= totalLevels; i++) {
                 string levelId = i.ToString();
                 GameObject levelItem = Instantiate(levelItemPrefab, levelGridContainer.transform);

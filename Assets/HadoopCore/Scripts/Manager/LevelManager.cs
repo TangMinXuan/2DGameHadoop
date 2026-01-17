@@ -57,14 +57,6 @@ namespace HadoopCore.Scripts.Manager {
         public GameSaveData GetSaveData() {
             return SaveSystem.LoadOrCreate();
         }
-
-        /// <summary>
-        /// 将存档数据写入到磁盘
-        /// </summary>
-        /// <param name="saveData">要保存的数据</param>
-        public void WriteSaveData(GameSaveData saveData) {
-            SaveSystem.Save(saveData);
-        }
         
         /// <summary>
         /// 获取当前场景的名字
