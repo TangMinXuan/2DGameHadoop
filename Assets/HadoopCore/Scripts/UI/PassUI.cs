@@ -1,3 +1,4 @@
+using System;
 using Cinemachine;
 using DG.Tweening;
 using HadoopCore.Scripts.Manager;
@@ -27,7 +28,6 @@ namespace HadoopCore.Scripts.UI {
 
         [Header("Star Sprites")]
         [SerializeField] private Sprite start;
-        [SerializeField] private Sprite unstart;
 
         private InGameUI _inGameUI;
         private CinemachineVirtualCamera _vCamGameplay;
@@ -35,6 +35,7 @@ namespace HadoopCore.Scripts.UI {
         private Sequence _seq;
         private float _initialOrthographicSize = 8f;
         private DOTweenAnimation MenuDOTweenAnimation;
+        private int _start = 0;
 
         private void Awake() {
             MySugarUtil.AutoFindObjects(this, gameObject);
@@ -50,6 +51,13 @@ namespace HadoopCore.Scripts.UI {
 
             LevelEventCenter.OnGameSuccess += GameSuccess;
             UIUtil.SetUIVisible(_canvasGroup, false);
+        }
+
+        private void Start() {
+            // TODO 测试用
+            DOVirtual.DelayedCall(40f, () => {
+                LevelEventCenter.TriggerGameSuccess();
+            }).SetUpdate(true);
         }
 
         public void OnNextLevelBtnClick() {
@@ -73,12 +81,14 @@ namespace HadoopCore.Scripts.UI {
                 .SetId("PassPresentation")
                 .SetUpdate(true);
             _seq.Join(TweenZoomIn(5f));
-            _seq.InsertCallback(2f, () => { MenuDOTweenAnimation.DOPlay(); });
-            _seq.Insert(3f, TweenStarsEnter(new[] {
-                start_1.GetComponent<RectTransform>(),
-                start_2.GetComponent<RectTransform>(),
-                start_3.GetComponent<RectTransform>()
-            }));
+            _seq.Insert(2f, MenuDOTweenAnimation.GetTweens()[0]);
+            
+            RectTransform[] starsToAnimate = new RectTransform[_start];
+            if (_start >= 1 && start_1 != null) starsToAnimate[0] = start_1.GetComponent<RectTransform>();
+            if (_start >= 2 && start_2 != null) starsToAnimate[1] = start_2.GetComponent<RectTransform>();
+            if (_start >= 3 && start_3 != null) starsToAnimate[2] = start_3.GetComponent<RectTransform>();
+            
+            _seq.Insert(3f, TweenStarsEnter(starsToAnimate));
         }
 
         private void RefreshContent() {
@@ -87,7 +97,8 @@ namespace HadoopCore.Scripts.UI {
             if (saveData == null) {
                 SetTMP(timeValue, remainingSeconds.ToString());
                 SetTMP(bestTimeValue, remainingSeconds.ToString());
-                ApplyStars(CalculateStars(remainingSeconds));
+                _start = CalculateStars(remainingSeconds);
+                ApplyStars(_start);
             }
             saveData.Levels.TryGetValue(LevelManager.Instance.GetCurrentSceneName(), out var levelProgress);
             levelProgress ??= new LevelProgress().WithUnlocked(true);
@@ -100,8 +111,8 @@ namespace HadoopCore.Scripts.UI {
             SetTMP(bestTimeValue, bestTimeToShow.ToString());
 
             // 3) Stars
-            int stars = CalculateStars(remainingSeconds);
-            ApplyStars(stars);
+            _start = CalculateStars(remainingSeconds);
+            ApplyStars(_start);
             
             // 4) Update Save Data
             bool isUpdated = false;
@@ -109,8 +120,8 @@ namespace HadoopCore.Scripts.UI {
                 levelProgress.BestTime = remainingSeconds;
                 isUpdated = true;
             }
-            if (stars > levelProgress.BestStars) {
-                levelProgress.BestStars = stars;
+            if (_start > levelProgress.BestStars) {
+                levelProgress.BestStars = _start;
                 isUpdated = true;
             }
             if (isUpdated) {
@@ -127,18 +138,21 @@ namespace HadoopCore.Scripts.UI {
         }
 
         private void ApplyStars(int stars) {
-            // User will assign sprites later; keep current sprite if missing.
-            if (start == null || unstart == null) return;
+            if (start == null) return;
             
-            ApplyStarToGameObject(start_1, 1 <= stars);
-            ApplyStarToGameObject(start_2, 2 <= stars);
-            ApplyStarToGameObject(start_3, 3 <= stars);
+            if (stars >= 1 && start_1 != null) {
+                var img1 = start_1.GetComponent<Image>();
+                if (img1 != null) img1.sprite = start;
+            }
             
-            void ApplyStarToGameObject(GameObject starObj, bool filled) {
-                if (starObj == null) return;
-                var img = starObj.GetComponent<Image>();
-                if (img == null) return;
-                img.sprite = filled ? start : unstart;
+            if (stars >= 2 && start_2 != null) {
+                var img2 = start_2.GetComponent<Image>();
+                if (img2 != null) img2.sprite = start;
+            }
+            
+            if (stars >= 3 && start_3 != null) {
+                var img3 = start_3.GetComponent<Image>();
+                if (img3 != null) img3.sprite = start;
             }
         }
 
