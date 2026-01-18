@@ -4,8 +4,17 @@ using UnityEngine;
 
 namespace HadoopCore.Scripts.UI {
     public class InGameUI : MonoBehaviour {
+        // 预先缓存 0-60 的字符串，完全避免 GC 分配
+        private static readonly string[] CachedSecondsStrings = new string[61];
+        
+        static InGameUI() {
+            for (int i = 0; i <= 60; i++) {
+                CachedSecondsStrings[i] = i.ToString();
+            }
+        }
+        
         [Header("Config")]
-        [SerializeField] private int startSeconds = 60;
+        [SerializeField] private float startSeconds = 60f;
 
         [Header("Refs")]
         [SerializeField] private TMP_Text countdownTMP;
@@ -13,6 +22,7 @@ namespace HadoopCore.Scripts.UI {
         private float _remainingSeconds;
         private bool _isPaused;
         private bool _isStopped;
+        private int _lastDisplayedSeconds = -1; // 缓存上一次显示的秒数，避免重复更新
 
         private void Awake() {
             if (countdownTMP == null) {
@@ -59,7 +69,19 @@ namespace HadoopCore.Scripts.UI {
             }
 
             int secondsInt = Mathf.CeilToInt(_remainingSeconds);
-            countdownTMP.text = secondsInt.ToString();
+            
+            // 只在秒数实际变化时才更新文本，避免频繁的字符串分配和 TMP 重新排版
+            if (secondsInt != _lastDisplayedSeconds) {
+                _lastDisplayedSeconds = secondsInt;
+                
+                // 使用预先缓存的字符串，完全避免 GC 分配
+                if (secondsInt >= 0 && secondsInt < CachedSecondsStrings.Length) {
+                    countdownTMP.text = CachedSecondsStrings[secondsInt];
+                } else {
+                    // 防御性代码：超出范围时降级为 ToString()
+                    countdownTMP.text = secondsInt.ToString();
+                }
+            }
         }
 
         private void ResetSecondsToStart() {
@@ -71,8 +93,8 @@ namespace HadoopCore.Scripts.UI {
 
         // ===== Public API =====
 
-        public int GetRemainingSeconds() {
-            return Mathf.CeilToInt(_remainingSeconds);
+        public float GetRemainingSeconds() {
+            return _remainingSeconds;
         }
 
         public void ResetSecondsTo60() {

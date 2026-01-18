@@ -87,7 +87,7 @@ namespace HadoopCore.Scripts.Manager {
 
         [JsonProperty("bestStars")] public int BestStars { get; set; } = 0;
 
-        [JsonProperty("bestTime")] public int BestTime { get; set; } = 0;
+        [JsonProperty("bestTime")] public float BestTime { get; set; } = 0;
         
         public LevelProgress WithUnlocked(bool unlocked) {
             Unlocked = unlocked;
@@ -99,7 +99,7 @@ namespace HadoopCore.Scripts.Manager {
             return this;
         }
 
-        public LevelProgress WithBestTime(int bestTime) {
+        public LevelProgress WithBestTime(float bestTime) {
             BestTime = bestTime;
             return this;
         }
