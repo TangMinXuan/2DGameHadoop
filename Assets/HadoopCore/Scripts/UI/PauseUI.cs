@@ -21,6 +21,7 @@ namespace HadoopCore.Scripts.UI {
         [SerializeField] private GameObject transitionUI;
         [SerializeField] private MenuRefs menuRefs;
         private CanvasGroup _canvasGroup;
+        private Vector2 _screenLeft, _screenCenter, _screenRight;
         
         private void Awake() {
             MySugarUtil.AutoFindObjects(this, gameObject);
@@ -38,16 +39,22 @@ namespace HadoopCore.Scripts.UI {
             menuRefs.menuAnimIn = Array.Find(anims, a => a.id == "Menu_In");
             menuRefs.menuAnimOut = Array.Find(anims, a => a.id == "Menu_Out");
 
+            LevelManager.Instance.CalculateHorizontalSlidePositions(menuRefs.obj.GetComponent<RectTransform>(), 
+                out _screenLeft, out _screenCenter, out _screenRight);
+            menuRefs.obj.GetComponent<RectTransform>().anchoredPosition = _screenLeft;
+            
             if (menuRefs.menuAnimIn != null) {
                 menuRefs.menuAnimIn.autoKill = false;
                 menuRefs.menuAnimIn.CreateTween(true, false);
-                menuRefs.menuAnimIn.tween?.OnStart(() => { menuRefs.obj.transform.localPosition = Vector3.zero; });
+                menuRefs.menuAnimIn.endValueV2 = _screenCenter;
+                menuRefs.menuAnimIn.tween?.OnStart(() => { menuRefs.obj.GetComponent<RectTransform>().anchoredPosition = _screenLeft; });
             }
             
             if (menuRefs.menuAnimOut != null) {
                 menuRefs.menuAnimOut.autoKill = false;
                 menuRefs.menuAnimOut.CreateTween(true, false);
-                menuRefs.menuAnimOut.tween?.OnStart(() => { menuRefs.obj.transform.localPosition = Vector3.zero; });
+                menuRefs.menuAnimIn.endValueV2 = _screenRight;
+                menuRefs.menuAnimOut.tween?.OnStart(() => { menuRefs.obj.GetComponent<RectTransform>().anchoredPosition = _screenCenter; });
                 menuRefs.menuAnimOut.tween?.OnComplete(() => { UIUtil.SetUIVisible(_canvasGroup, false); });
             }
 

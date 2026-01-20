@@ -66,6 +66,45 @@ namespace HadoopCore.Scripts.Manager {
             return SceneManager.GetActiveScene().name;
         }
 
+        public void CalculateHorizontalSlidePositions(
+            RectTransform panel,
+            out Vector2 offscreenLeft,
+            out Vector2 center,
+            out Vector2 offscreenRight,
+            float extraMargin = 10f // 可选：多推出去一点，防止边缘露出
+        ) {
+            // 确保 Canvas 已经完成布局
+            Canvas.ForceUpdateCanvases();
+
+            // 1. 中心位置
+            center = Vector2.zero;
+
+            // 2. 屏幕宽度（UI 像素坐标）
+            float screenWidth = Screen.width;
+
+            // 3. 面板宽度（已经是当前分辨率下的真实像素）
+            float panelWidth = panel.rect.width;
+
+            // 4. pivot 修正
+            float pivotX = panel.pivot.x;
+
+            // pivot = 0   → 左对齐
+            // pivot = 0.5 → 居中
+            // pivot = 1   → 右对齐
+
+            // 5. 计算三个位置
+            offscreenLeft = new Vector2(
+                -screenWidth * 0.5f - panelWidth * (1f - pivotX) - extraMargin,
+                center.y
+            );
+
+            offscreenRight = new Vector2(
+                screenWidth * 0.5f + panelWidth * pivotX + extraMargin,
+                center.y
+            );
+        }
+
+
         
         void OnDestroy() {
             // 只有当这是真正的单例实例时，才需要清理事件订阅

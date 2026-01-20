@@ -14,7 +14,8 @@ namespace HadoopCore.Scripts.UI {
         [SerializeField] private GameObject nextLevelBtn;
         [SerializeField] private GameObject exitBtn;
 
-        [Header("Content Refs")]
+        [Header("Content Refs")] 
+        [SerializeField] private GameObject menu;
         [SerializeField] private GameObject inGameUI;
         [SerializeField] private GameObject timeValue;
         [SerializeField] private GameObject bestTimeValue;
@@ -34,6 +35,7 @@ namespace HadoopCore.Scripts.UI {
         private int _start = 0;
         private float _timeVal = 0f;
         private float _bestTimeVal = 0f;
+        private Vector2 _screenLeft, _screenCenter, _screenRight;
 
         private void Awake() {
             MySugarUtil.AutoFindObjects(this, gameObject);
@@ -49,6 +51,10 @@ namespace HadoopCore.Scripts.UI {
 
             LevelEventCenter.OnGameSuccess += GameSuccess;
             UIUtil.SetUIVisible(_canvasGroup, false);
+            
+            LevelManager.Instance.CalculateHorizontalSlidePositions(menu.GetComponent<RectTransform>(), 
+                out _screenLeft, out _screenCenter, out _screenRight);
+            menu.GetComponent<RectTransform>().anchoredPosition = _screenLeft;
         }
 
         private void Start() {
