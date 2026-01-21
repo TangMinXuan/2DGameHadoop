@@ -8,25 +8,24 @@ using UnityEngine.UI;
 
 namespace HadoopCore.Scripts.UI {
     public class PassUI : MonoBehaviour {
-        [Header("Scene Refs")]
+        [Header("External Refs")]
         [SerializeField] private GameObject cameraRig;
         [SerializeField] private GameObject transitionUI;
-        [SerializeField] private GameObject nextLevelBtn;
-        [SerializeField] private GameObject exitBtn;
+        [SerializeField] private GameObject CountdownBar;
 
-        [Header("Content Refs")] 
+        [Header("Internal Refs")] 
         [SerializeField] private GameObject menu;
-        [SerializeField] private GameObject inGameUI;
         [SerializeField] private GameObject timeValue;
         [SerializeField] private GameObject bestTimeValue;
         [SerializeField] private GameObject start_1;
         [SerializeField] private GameObject start_2;
         [SerializeField] private GameObject start_3;
+        [SerializeField] private GameObject nextLevelBtn;
+        [SerializeField] private GameObject exitBtn;
 
         [Header("Star Sprites")]
         [SerializeField] private Sprite start;
 
-        private InGameUI _inGameUI;
         private CinemachineVirtualCamera _vCamGameplay;
         private CanvasGroup _canvasGroup;
         private Sequence _seq;
@@ -44,10 +43,6 @@ namespace HadoopCore.Scripts.UI {
             _vCamGameplay = cameraRig.GetComponentInChildren<CinemachineVirtualCamera>();
             _initialOrthographicSize = _vCamGameplay.m_Lens.OrthographicSize;
             MenuDOTweenAnimation = MySugarUtil.TryToFindComponent(gameObject, "Menu", MenuDOTweenAnimation);
-
-            if (inGameUI != null) {
-                _inGameUI = inGameUI.GetComponent<InGameUI>();
-            }
 
             LevelEventCenter.OnGameSuccess += GameSuccess;
             UIUtil.SetUIVisible(_canvasGroup, false);
@@ -93,7 +88,7 @@ namespace HadoopCore.Scripts.UI {
         }
 
         private void RefreshContent() {
-            float remainingSeconds = _inGameUI != null ? _inGameUI.GetRemainingSeconds() : 0;
+            float remainingSeconds = CountdownBar.GetComponent<CountdownBar>().GetRemainingSeconds();
             var saveData = LevelManager.Instance.GetSaveData();
             if (saveData == null) {
                 _timeVal = remainingSeconds;

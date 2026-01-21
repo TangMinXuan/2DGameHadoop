@@ -1,9 +1,13 @@
+using System;
 using HadoopCore.Scripts.Manager;
+using HadoopCore.Scripts.Utils;
 using TMPro;
 using UnityEngine;
 
 namespace HadoopCore.Scripts.UI {
     public class InGameUI : MonoBehaviour {
+        [SerializeField] private GameObject countDownBar;
+        
         // 预先缓存 0-60 的字符串，完全避免 GC 分配
         private static readonly string[] CachedSecondsStrings = new string[61];
         
@@ -25,6 +29,7 @@ namespace HadoopCore.Scripts.UI {
         private int _lastDisplayedSeconds = -1; // 缓存上一次显示的秒数，避免重复更新
 
         private void Awake() {
+            MySugarUtil.AutoFindObjects(this, gameObject);
             if (countdownTMP == null) {
                 countdownTMP = GetComponentInChildren<TMP_Text>(true);
             }
