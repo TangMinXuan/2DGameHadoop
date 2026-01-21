@@ -24,14 +24,11 @@ public class CountdownBar : MonoBehaviour {
     [Tooltip("Tick mark RectTransforms in order (Scale_1, Scale_2, Scale_3)")] [SerializeField]
     private RectTransform[] tickRects;
 
-    [Tooltip("Optional TextMeshPro text to display remaining seconds")] [SerializeField]
-    private TMP_Text countdownText;
-
     [Header("Countdown Settings")] [Tooltip("Total countdown duration in seconds")] [SerializeField]
     private float totalSeconds = 60f;
 
     [Tooltip("Threshold values in seconds (remaining time positions for tick marks)")] [SerializeField]
-    private float[] thresholds = { 20f, 40f, 50f };
+    public float[] thresholds = { 20f, 40f, 50f };
 
     [Tooltip("UI refresh interval in seconds (visual update cadence)")] [Range(0.1f, 1f)] [SerializeField]
     private float uiStepSeconds = 0.5f;
@@ -73,6 +70,7 @@ public class CountdownBar : MonoBehaviour {
     /// Current fill amount (0..1).
     /// </summary>
     public float FillAmount => gradientFillImage != null ? gradientFillImage.fillAmount : 0f;
+
 
     #endregion
 
@@ -174,11 +172,6 @@ public class CountdownBar : MonoBehaviour {
                     Debug.LogWarning($"[CountdownBarController] tickRects[{i}] is null on {gameObject.name}.", this);
                 }
             }
-        }
-
-        // countdownText is optional, no error if null
-        if (countdownText == null) {
-            Debug.Log($"[CountdownBarController] countdownText is not assigned. Text display will be skipped.", this);
         }
     }
 

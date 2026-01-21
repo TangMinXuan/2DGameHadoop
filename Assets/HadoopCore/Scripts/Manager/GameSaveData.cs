@@ -56,7 +56,7 @@ namespace HadoopCore.Scripts.Manager {
         // 便捷方法：TotalStars & Save
         // -----------------------
         /// <summary>
-        /// 计算并更新总星数，如果比当前值大则更新
+        /// 计算并更新总星数，如果比当前值大则更新.
         /// </summary>
         /// <returns>是否更新了TotalStarts</returns>
         public void UpdateTotalStars() {
@@ -76,7 +76,7 @@ namespace HadoopCore.Scripts.Manager {
         /// <summary>
         /// 将当前存档数据保存到磁盘
         /// </summary>
-        private void Save() {
+        public void Save() {
             SaveSystem.Save(this);
         }
     }
@@ -84,6 +84,8 @@ namespace HadoopCore.Scripts.Manager {
     [Serializable]
     public sealed class LevelProgress {
         [JsonProperty("unlocked")] public bool Unlocked { get; set; } = false;
+        
+        [JsonProperty("requiredStars")] public int RequiredStars { get; set; } = 999;
 
         [JsonProperty("bestStars")] public int BestStars { get; set; } = 0;
 
@@ -94,6 +96,11 @@ namespace HadoopCore.Scripts.Manager {
             return this;
         }
 
+        public LevelProgress WithRequiredStarts(int requiredStarts) {
+            RequiredStars = requiredStarts;
+            return this;
+        }
+        
         public LevelProgress WithBestStars(int bestStars) {
             BestStars = bestStars;
             return this;

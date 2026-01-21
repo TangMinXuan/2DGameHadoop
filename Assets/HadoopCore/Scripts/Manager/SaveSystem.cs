@@ -108,8 +108,45 @@ public static class SaveSystem
         data.SetSetting("sfxVolume", 0.8f);
         data.SetSetting("language", "en");
 
-        // 默认关卡：例如 Level_1 解锁
-        data.Levels["Level_1"] = new LevelProgress { Unlocked = true, BestStars = 0 };
+        // 初始化20个关卡
+        for (int i = 1; i <= 20; i++)
+        {
+            string levelName = $"Level_{i}";
+            int requiredStars;
+            bool unlocked;
+
+            // 前5关解锁，RequiredStars = 0
+            if (i <= 5)
+            {
+                unlocked = false;
+                requiredStars = 0;
+            }
+            // 第6-10关，RequiredStars = 10
+            else if (i <= 10)
+            {
+                unlocked = false;
+                requiredStars = 10;
+            }
+            // 第11-15关，RequiredStars = 20
+            else if (i <= 15)
+            {
+                unlocked = false;
+                requiredStars = 20;
+            }
+            // 第16-20关，RequiredStars = 30
+            else
+            {
+                unlocked = false;
+                requiredStars = 30;
+            }
+
+            data.Levels[levelName] = new LevelProgress {
+                Unlocked = unlocked,
+                BestStars = 0,
+                BestTime = 0,
+                RequiredStars = requiredStars
+            };
+        }
 
         return data;
     }

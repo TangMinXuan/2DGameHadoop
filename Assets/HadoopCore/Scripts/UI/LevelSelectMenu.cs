@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HadoopCore.Scripts.Annotation;
 using HadoopCore.Scripts.Manager;
@@ -11,7 +12,7 @@ namespace HadoopCore.Scripts.UI {
     public class LevelSelectMenu : MonoBehaviour {
         
         [SerializeField] private GameObject levelGridContainer;
-        [SerializeField] private GameObject startsValue;
+        [SerializeField] private GameObject starsValue;
         [SerializeField, DontNeedAutoFind] private GameObject levelItemPrefab;
         
         // Sprites for level item background
@@ -22,7 +23,11 @@ namespace HadoopCore.Scripts.UI {
         [SerializeField] private Sprite starFilledSprite;
         [SerializeField] private Sprite starEmptySprite;
         
+        // Sprites for padlock
+        [SerializeField] private Sprite unlockSprite;
+        
         private List<GameObject> _levelItems = new();
+        private Sequence _seq;
 
         private void Awake() {
             MySugarUtil.AutoFindObjects(this, gameObject);
@@ -33,39 +38,62 @@ namespace HadoopCore.Scripts.UI {
             
             // 1) 右上角的星星数量
             saveData.UpdateTotalStars();
-            startsValue.GetComponent<TMP_Text>().text = saveData.TotalStarts.ToString();
+            starsValue.GetComponent<TMP_Text>().text = saveData.TotalStarts.ToString();
             
             /**
              * TODO:
              * 1. 分页
              * 2. 根据星星总数解锁关卡
              */
-            int totalLevels = 20; 
+            int totalLevels = 20;
             for (int i = 1; i <= totalLevels; i++) {
                 string levelId = i.ToString();
                 GameObject levelItem = Instantiate(levelItemPrefab, levelGridContainer.transform);
                 levelItem.name = $"Level_{i}";
                 
                 // Set level number text
-                var levelNumberText = levelItem.transform.Find("LevelNumber").GetComponentInChildren<TMP_Text>();
+                TMP_Text levelNumberText = MySugarUtil.TryToFindComponent<TMP_Text>(levelItem, "TMP");
                 levelNumberText.text = levelId;
                 
-                // Check if level is unlocked
-                bool isUnlocked = saveData.Levels.ContainsKey(levelItem.name) && saveData.Levels[levelItem.name].Unlocked;
+                // Check if level is unlocked: 先按照 unlocked 渲染出来, 再按照 TotalStarts 播放解锁动画
+                bool isUnlocked = saveData.Levels[levelItem.name].Unlocked;
                 int stars = isUnlocked ? saveData.Levels[levelItem.name].BestStars : 0;
-                
+
                 // Configure level item based on unlock status
+                // case1. 之前解锁，直接配置 
+                // case2: 新解锁, 有解锁动画
                 ConfigureLevelItem(levelItem, isUnlocked, stars, levelItem.name);
                 
                 _levelItems.Add(levelItem);
             }
+            
+            // Play unlock animations based on TotalStarts
+            _seq = DOTween.Sequence()
+                .SetId("UnlockLevelsSequence");
+            _levelItems.ForEach(levelItem => {
+                if (saveData.TotalStarts >= saveData.Levels[levelItem.name].RequiredStars) {
+                    saveData.Levels[levelItem.name].Unlocked = true;
+                    _seq.Append(UnlockLevelAnimation(levelItem))
+                        .AppendCallback(() => ConfigureLevelItem(levelItem, true,
+                            saveData.Levels[levelItem.name].BestStars, levelItem.name));
+                    for (int i = 1; i <= saveData.Levels[levelItem.name].BestStars; i++) {
+                        DOTweenAnimation starShowDOTweenComponent =
+                            MySugarUtil.TryToFindComponent<DOTweenAnimation>(levelItem, $"Star_{i}");
+                        _seq.Append(starShowDOTweenComponent.GetTweens()[0]);
+                    }
+                    _seq.AppendInterval(0.5f);
+                }
+            });
+            
+            // TODO: 暂时不要回写 Unlocked = true
+            // saveData.Save();
         }
 
         private void ConfigureLevelItem(GameObject levelItem, bool isUnlocked, int stars, string level) {
             // Get references
             var bgImage = levelItem.transform.Find("Bg").GetComponent<Image>();
-            var lockIcon = levelItem.transform.Find("LockIcon").gameObject;
-            var starBar = levelItem.transform.Find("StarBar").gameObject;
+            GameObject lockIcon = MySugarUtil.TryToFindObject(levelItem, "LockIcon");
+            GameObject starBar = MySugarUtil.TryToFindObject(levelItem, "StarBar");
 
             // Button moved to root of LevelItem prefab
             var button = levelItem.GetComponent<Button>();
@@ -110,9 +138,9 @@ namespace HadoopCore.Scripts.UI {
             var starsContainer = starBarTransform.Find("Stars");
             if (starsContainer == null) return;
             
-            // Star children are named Start_1, Start_2, Start_3
+            // Star children are named Star_1, Star_2, Star_3
             for (int i = 1; i <= 3; i++) {
-                var starTransform = starsContainer.Find($"Start_{i}");
+                var starTransform = starsContainer.Find($"Star_{i}");
                 if (starTransform == null) continue;
                 
                 var starImage = starTransform.GetComponent<Image>();
@@ -148,6 +176,22 @@ namespace HadoopCore.Scripts.UI {
             seq.Play();
         }
 
+        private Sequence UnlockLevelAnimation(GameObject levelItem) {
+            string tweenId = $"UnlockTween_{levelItem.name}";
+            DOTween.Kill(tweenId);
+
+            DOTweenAnimation levelItemDOTweenComponent =
+                MySugarUtil.TryToFindComponent<DOTweenAnimation>(levelItem, "LockIcon");
+            Image LockIconImage =
+                MySugarUtil.TryToFindComponent<Image>(levelItem, "LockIcon");
+            
+            return DOTween.Sequence()
+                .SetId(tweenId)
+                .Append(levelItemDOTweenComponent.GetTweens()[0])
+                .AppendCallback(() => LockIconImage.sprite = unlockSprite )
+                .AppendInterval(1f);
+        }
+        
         public void OnLevelButtonClicked(string level) {
             LevelManager.Instance.LoadScene(level);
         }

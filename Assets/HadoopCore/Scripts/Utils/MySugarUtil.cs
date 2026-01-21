@@ -12,27 +12,23 @@ namespace HadoopCore.Scripts.Utils {
                    go.layer == LayerMask.NameToLayer("Ground");
         }
 
-        public static GameObject TryToFindObject(GameObject begin, string name, GameObject source) {
-            if (source != null) return source;
-
-            source = FindChild(begin, name);
-            if (source != null) {
-                return source;
+        public static GameObject TryToFindObject(GameObject begin, string name) {
+            GameObject rez = FindInChildren(begin, name);
+            if (rez != null) {
+                return rez;
             }
 
-            source = FindParent(begin, name);
-            if (source != null) {
-                return source;
+            rez = FindInParents(begin, name);
+            if (rez != null) {
+                return rez;
             }
 
             return GameObject.Find(name);
         }
 
-        public static T TryToFindComponent<T>(GameObject begin, string componentOwner, T source) where T : Component {
-            if (source != null) return source;
-
+        public static T TryToFindComponent<T>(GameObject begin, string componentOwner) where T : Component {
             // 先找到owner
-            GameObject owner = TryToFindObject(begin, componentOwner, null);
+            GameObject owner = TryToFindObject(begin, componentOwner);
 
             return owner != null ? owner.GetComponent<T>() : null;
         }
@@ -62,7 +58,7 @@ namespace HadoopCore.Scripts.Utils {
                     GameObject currentValue = field.GetValue(target) as GameObject;
                     if (currentValue == null) {
                         string objectName = GetCleanFieldName(field.Name);
-                        GameObject found = TryToFindObject(begin, objectName, null);
+                        GameObject found = TryToFindObject(begin, objectName);
                         if (found != null) {
                             field.SetValue(target, found);
                         }
@@ -99,7 +95,7 @@ namespace HadoopCore.Scripts.Utils {
                 string refsName = refsType.Name;
                 if (refsName.EndsWith("Refs")) {
                     string objectName = refsName.Substring(0, refsName.Length - 4); // 去掉 "Refs"
-                    obj = TryToFindObject(begin, objectName, null);
+                    obj = TryToFindObject(begin, objectName);
 
                     if (obj != null) {
                         objField.SetValue(refsInstance, obj);
@@ -163,7 +159,7 @@ namespace HadoopCore.Scripts.Utils {
             return fieldName;
         }
 
-        private static GameObject FindChild(GameObject begin, string childName) {
+        private static GameObject FindInChildren(GameObject begin, string childName) {
             if (begin == null || string.IsNullOrEmpty(childName)) return null;
 
             // 以前的 Transform.Find(childName) 只保证能找到“符合路径/名字的某个直接子节点”。
@@ -189,7 +185,7 @@ namespace HadoopCore.Scripts.Utils {
             return null;
         }
 
-        private static GameObject FindParent(GameObject begin, string parentName = null) {
+        private static GameObject FindInParents(GameObject begin, string parentName = null) {
             Transform current = begin.transform.parent;
 
             if (parentName == null)

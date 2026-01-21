@@ -11,15 +11,15 @@ namespace HadoopCore.Scripts.UI {
         [Header("External Refs")]
         [SerializeField] private GameObject cameraRig;
         [SerializeField] private GameObject transitionUI;
-        [SerializeField] private GameObject CountdownBar;
+        [SerializeField] private GameObject countdownBar;
 
         [Header("Internal Refs")] 
         [SerializeField] private GameObject menu;
         [SerializeField] private GameObject timeValue;
         [SerializeField] private GameObject bestTimeValue;
-        [SerializeField] private GameObject start_1;
-        [SerializeField] private GameObject start_2;
-        [SerializeField] private GameObject start_3;
+        [SerializeField] private GameObject star_1;
+        [SerializeField] private GameObject star_2;
+        [SerializeField] private GameObject star_3;
         [SerializeField] private GameObject nextLevelBtn;
         [SerializeField] private GameObject exitBtn;
 
@@ -42,7 +42,7 @@ namespace HadoopCore.Scripts.UI {
             _canvasGroup = GetComponent<CanvasGroup>();
             _vCamGameplay = cameraRig.GetComponentInChildren<CinemachineVirtualCamera>();
             _initialOrthographicSize = _vCamGameplay.m_Lens.OrthographicSize;
-            MenuDOTweenAnimation = MySugarUtil.TryToFindComponent(gameObject, "Menu", MenuDOTweenAnimation);
+            MenuDOTweenAnimation = MySugarUtil.TryToFindComponent<DOTweenAnimation>(gameObject, "Menu");
 
             LevelEventCenter.OnGameSuccess += GameSuccess;
             UIUtil.SetUIVisible(_canvasGroup, false);
@@ -54,9 +54,9 @@ namespace HadoopCore.Scripts.UI {
 
         private void Start() {
             // TODO 测试用
-            DOVirtual.DelayedCall(10f, () => {
-                LevelEventCenter.TriggerGameSuccess();
-            }).SetUpdate(true);
+            // DOVirtual.DelayedCall(10f, () => {
+            //     LevelEventCenter.TriggerGameSuccess();
+            // }).SetUpdate(true);
         }
 
         public void OnNextLevelBtnClick() {
@@ -88,7 +88,7 @@ namespace HadoopCore.Scripts.UI {
         }
 
         private void RefreshContent() {
-            float remainingSeconds = CountdownBar.GetComponent<CountdownBar>().GetRemainingSeconds();
+            float remainingSeconds = countdownBar.GetComponent<CountdownBar>().GetRemainingSeconds();
             var saveData = LevelManager.Instance.GetSaveData();
             if (saveData == null) {
                 _timeVal = remainingSeconds;
@@ -121,32 +121,34 @@ namespace HadoopCore.Scripts.UI {
             }
             if (isUpdated) {
                 saveData.Levels[LevelManager.Instance.GetCurrentSceneName()] = levelProgress;
-                saveData.UpdateTotalStars();
+                saveData.Save();
             }
         }
 
-        private static int CalculateStars(float remainingSeconds) {
-            if (remainingSeconds >= 55) return 3;
-            if (remainingSeconds >= 50) return 2;
-            if (remainingSeconds >= 30) return 1;
-            return 0;
+        private int CalculateStars(float remainingSeconds) {
+            var countdown = countdownBar != null ? countdownBar.GetComponent<CountdownBar>() : null;
+            int stars = 0;
+            for (int i = 0; i < countdown.thresholds.Length && stars < 3; i++) {
+                if (remainingSeconds >= countdown.thresholds[i]) stars++;
+            }
+            return stars;
         }
 
         private void ApplyStarsImg(int stars) {
             if (start == null) return;
             
-            if (stars >= 1 && start_1 != null) {
-                var img1 = start_1.GetComponent<Image>();
+            if (stars >= 1 && star_1 != null) {
+                var img1 = star_1.GetComponent<Image>();
                 if (img1 != null) img1.sprite = start;
             }
             
-            if (stars >= 2 && start_2 != null) {
-                var img2 = start_2.GetComponent<Image>();
+            if (stars >= 2 && star_2 != null) {
+                var img2 = star_2.GetComponent<Image>();
                 if (img2 != null) img2.sprite = start;
             }
             
-            if (stars >= 3 && start_3 != null) {
-                var img3 = start_3.GetComponent<Image>();
+            if (stars >= 3 && star_3 != null) {
+                var img3 = star_3.GetComponent<Image>();
                 if (img3 != null) img3.sprite = start;
             }
         }
@@ -167,9 +169,9 @@ namespace HadoopCore.Scripts.UI {
         
         private Sequence TweenStarsEnter() {
             RectTransform[] starsToAnimate = new RectTransform[_start];
-            if (_start >= 1 && start_1 != null) starsToAnimate[0] = start_1.GetComponent<RectTransform>();
-            if (_start >= 2 && start_2 != null) starsToAnimate[1] = start_2.GetComponent<RectTransform>();
-            if (_start >= 3 && start_3 != null) starsToAnimate[2] = start_3.GetComponent<RectTransform>();
+            if (_start >= 1 && star_1 != null) starsToAnimate[0] = star_1.GetComponent<RectTransform>();
+            if (_start >= 2 && star_2 != null) starsToAnimate[1] = star_2.GetComponent<RectTransform>();
+            if (_start >= 3 && star_3 != null) starsToAnimate[2] = star_3.GetComponent<RectTransform>();
             const float dur = 0.45f;
             const float stagger = 0.12f;
             var root = DOTween.Sequence()

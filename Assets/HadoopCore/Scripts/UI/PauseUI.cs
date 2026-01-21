@@ -29,10 +29,10 @@ namespace HadoopCore.Scripts.UI {
             _canvasGroup = GetComponent<CanvasGroup>();
 
             // 使用 MySugarUtil 查找 Menu 对象和三个按钮
-            menuRefs.obj = MySugarUtil.TryToFindObject(gameObject, "Menu", menuRefs.obj);
-            menuRefs.resumeBtn = MySugarUtil.TryToFindObject(menuRefs.obj, "ResumeBtn", menuRefs.resumeBtn);
-            menuRefs.retryBtn = MySugarUtil.TryToFindObject(menuRefs.obj, "RetryBtn", menuRefs.retryBtn);
-            menuRefs.exitBtn = MySugarUtil.TryToFindObject(menuRefs.obj, "ExitBtn", menuRefs.exitBtn);
+            menuRefs.obj = MySugarUtil.TryToFindObject(gameObject, "Menu");
+            menuRefs.resumeBtn = MySugarUtil.TryToFindObject(menuRefs.obj, "ResumeBtn");
+            menuRefs.retryBtn = MySugarUtil.TryToFindObject(menuRefs.obj, "RetryBtn");
+            menuRefs.exitBtn = MySugarUtil.TryToFindObject(menuRefs.obj, "ExitBtn");
 
             // 查找 DOTweenAnimation 组件
             var anims = menuRefs.obj.GetComponents<DOTweenAnimation>();

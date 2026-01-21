@@ -50,21 +50,21 @@ namespace HadoopCore.Scripts.UI {
             MySugarUtil.AutoFindObjects(this, gameObject);
             
             _canvasGroup = GetComponent<CanvasGroup>();
-            deathFXRefs.obj = MySugarUtil.TryToFindObject(gameObject, "DeathFX", deathFXRefs.obj);
+            deathFXRefs.obj = MySugarUtil.TryToFindObject(gameObject, "DeathFX");
             deathFXRefs.obj.GetComponent<Volume>().profile.TryGet(out deathFXRefs.vignette);
             deathFXRefs.obj.GetComponent<Volume>().profile.TryGet(out deathFXRefs.bloom);
             deathFXRefs.obj.GetComponent<Volume>().profile.TryGet(out deathFXRefs.colorAdjustments);
-            deathContentRefs.obj = MySugarUtil.TryToFindObject(gameObject, "DeathContent", deathContentRefs.obj);
+            deathContentRefs.obj = MySugarUtil.TryToFindObject(gameObject, "DeathContent");
             deathContentRefs.centerBarRt =
-                MySugarUtil.TryToFindComponent(deathContentRefs.obj, "CenterBar", deathContentRefs.centerBarRt);
+                MySugarUtil.TryToFindComponent<RectTransform>(deathContentRefs.obj, "CenterBar");
             deathContentRefs.centerBarCg =
-                MySugarUtil.TryToFindComponent(deathContentRefs.obj, "CenterBar", deathContentRefs.centerBarCg);
+                MySugarUtil.TryToFindComponent<CanvasGroup>(deathContentRefs.obj, "CenterBar");
             deathContentRefs.wastedTMP =
-                MySugarUtil.TryToFindComponent(deathContentRefs.obj, "WastedText", deathContentRefs.wastedTMP);
+                MySugarUtil.TryToFindComponent<TMP_Text>(deathContentRefs.obj, "WastedText");
             deathContentRefs.wastedCg =
-                MySugarUtil.TryToFindComponent(deathContentRefs.obj, "WastedText", deathContentRefs.wastedCg);
+                MySugarUtil.TryToFindComponent<CanvasGroup>(deathContentRefs.obj, "WastedText");
             _vCamDeath = cameraRig.GetComponentInChildren<CinemachineVirtualCamera>();
-            MenuDOTweenAnimation = MySugarUtil.TryToFindComponent(gameObject, "Menu", MenuDOTweenAnimation);
+            MenuDOTweenAnimation = MySugarUtil.TryToFindComponent<DOTweenAnimation>(gameObject, "Menu");
 
 
             _initialOrthographicSize = _vCamDeath.m_Lens.OrthographicSize;

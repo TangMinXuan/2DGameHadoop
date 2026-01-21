@@ -1,3 +1,4 @@
+using System;
 using HadoopCore.Scripts.UI;
 using HadoopCore.Scripts.Utils;
 using UnityEngine;
@@ -37,7 +38,10 @@ namespace HadoopCore.Scripts.Manager {
             LevelEventCenter.OnGameOver += GameOver;
             LevelEventCenter.OnGameRestart += GameRestart;
         }
-        
+
+        private void Start() {
+        }
+
         // ===== Public API =====
         public void JumpToNextLevel() {
             string currentSceneName = GetCurrentSceneName();
