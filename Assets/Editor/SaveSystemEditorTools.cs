@@ -10,8 +10,8 @@ namespace HadoopCore.Editor {
         
         [MenuItem("Tools/Save System/Create Default Save")]
         public static void CreateDefaultSaveFile() {
-            GameSaveData saveData = SaveSystem.LoadOrCreate();
-            Debug.Log($"[SaveSystemEditorTools] Default save file created/loaded at: {SaveSystem.GetSaveFile()}");
+            GameSaveData saveData = GameSaveData.LoadOrCreate();
+            Debug.Log($"[SaveSystemEditorTools] Default save file created/loaded at: {GameSaveData.GetSaveFilePath()}");
             Debug.Log($"[SaveSystemEditorTools] Total levels: {saveData.Levels.Count}");
             Debug.Log($"[SaveSystemEditorTools] Save data:\n{UnityEngine.JsonUtility.ToJson(saveData, true)}");
         }
@@ -30,19 +30,19 @@ namespace HadoopCore.Editor {
                 return;
             }
             
-            string savePath = SaveSystem.GetSaveFile();
+            string savePath = GameSaveData.GetSaveFilePath();
             if (System.IO.File.Exists(savePath)) {
                 System.IO.File.Delete(savePath);
                 Debug.Log($"[SaveSystemEditorTools] Deleted existing save file: {savePath}");
             }
             
-            GameSaveData newSave = SaveSystem.LoadOrCreate();
+            GameSaveData newSave = GameSaveData.LoadOrCreate();
             Debug.Log($"[SaveSystemEditorTools] Created new default save file with {newSave.Levels.Count} levels.");
         }
         
         [MenuItem("Tools/Save System/Open Save File Location")]
         public static void OpenSaveFileLocation() {
-            string savePath = SaveSystem.GetSaveFile();
+            string savePath = GameSaveData.GetSaveFilePath();
             string directory = System.IO.Path.GetDirectoryName(savePath);
             
             if (!System.IO.Directory.Exists(directory)) {
@@ -56,14 +56,14 @@ namespace HadoopCore.Editor {
         
         [MenuItem("Tools/Save System/Print Save Data")]
         public static void PrintSaveData() {
-            string savePath = SaveSystem.GetSaveFile();
+            string savePath = GameSaveData.GetSaveFilePath();
             
             if (!System.IO.File.Exists(savePath)) {
                 Debug.LogWarning($"[SaveSystemEditorTools] Save file does not exist: {savePath}");
                 return;
             }
             
-            GameSaveData saveData = SaveSystem.LoadOrCreate();
+            GameSaveData saveData = GameSaveData.LoadOrCreate();
             
             Debug.Log($"[SaveSystemEditorTools] ========== SAVE DATA ==========");
             Debug.Log($"Schema Version: {saveData.SchemaVersion}");
@@ -82,7 +82,7 @@ namespace HadoopCore.Editor {
         
         [MenuItem("Tools/Save System/Unlock All Levels (Cheat)")]
         public static void UnlockAllLevels() {
-            GameSaveData saveData = SaveSystem.LoadOrCreate();
+            GameSaveData saveData = GameSaveData.LoadOrCreate();
             
             int unlockedCount = 0;
             foreach (var kvp in saveData.Levels) {
@@ -92,13 +92,13 @@ namespace HadoopCore.Editor {
                 }
             }
             
-            SaveSystem.Save(saveData);
+            GameSaveData.Save(saveData);
             Debug.Log($"[SaveSystemEditorTools] Unlocked {unlockedCount} levels. All levels are now accessible!");
         }
         
         [MenuItem("Tools/Save System/Give Max Stars (Cheat)")]
         public static void GiveMaxStars() {
-            GameSaveData saveData = SaveSystem.LoadOrCreate();
+            GameSaveData saveData = GameSaveData.LoadOrCreate();
             
             foreach (var kvp in saveData.Levels) {
                 kvp.Value.BestStars = 3;
@@ -107,7 +107,7 @@ namespace HadoopCore.Editor {
             }
             
             saveData.UpdateTotalStars();
-            SaveSystem.Save(saveData);
+            GameSaveData.Save(saveData);
             
             Debug.Log($"[SaveSystemEditorTools] All levels now have 3 stars! Total stars: {saveData.TotalStarts}");
         }

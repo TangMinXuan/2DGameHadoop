@@ -43,7 +43,7 @@ namespace HadoopCore.Scripts.UI {
             /**
              * TODO:
              * 1. 分页
-             * 2. 根据星星总数解锁关卡
+             * 2. 根据星星总数解锁关卡 - Done
              */
             int totalLevels = 20;
             for (int i = 1; i <= totalLevels; i++) {

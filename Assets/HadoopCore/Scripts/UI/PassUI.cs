@@ -53,7 +53,6 @@ namespace HadoopCore.Scripts.UI {
         }
 
         private void Start() {
-            // TODO 测试用
             // DOVirtual.DelayedCall(10f, () => {
             //     LevelEventCenter.TriggerGameSuccess();
             // }).SetUpdate(true);
@@ -121,7 +120,7 @@ namespace HadoopCore.Scripts.UI {
             }
             if (isUpdated) {
                 saveData.Levels[LevelManager.Instance.GetCurrentSceneName()] = levelProgress;
-                saveData.Save();
+                saveData.SaveToFile();
             }
         }
 

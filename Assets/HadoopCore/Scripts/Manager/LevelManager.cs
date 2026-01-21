@@ -59,7 +59,7 @@ namespace HadoopCore.Scripts.Manager {
         }
 
         public GameSaveData GetSaveData() {
-            return SaveSystem.LoadOrCreate();
+            return GameSaveData.LoadOrCreate();
         }
         
         /// <summary>
