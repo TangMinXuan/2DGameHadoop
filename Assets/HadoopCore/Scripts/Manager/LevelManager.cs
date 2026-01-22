@@ -1,4 +1,5 @@
 using System;
+using DG.Tweening;
 using HadoopCore.Scripts.UI;
 using HadoopCore.Scripts.Utils;
 using UnityEngine;
@@ -40,16 +41,13 @@ namespace HadoopCore.Scripts.Manager {
         }
 
         private void Start() {
+            // TODO for test
+            DOVirtual.DelayedCall(15f, () => {
+                LevelEventCenter.TriggerGameSuccess();
+            }).SetUpdate(true);
         }
 
         // ===== Public API =====
-        public void JumpToNextLevel() {
-            string currentSceneName = GetCurrentSceneName();
-            int currentLevelNumber = int.Parse(currentSceneName.Split('_')[1]);
-            string nextSceneName = "Level_" + (currentLevelNumber + 1);
-            LoadScene(nextSceneName);
-        }
-        
         /// <summary>
         /// 加载指定名称的场景
         /// </summary>
@@ -69,13 +67,19 @@ namespace HadoopCore.Scripts.Manager {
         public string GetCurrentSceneName() {
             return SceneManager.GetActiveScene().name;
         }
+        
+        public string GetNextLevelName() {
+            string currentSceneName = GetCurrentSceneName();
+            int currentLevelNumber = int.Parse(currentSceneName.Split('_')[1]);
+            return "Level_" + (currentLevelNumber + 1);
+        }
 
         public void CalculateHorizontalSlidePositions(
             RectTransform panel,
             out Vector2 offscreenLeft,
             out Vector2 center,
             out Vector2 offscreenRight,
-            float extraMargin = 10f // 可选：多推出去一点，防止边缘露出
+            float extraMargin = 50f // 可选：多推出去一点，防止边缘露出
         ) {
             // 确保 Canvas 已经完成布局
             Canvas.ForceUpdateCanvases();

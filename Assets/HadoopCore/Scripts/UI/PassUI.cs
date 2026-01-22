@@ -20,8 +20,6 @@ namespace HadoopCore.Scripts.UI {
         [SerializeField] private GameObject star_1;
         [SerializeField] private GameObject star_2;
         [SerializeField] private GameObject star_3;
-        [SerializeField] private GameObject nextLevelBtn;
-        [SerializeField] private GameObject exitBtn;
 
         [Header("Star Sprites")]
         [SerializeField] private Sprite start;
@@ -35,6 +33,7 @@ namespace HadoopCore.Scripts.UI {
         private float _timeVal = 0f;
         private float _bestTimeVal = 0f;
         private Vector2 _screenLeft, _screenCenter, _screenRight;
+        private GameSaveData _saveData;
 
         private void Awake() {
             MySugarUtil.AutoFindObjects(this, gameObject);
@@ -53,24 +52,12 @@ namespace HadoopCore.Scripts.UI {
         }
 
         private void Start() {
-            // DOVirtual.DelayedCall(10f, () => {
-            //     LevelEventCenter.TriggerGameSuccess();
-            // }).SetUpdate(true);
-        }
 
-        public void OnNextLevelBtnClick() {
-            Tween transitionTween = transitionUI.GetComponent<TransitionUI>()
-                .CloseFromRect(nextLevelBtn.GetComponent<RectTransform>(), Camera.current, 1f);
-            transitionTween.OnComplete(() => LevelManager.Instance.JumpToNextLevel());
-        }
-
-        public void OnExitBtnClick() {
-            transitionUI.GetComponent<TransitionUI>()
-                .CloseFromRect(exitBtn.GetComponent<RectTransform>(), Camera.current, 1f)
-                .OnComplete(() => LevelManager.Instance.LoadScene("LevelSelectMenu"));
         }
 
         private void GameSuccess() {
+            _saveData = LevelManager.Instance.GetSaveData();
+            
             RefreshContent();
 
             UIUtil.SetUIVisible(_canvasGroup, true);
@@ -78,24 +65,25 @@ namespace HadoopCore.Scripts.UI {
             _seq = DOTween.Sequence()
                 .SetId("PassPresentation")
                 .SetUpdate(true);
-            _seq.Join(TweenZoomIn(5f));
+            _seq.Join( TweenZoomIn(5f) );
             _seq.Insert(2f, MenuDOTweenAnimation.GetTweens()[0]);
-            _seq.Append(TweenNumCountUpFloat(timeValue.GetComponent<TMP_Text>(), _timeVal));
-            _seq.Append(TweenNumCountUpFloat(bestTimeValue.GetComponent<TMP_Text>(), _bestTimeVal));
+            _seq.Append( TweenNumCountUpFloat(timeValue.GetComponent<TMP_Text>(), _timeVal ));
+            _seq.Append( TweenNumCountUpFloat(bestTimeValue.GetComponent<TMP_Text>(), _bestTimeVal) );
             _seq.AppendInterval(0.5f);
-            _seq.Append(TweenStarsEnter()); 
+            _seq.Append( TweenStarsEnter() );
+            _seq.Append( transitionUI.GetComponent<TransitionUI>().CloseFromUV(LevelManager.Instance.GetPlayerTransform().position, 2f) );
+            _seq.OnComplete(() => JumpToNextLevelOrBackToMenu());
         }
 
         private void RefreshContent() {
             float remainingSeconds = countdownBar.GetComponent<CountdownBar>().GetRemainingSeconds();
-            var saveData = LevelManager.Instance.GetSaveData();
-            if (saveData == null) {
+            if (_saveData == null) {
                 _timeVal = remainingSeconds;
                 _bestTimeVal = remainingSeconds;
                 _start = CalculateStars(remainingSeconds);
                 ApplyStarsImg(_start);
             }
-            saveData.Levels.TryGetValue(LevelManager.Instance.GetCurrentSceneName(), out var levelProgress);
+            _saveData.Levels.TryGetValue(LevelManager.Instance.GetCurrentSceneName(), out var levelProgress);
             levelProgress ??= new LevelProgress().WithUnlocked(true);
             
             // 1) TimeRemain
@@ -119,8 +107,8 @@ namespace HadoopCore.Scripts.UI {
                 isUpdated = true;
             }
             if (isUpdated) {
-                saveData.Levels[LevelManager.Instance.GetCurrentSceneName()] = levelProgress;
-                saveData.SaveToFile();
+                _saveData.Levels[LevelManager.Instance.GetCurrentSceneName()] = levelProgress;
+                _saveData.SaveToFile();
             }
         }
 
@@ -149,6 +137,15 @@ namespace HadoopCore.Scripts.UI {
             if (stars >= 3 && star_3 != null) {
                 var img3 = star_3.GetComponent<Image>();
                 if (img3 != null) img3.sprite = start;
+            }
+        }
+
+        private void JumpToNextLevelOrBackToMenu() {
+            bool isUnlock = _saveData.Levels[LevelManager.Instance.GetNextLevelName()].Unlocked;
+            if (isUnlock) {
+                LevelManager.Instance.LoadScene(LevelManager.Instance.GetNextLevelName());
+            } else {
+                LevelManager.Instance.LoadScene("LevelSelectMenu");
             }
         }
 
