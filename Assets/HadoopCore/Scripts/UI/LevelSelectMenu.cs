@@ -55,14 +55,14 @@ namespace HadoopCore.Scripts.UI {
                 TMP_Text levelNumberText = MySugarUtil.TryToFindComponent<TMP_Text>(levelItem, "TMP");
                 levelNumberText.text = levelId;
                 
-                // Check if level is unlocked: 先按照 unlocked 渲染出来, 再按照 TotalStarts 播放解锁动画
+                // Check if level is unlocked: 先按照 unlocked 渲染出来, 再按照 TotalStarts 播放解锁动画, 所以拆成了2个循环
                 bool isUnlocked = saveData.Levels[levelItem.name].Unlocked;
                 int stars = isUnlocked ? saveData.Levels[levelItem.name].BestStars : 0;
 
                 // Configure level item based on unlock status
                 // case1. 之前解锁，直接配置 
                 // case2: 新解锁, 有解锁动画
-                ConfigureLevelItem(levelItem, isUnlocked, stars, levelItem.name);
+                ConfigureLevelItem(levelItem, isUnlocked, stars, levelItem.name, saveData.Levels[levelItem.name].RequiredStars);
                 
                 _levelItems.Add(levelItem);
             }
@@ -71,29 +71,35 @@ namespace HadoopCore.Scripts.UI {
             _seq = DOTween.Sequence()
                 .SetId("UnlockLevelsSequence");
             _levelItems.ForEach(levelItem => {
-                if (saveData.TotalStarts >= saveData.Levels[levelItem.name].RequiredStars) {
+                if (!saveData.Levels[levelItem.name].Unlocked && 
+                    saveData.TotalStarts >= saveData.Levels[levelItem.name].RequiredStars) {
                     saveData.Levels[levelItem.name].Unlocked = true;
                     _seq.Append(UnlockLevelAnimation(levelItem))
-                        .AppendCallback(() => ConfigureLevelItem(levelItem, true,
-                            saveData.Levels[levelItem.name].BestStars, levelItem.name));
-                    for (int i = 1; i <= saveData.Levels[levelItem.name].BestStars; i++) {
-                        DOTweenAnimation starShowDOTweenComponent =
-                            MySugarUtil.TryToFindComponent<DOTweenAnimation>(levelItem, $"Star_{i}");
-                        _seq.Append(starShowDOTweenComponent.GetTweens()[0]);
-                    }
-                    _seq.AppendInterval(0.5f);
+                        .AppendCallback(() =>
+                            ConfigureLevelItem(levelItem,
+                                saveData.Levels[levelItem.name].Unlocked,
+                                saveData.Levels[levelItem.name].BestStars,
+                                levelItem.name))
+                        // 星星入场动画有点丑, 暂时不加上
+                        // for (int i = 1; i <= saveData.Levels[levelItem.name].BestStars; i++) {
+                        //     DOTweenAnimation starShowDOTweenComponent =
+                        //         MySugarUtil.TryToFindComponent<DOTweenAnimation>(levelItem, $"Star_{i}");
+                        //     _seq.Append(starShowDOTweenComponent.GetTweens()[0]);
+                        // }
+                        .AppendInterval(0.5f);
                 }
             });
             
-            // TODO: 暂时不要回写 Unlocked = true
+            // TODO: 暂时不要回写 Unlocked = true 用于测试解锁动画
             // saveData.Save();
         }
 
-        private void ConfigureLevelItem(GameObject levelItem, bool isUnlocked, int stars, string level) {
+        private void ConfigureLevelItem(GameObject levelItem, bool isUnlocked, int bestStars, string levelSceneName, int requiredStars = 0) {
             // Get references
             var bgImage = levelItem.transform.Find("Bg").GetComponent<Image>();
             GameObject lockIcon = MySugarUtil.TryToFindObject(levelItem, "LockIcon");
-            GameObject starBar = MySugarUtil.TryToFindObject(levelItem, "StarBar");
+            GameObject starsObj = MySugarUtil.TryToFindObject(levelItem, "Stars");
+            GameObject requiredStarsObj = MySugarUtil.TryToFindObject(levelItem, "RequiredStars");
 
             // Button moved to root of LevelItem prefab
             var button = levelItem.GetComponent<Button>();
@@ -103,7 +109,8 @@ namespace HadoopCore.Scripts.UI {
                 // Unlocked state
                 bgImage.sprite = bgUnlockSprite;
                 lockIcon.SetActive(false);
-                starBar.SetActive(true);
+                starsObj.SetActive(true);
+                requiredStarsObj.SetActive(false);
 
                 if (buttonGraphic != null)
                     buttonGraphic.raycastTarget = true;
@@ -112,16 +119,17 @@ namespace HadoopCore.Scripts.UI {
                     button.enabled = true;
                     button.interactable = true;
                     button.onClick.RemoveAllListeners();
-                    button.onClick.AddListener(() => PlayClickFeedbackAndEnterLevel(levelItem.transform, button, level));
+                    button.onClick.AddListener(() => PlayClickFeedbackAndEnterLevel(levelItem.transform, button, levelSceneName));
                 }
 
                 // Configure stars (0-3)
-                ConfigureStars(starBar.transform, stars);
+                ConfigureStars(starsObj, bestStars);
             } else {
                 // Locked state
                 bgImage.sprite = bgLockSprite;
                 lockIcon.SetActive(true);
-                starBar.SetActive(false);
+                starsObj.SetActive(false);
+                requiredStarsObj.SetActive(true);
 
                 if (button != null) {
                     button.onClick.RemoveAllListeners();
@@ -131,21 +139,18 @@ namespace HadoopCore.Scripts.UI {
 
                 if (buttonGraphic != null)
                     buttonGraphic.raycastTarget = false;
+                
+                // Set required stars text
+                TMP_Text requiredStarsText = requiredStarsObj.GetComponentInChildren<TMP_Text>();
+                requiredStarsText.SetText(requiredStars.ToString());
             }
         }
 
-        private void ConfigureStars(Transform starBarTransform, int earnedStars) {
-            var starsContainer = starBarTransform.Find("Stars");
-            if (starsContainer == null) return;
-            
-            // Star children are named Star_1, Star_2, Star_3
+        private void ConfigureStars(GameObject starsObj, int bestStars) {
             for (int i = 1; i <= 3; i++) {
-                var starTransform = starsContainer.Find($"Star_{i}");
-                if (starTransform == null) continue;
-                
-                var starImage = starTransform.GetComponent<Image>();
+                var starImage = MySugarUtil.TryToFindComponent<Image>(starsObj, $"Star_{i}");
                 if (starImage != null) {
-                    starImage.sprite = (i <= earnedStars) ? starFilledSprite : starEmptySprite;
+                    starImage.sprite = (i <= bestStars) ? starFilledSprite : starEmptySprite;
                 }
             }
         }
@@ -184,12 +189,11 @@ namespace HadoopCore.Scripts.UI {
                 MySugarUtil.TryToFindComponent<DOTweenAnimation>(levelItem, "LockIcon");
             Image LockIconImage =
                 MySugarUtil.TryToFindComponent<Image>(levelItem, "LockIcon");
-            
+
             return DOTween.Sequence()
                 .SetId(tweenId)
                 .Append(levelItemDOTweenComponent.GetTweens()[0])
-                .AppendCallback(() => LockIconImage.sprite = unlockSprite )
-                .AppendInterval(1f);
+                .AppendCallback(() => LockIconImage.sprite = unlockSprite);
         }
         
         public void OnLevelButtonClicked(string level) {
