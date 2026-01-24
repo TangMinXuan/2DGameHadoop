@@ -190,14 +190,12 @@ namespace HadoopCore.Scripts.Manager {
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode) {
             RefreshSceneReferences();
+            PlayOpeningTransition(); // 触发开屏效果
         }
 
         private void RefreshSceneReferences() {
             // Rebind scene objects after scene load (old references become destroyed)
             MySugarUtil.AutoFindObjects(this, gameObject);
-
-            // 触发开屏效果
-            PlayOpeningTransition();
         }
 
         /// <summary>
@@ -216,7 +214,8 @@ namespace HadoopCore.Scripts.Manager {
 
             var playerTf = player.transform;
             if (playerTf != null && Camera.main != null) {
-                transitionUIComponent.OpenFromWorld(playerTf.position, Camera.main, 1f);
+                // transitionUIComponent.OpenFromWorld(playerTf.position, Camera.main, 1f);
+                transitionUIComponent.Open(playerTf.position);
             }
         }
     }

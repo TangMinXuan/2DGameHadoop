@@ -13,6 +13,7 @@ namespace HadoopCore.Scripts.UI {
         private CanvasGroup _canvasGroup;
         private Material _runtimeMat;
         private Tween _radiusTween;
+        private Sequence _seq;
         private static readonly int CenterId = Shader.PropertyToID("_Center");
         private static readonly int RadiusId = Shader.PropertyToID("_Radius");
         private static readonly int SoftnessId = Shader.PropertyToID("_Softness");
@@ -85,6 +86,22 @@ namespace HadoopCore.Scripts.UI {
                 .SetEase(Ease.Linear)
                 .OnComplete(() => SetOverlayVisible(false));
             return _radiusTween;
+        }
+        
+        public Sequence Open(Vector2 centerUV) {
+            Prepare(centerUV);
+            float radiusMax = ComputeRadiusMax(centerUV);
+            Debug.Log("radiusMax: " + radiusMax);
+            _seq?.Kill();
+            _seq = DOTween.Sequence()
+                .SetUpdate(true)
+                .AppendCallback(() => SetRadius(-1))
+                .AppendInterval(0.5f)
+                .Append(DOTween.To(() => -1f, r => SetRadius(r), radiusMax, 1f)
+                    .SetEase(Ease.Linear)
+                    .OnComplete(() => SetOverlayVisible(false))
+                );
+            return _seq;
         }
 
         // ---------- Helpers ----------
