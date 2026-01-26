@@ -10,7 +10,6 @@ namespace HadoopCore.Scripts.UI {
     public class PassUI : MonoBehaviour {
         [Header("External Refs")]
         [SerializeField] private GameObject cameraRig;
-        [SerializeField] private GameObject transitionUI;
         [SerializeField] private GameObject countdownBar;
 
         [Header("Internal Refs")] 
@@ -62,17 +61,19 @@ namespace HadoopCore.Scripts.UI {
 
             UIUtil.SetUIVisible(_canvasGroup, true);
             
+            _seq?.Kill();
             _seq = DOTween.Sequence()
                 .SetId("PassPresentation")
-                .SetUpdate(true);
-            _seq.Join( TweenZoomIn(5f) );
-            _seq.Insert(2f, MenuDOTweenAnimation.GetTweens()[0]);
-            _seq.Append( TweenNumCountUpFloat(timeValue.GetComponent<TMP_Text>(), _timeVal ));
-            _seq.Append( TweenNumCountUpFloat(bestTimeValue.GetComponent<TMP_Text>(), _bestTimeVal) );
-            _seq.AppendInterval(0.5f);
-            _seq.Append( TweenStarsEnter() );
-            _seq.Append( transitionUI.GetComponent<TransitionUI>().CloseFromUV(LevelManager.Instance.GetPlayerTransform().position, 2f) );
-            _seq.OnComplete(() => JumpToNextLevelOrBackToMenu());
+                .SetUpdate(true)
+                .Join(TweenZoomIn(5f))
+                .Insert(2f, MenuDOTweenAnimation.GetTweens()[0])
+                .Append(TweenNumCountUpFloat(timeValue.GetComponent<TMP_Text>(), _timeVal))
+                .Append(TweenNumCountUpFloat(bestTimeValue.GetComponent<TMP_Text>(), _bestTimeVal))
+                .AppendInterval(0.5f)
+                .Append(TweenStarsEnter())
+                .AppendInterval(3f) // 跳关之前先停几秒
+                .Append(TransitionUI.Instance.GenerateTransition(menu, false))
+                .OnComplete(() => JumpToNextLevelOrBackToMenu());
         }
 
         private void RefreshContent() {

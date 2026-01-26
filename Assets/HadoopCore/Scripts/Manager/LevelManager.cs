@@ -11,7 +11,6 @@ namespace HadoopCore.Scripts.Manager {
         public static LevelManager Instance { get; private set; }
 
         private GameObject player;
-        private GameObject transitionUI;
 
         private bool _isPaused;
         private float _cachedScale = 1f; // 缓存时间缩放值. 缺少这个变量会导致下落的物体停止在半空
@@ -54,6 +53,11 @@ namespace HadoopCore.Scripts.Manager {
         /// <param name="sceneName">场景名称</param>
         public void LoadScene(string sceneName) {
             SceneManager.LoadScene(sceneName);
+        }
+        
+        public void ReloadCurrentScene() {
+            string currentSceneName = GetCurrentSceneName();
+            LoadScene(currentSceneName);
         }
 
         public GameSaveData GetSaveData() {
@@ -202,21 +206,10 @@ namespace HadoopCore.Scripts.Manager {
         /// 播放场景开场的过渡效果
         /// </summary>
         private void PlayOpeningTransition() {
-            if (transitionUI == null || player == null) {
+            if (player == null) {
                 return;
             }
-
-            var transitionUIComponent = transitionUI.GetComponent<TransitionUI>();
-            if (transitionUIComponent == null) {
-                Debug.LogWarning("[LevelManager] TransitionUI component not found on TransitionUI GameObject.");
-                return;
-            }
-
-            var playerTf = player.transform;
-            if (playerTf != null && Camera.main != null) {
-                // transitionUIComponent.OpenFromWorld(playerTf.position, Camera.main, 1f);
-                transitionUIComponent.Open(playerTf.position);
-            }
+            TransitionUI.Instance.GenerateTransition(player, true);
         }
     }
 }

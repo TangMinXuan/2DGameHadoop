@@ -66,18 +66,6 @@ namespace HadoopCore.Scripts.UI {
         public void OnResumeBtnClick() {
             LevelEventCenter.TriggerGameResumed();
         }
-        
-        public void OnRetryBtnClick() {
-            transitionUI.GetComponent<TransitionUI>()
-                .CloseFromRect(menuRefs.retryBtn.GetComponent<RectTransform>(), Camera.main, 1f);
-            
-        }
-        
-        public void OnExitBtnClick() {
-            transitionUI.GetComponent<TransitionUI>()
-                .CloseFromRect(menuRefs.exitBtn.GetComponent<RectTransform>(), Camera.main, 1f);
-            
-        }
 
         private void OnGamePaused() {
             UIUtil.SetUIVisible(_canvasGroup, true);

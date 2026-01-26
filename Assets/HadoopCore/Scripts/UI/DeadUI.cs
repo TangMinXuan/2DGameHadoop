@@ -38,7 +38,6 @@ namespace HadoopCore.Scripts.UI {
 
         [SerializeField] private DeathFXRefs deathFXRefs;
         [SerializeField] private DeathContentRefs deathContentRefs;
-        [SerializeField] private GameObject transitionUI;
         [SerializeField] private GameObject retryBtn;
         [SerializeField] private GameObject exitBtn;
 
@@ -114,12 +113,6 @@ namespace HadoopCore.Scripts.UI {
             if (retryBtn != null) retryBtn.SetActive(false);
             if (exitBtn != null) exitBtn.SetActive(false);
 
-            var t = transitionUI != null ? transitionUI.GetComponent<TransitionUI>() : null;
-            if (t == null) {
-                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-                return;
-            }
-
             // Camera.current 在 UI 点击事件里经常是 null，这里用更稳定的 camera
             var cam = uiCamera;
             if (cam == null) {
@@ -131,14 +124,13 @@ namespace HadoopCore.Scripts.UI {
                 if (cam == null) cam = Camera.main;
             }
 
-            t.CloseFromRect(retryBtn.GetComponent<RectTransform>(), cam, 1f,
-                onComplete: () => { SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); });
+            TransitionUI.Instance.GenerateTransition(retryBtn, false)
+                .OnComplete(() => { LevelManager.Instance.ReloadCurrentScene(); });
         }
 
         public void onExitBtnClick() {
-            transitionUI.GetComponent<TransitionUI>()
-                .CloseFromRect(exitBtn.GetComponent<RectTransform>(), Camera.current, 1f)
-                .OnComplete(() => LevelManager.Instance.LoadScene("LevelSelectMenu"));
+            TransitionUI.Instance.GenerateTransition(exitBtn, false)
+                .OnComplete(() => { LevelManager.Instance.LoadScene("LevelSelectMenu"); });
         }
 
         // Part1.1: 镜头拉近 
