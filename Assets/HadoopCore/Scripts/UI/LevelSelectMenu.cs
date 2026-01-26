@@ -34,7 +34,7 @@ namespace HadoopCore.Scripts.UI {
         }
 
         private void Start() {
-            GameSaveData saveData = LevelManager.Instance.GetSaveData();
+            GameSaveData saveData = GameManager.Instance.GetSaveData();
             
             // 1) 右上角的星星数量
             saveData.UpdateTotalStars();
@@ -197,7 +197,27 @@ namespace HadoopCore.Scripts.UI {
         }
         
         public void OnLevelButtonClicked(string level) {
-            LevelManager.Instance.LoadScene(level);
+            GameManager.Instance.LoadScene(level);
         }
+        
+        private void OnDestroy() {
+            // 清理解锁关卡的序列动画
+            if (_seq != null && _seq.IsActive()) {
+                _seq.Kill();
+                _seq = null;
+            }
+            
+            // 清理所有关卡项的点击反馈动画
+            foreach (var levelItem in _levelItems) {
+                if (levelItem != null) {
+                    string tweenId = $"LevelItemClickScale_{levelItem.transform.GetInstanceID()}";
+                    DOTween.Kill(tweenId);
+                    
+                    string unlockTweenId = $"UnlockTween_{levelItem.name}";
+                    DOTween.Kill(unlockTweenId);
+                }
+            }
+        }
+        
     }
 }

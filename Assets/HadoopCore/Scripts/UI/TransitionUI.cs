@@ -5,15 +5,35 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace HadoopCore.Scripts.UI {
+    
+    /// <summary>
+    /// Transition style options
+    /// </summary>
+    public enum TransitionStyle {
+        CircleMask,
+        FullscreenFade
+    }
+    
     public class TransitionUI : MonoBehaviour {
         public static TransitionUI Instance { get; private set; }
         
+        [Header("General Settings")]
+        [SerializeField] private TransitionStyle defaultStyle = TransitionStyle.FullscreenFade;
+        
+        [Header("Circle Mask Settings")]
         [SerializeField] private float defaultSoftness = 0.02f;
+        
+        [Header("Fullscreen Fade Settings")]
+        [SerializeField] private Image fadeOverlay;
+        [SerializeField] private float fadeOpenDuration = 0.5f;
+        [SerializeField] private float fadeCloseDuration = 0.5f;
 
         private CanvasGroup _canvasGroup;
         private Material _runtimeMat;
         private Sequence _seq;
         private Image blockerImage;
+        
+        // Circle mask shader properties
         private static readonly int CenterId = Shader.PropertyToID("_Center");
         private static readonly int RadiusId = Shader.PropertyToID("_Radius");
         private static readonly int SoftnessId = Shader.PropertyToID("_Softness");
@@ -42,18 +62,14 @@ namespace HadoopCore.Scripts.UI {
                 return;
             }
             Instance = this;
-            // TODO DontDestroyOnLoad only works for root GameObjects or components on root GameObjects.
-            DontDestroyOnLoad(gameObject);
-            RefreshSceneReferences();
-            SceneManager.sceneLoaded += OnSceneLoaded;
             
-            // 注意「??=」这种写法, 属于C sharp语法糖, 在Unity中可能有假“null”问题
+            // 注意「??=」这种写法, 属于C sharp语法糖, 在Unity中可能有假"null"问题
             // 例如: GameObject obj; obj如果指向一个被Destroy的对象, 那么「??=」返回不为null, 而传统if (xxx != null)返回的是null
             // 通常,「??=」这种写法, 在Awake, Start中安全, 但在Update等函数中可能会有问题
             _canvasGroup ??= GetComponent<CanvasGroup>();
-            blockerImage ??= GetComponentInChildren<Image>(true);
+            blockerImage ??= transform.Find("Blocker")?.GetComponent<Image>();
 
-            // Make sure the Image uses a unique material instance
+            // Make sure the Image uses a unique material instance (for circle mask)
             if (blockerImage != null) {
                 _runtimeMat = new Material(blockerImage.material);
                 blockerImage.material = _runtimeMat;
@@ -62,63 +78,199 @@ namespace HadoopCore.Scripts.UI {
             // Ensure initial state is hidden
             UIUtil.SetUIVisible(_canvasGroup, false);
             SetSoftness(defaultSoftness);
-        }
-
-
-        private void OnDestroy() {
-            _seq?.Kill();
-        }
-
-        // ---------- Public API ----------
-        public Sequence GenerateTransition(GameObject targetObj, bool isOpen) {
-            RectTransform rectTransform = targetObj.GetComponent<RectTransform>();
-            if (rectTransform != null) {
-                // 是 UI 对象
-                Vector2 uv = RectToUV(rectTransform);
-                return isOpen ? Open(uv): Close(uv);
-            } else {
-                // 是普通 3D 对象
-                Vector2 uv = WorldToUV(targetObj.transform.position);
-                return isOpen ? Open(uv): Close(uv);
+            
+            // Initialize fade overlay state
+            if (fadeOverlay != null) {
+                // Start with fade overlay invisible
+                var c = fadeOverlay.color;
+                c.a = 0f;
+                fadeOverlay.color = c;
+                fadeOverlay.gameObject.SetActive(false);
             }
         }
-        
-        public Sequence Open(Vector2 centerUV) {
-            Prepare(centerUV);
-            float radiusMax = ComputeRadiusMax(centerUV);
+
+        private void OnDestroy() {
+
+            if (Instance == this)
+                Instance = null;
+
             _seq?.Kill();
+
+            if (_runtimeMat != null)
+                Destroy(_runtimeMat);
+        }
+
+        // ---------- Public API (unchanged signatures) ----------
+        
+        /// <summary>
+        /// Generate a transition using the default style
+        /// </summary>
+        public Sequence GenerateTransition(GameObject targetObj, bool isOpen) {
+            return isOpen ? Open(targetObj) : Close(targetObj);
+        }
+        
+        /// <summary>
+        /// Play open transition (reveal the scene) using the default style
+        /// </summary>
+        public Sequence Open(GameObject targetObj) {
+            return defaultStyle switch {
+                TransitionStyle.CircleMask => OpenCircleMask(targetObj),
+                TransitionStyle.FullscreenFade => OpenFade(),
+                _ => OpenCircleMask(targetObj)
+            };
+        }
+        
+        /// <summary>
+        /// Play close transition (hide the scene) using the default style
+        /// </summary>
+        public Sequence Close(GameObject targetObj) {
+            return defaultStyle switch {
+                TransitionStyle.CircleMask => CloseCircleMask(targetObj),
+                TransitionStyle.FullscreenFade => CloseFade(),
+                _ => CloseCircleMask(targetObj)
+            };
+        }
+
+        // ---------- Circle Mask Implementation (original logic) ----------
+        
+        private Sequence OpenCircleMask(GameObject targetObj) {
+            _seq?.Kill();
+            
+            // Ensure circle mask is visible and fade overlay is hidden
+            if (fadeOverlay != null) fadeOverlay.gameObject.SetActive(false);
+            if (blockerImage != null) blockerImage.gameObject.SetActive(true);
+            
+            float radiusMax = 0f;
             _seq = DOTween.Sequence()
                 .SetUpdate(true)
-                .AppendCallback(() => SetRadius(-1))
+                .AppendCallback(() => {
+                    Vector2 uv = Prepare(targetObj);
+                    radiusMax = ComputeRadiusMax(uv);
+                    SetRadius(-1);
+                })
                 .AppendInterval(0.5f)
-                .Append(DOTween.To(() => -1f, r => SetRadius(r), radiusMax, 2f)
-                    .SetEase(Ease.Linear) // TODO: 我想测试一下先慢后快的效果
-                    .OnComplete(() => UIUtil.SetUIVisible(_canvasGroup, false))
-                );
+                .AppendCallback(() => {
+                    DOTween.To(() => -1f, r => SetRadius(r), radiusMax, 2f)
+                        .SetUpdate(true)
+                        .SetEase(Ease.Linear)
+                        .OnComplete(() => UIUtil.SetUIVisible(_canvasGroup, false));
+                });
             return _seq;
         }
         
-        public Sequence Close(Vector2 centerUV) {
-            Prepare(centerUV);
-            float radiusMax = ComputeRadiusMax(centerUV);
+        private Sequence CloseCircleMask(GameObject targetObj) {
             _seq?.Kill();
+            
+            // Ensure circle mask is visible and fade overlay is hidden
+            if (fadeOverlay != null) fadeOverlay.gameObject.SetActive(false);
+            if (blockerImage != null) blockerImage.gameObject.SetActive(true);
+            
+            float radiusMax = 0f;
             _seq = DOTween.Sequence()
                 .SetUpdate(true)
-                .AppendCallback(() => SetRadius(radiusMax))
+                .AppendCallback(() => {
+                    Vector2 uv = Prepare(targetObj);
+                    radiusMax = ComputeRadiusMax(uv);
+                    SetRadius(radiusMax);
+                })
                 .AppendInterval(0.5f)
-                .Append(DOTween.To(() => radiusMax, r => SetRadius(r), -1f, 1f)
-                    .SetEase(Ease.OutQuart)
-                    .OnComplete(() => SetRadius(-1f))
-                );
+                .AppendCallback(() => {
+                    DOTween.To(() => radiusMax, r => SetRadius(r), -1f, 1f)
+                        .SetUpdate(true)
+                        .SetEase(Ease.OutQuart)
+                        .OnComplete(() => UIUtil.SetUIVisible(_canvasGroup, false));
+                });
             return _seq;
         }
 
-        // ---------- Helpers ----------
-
-        private void Prepare(Vector2 centerUV) {
-            if (_runtimeMat == null || blockerImage == null) return;
+        // ---------- Fullscreen Fade Implementation ----------
+        
+        private Sequence OpenFade() {
+            _seq?.Kill();
+            
+            if (fadeOverlay == null) {
+                Debug.LogWarning("TransitionUI: FadeOverlay is not assigned. Cannot play fade transition.");
+                return DOTween.Sequence();
+            }
+            
+            // Ensure fade overlay is visible and circle mask is hidden
+            if (blockerImage != null) blockerImage.gameObject.SetActive(false);
+            fadeOverlay.gameObject.SetActive(true);
+            
+            // Make canvas group visible to show fade overlay
             UIUtil.SetUIVisible(_canvasGroup, true);
-            _runtimeMat.SetVector(CenterId, centerUV);
+            
+            // Set initial state: fully opaque (black screen)
+            var c = fadeOverlay.color;
+            c.a = 1f;
+            fadeOverlay.color = c;
+            
+            _seq = DOTween.Sequence()
+                .SetUpdate(true)
+                .AppendInterval(0.1f) // Small delay for consistency
+                .Append(DOTween.ToAlpha(() => fadeOverlay.color, x => fadeOverlay.color = x, 0f, fadeOpenDuration)
+                    .SetEase(Ease.OutSine))
+                .OnComplete(() => {
+                    UIUtil.SetUIVisible(_canvasGroup, false);
+                    fadeOverlay.gameObject.SetActive(false);
+                });
+            
+            return _seq;
+        }
+        
+        private Sequence CloseFade() {
+            _seq?.Kill();
+            
+            if (fadeOverlay == null) {
+                Debug.LogWarning("TransitionUI: FadeOverlay is not assigned. Cannot play fade transition.");
+                return DOTween.Sequence();
+            }
+            
+            // Ensure fade overlay is visible and circle mask is hidden
+            if (blockerImage != null) blockerImage.gameObject.SetActive(false);
+            fadeOverlay.gameObject.SetActive(true);
+            
+            // Make canvas group visible and interactive (blocks input during transition)
+            _canvasGroup.alpha = 1f;
+            _canvasGroup.interactable = true;
+            _canvasGroup.blocksRaycasts = true;
+            
+            // Set initial state: fully transparent
+            var c = fadeOverlay.color;
+            c.a = 0f;
+            fadeOverlay.color = c;
+            
+            _seq = DOTween.Sequence()
+                .SetUpdate(true)
+                .AppendInterval(0.1f) // Small delay for consistency
+                .Append(DOTween.ToAlpha(() => fadeOverlay.color, x => fadeOverlay.color = x, 1f, fadeCloseDuration)
+                    .SetEase(Ease.OutSine))
+                .OnComplete(() => {
+                    UIUtil.SetUIVisible(_canvasGroup, false);
+                    fadeOverlay.gameObject.SetActive(false);
+                });
+            // Note: We do NOT hide CanvasGroup after close - scene will transition
+            
+            return _seq;
+        }
+
+        // ---------- Circle Mask Helpers ----------
+
+        private Vector2 Prepare(GameObject targetObj) {
+            if (_runtimeMat == null || blockerImage == null) return Vector2.one * 0.5f;
+            
+            // 计算 UV
+            Vector2 uv;
+            RectTransform rectTransform = targetObj.GetComponent<RectTransform>();
+            if (rectTransform != null) {
+                uv = RectToUV(rectTransform);
+            } else {
+                uv = WorldToUV(targetObj.transform.position);
+            }
+            
+            UIUtil.SetUIVisible(_canvasGroup, true);
+            _runtimeMat.SetVector(CenterId, uv);
+            return uv;
         }
 
         private void SetRadius(float r) {
@@ -154,15 +306,6 @@ namespace HadoopCore.Scripts.UI {
             }
 
             return max;
-        }
-        
-        private void OnSceneLoaded(Scene scene, LoadSceneMode mode) {
-            RefreshSceneReferences();
-        }
-        
-        private void RefreshSceneReferences() {
-            // Rebind scene objects after scene load (old references become destroyed)
-            MySugarUtil.AutoFindObjects(this, gameObject);
         }
     }
 }

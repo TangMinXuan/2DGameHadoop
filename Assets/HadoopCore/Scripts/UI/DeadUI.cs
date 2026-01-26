@@ -125,12 +125,12 @@ namespace HadoopCore.Scripts.UI {
             }
 
             TransitionUI.Instance.GenerateTransition(retryBtn, false)
-                .OnComplete(() => { LevelManager.Instance.ReloadCurrentScene(); });
+                .OnComplete(() => { GameManager.Instance.ReloadCurrentScene(); });
         }
 
         public void onExitBtnClick() {
             TransitionUI.Instance.GenerateTransition(exitBtn, false)
-                .OnComplete(() => { LevelManager.Instance.LoadScene("LevelSelectMenu"); });
+                .OnComplete(() => { GameManager.Instance.LoadScene("LevelSelectMenu"); });
         }
 
         // Part1.1: 镜头拉近 

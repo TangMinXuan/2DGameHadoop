@@ -45,7 +45,7 @@ namespace HadoopCore.Scripts.UI {
             LevelEventCenter.OnGameSuccess += GameSuccess;
             UIUtil.SetUIVisible(_canvasGroup, false);
             
-            LevelManager.Instance.CalculateHorizontalSlidePositions(menu.GetComponent<RectTransform>(), 
+            GameManager.Instance.CalculateHorizontalSlidePositions(menu.GetComponent<RectTransform>(), 
                 out _screenLeft, out _screenCenter, out _screenRight);
             menu.GetComponent<RectTransform>().anchoredPosition = _screenLeft;
         }
@@ -55,7 +55,7 @@ namespace HadoopCore.Scripts.UI {
         }
 
         private void GameSuccess() {
-            _saveData = LevelManager.Instance.GetSaveData();
+            _saveData = GameManager.Instance.GetSaveData();
             
             RefreshContent();
 
@@ -72,7 +72,8 @@ namespace HadoopCore.Scripts.UI {
                 .AppendInterval(0.5f)
                 .Append(TweenStarsEnter())
                 .AppendInterval(3f) // 跳关之前先停几秒
-                .Append(TransitionUI.Instance.GenerateTransition(menu, false))
+                // .Append(TransitionUI.Instance.GenerateTransition(menu, false))
+                .Append(TransitionUI.Instance.GenerateTransition(GameManager.Instance.GetPlayerTransform().gameObject, false))
                 .OnComplete(() => JumpToNextLevelOrBackToMenu());
         }
 
@@ -84,7 +85,7 @@ namespace HadoopCore.Scripts.UI {
                 _start = CalculateStars(remainingSeconds);
                 ApplyStarsImg(_start);
             }
-            _saveData.Levels.TryGetValue(LevelManager.Instance.GetCurrentSceneName(), out var levelProgress);
+            _saveData.Levels.TryGetValue(GameManager.Instance.GetCurrentSceneName(), out var levelProgress);
             levelProgress ??= new LevelProgress().WithUnlocked(true);
             
             // 1) TimeRemain
@@ -108,7 +109,7 @@ namespace HadoopCore.Scripts.UI {
                 isUpdated = true;
             }
             if (isUpdated) {
-                _saveData.Levels[LevelManager.Instance.GetCurrentSceneName()] = levelProgress;
+                _saveData.Levels[GameManager.Instance.GetCurrentSceneName()] = levelProgress;
                 _saveData.SaveToFile();
             }
         }
@@ -142,16 +143,16 @@ namespace HadoopCore.Scripts.UI {
         }
 
         private void JumpToNextLevelOrBackToMenu() {
-            bool isUnlock = _saveData.Levels[LevelManager.Instance.GetNextLevelName()].Unlocked;
+            bool isUnlock = _saveData.Levels[GameManager.Instance.GetNextLevelName()].Unlocked;
             if (isUnlock) {
-                LevelManager.Instance.LoadScene(LevelManager.Instance.GetNextLevelName());
+                GameManager.Instance.LoadScene(GameManager.Instance.GetNextLevelName());
             } else {
-                LevelManager.Instance.LoadScene("LevelSelectMenu");
+                GameManager.Instance.LoadScene("LevelSelectMenu");
             }
         }
 
         private Sequence TweenZoomIn(float orthographicSize) {
-            Vector2 playerPos = LevelManager.Instance.GetPlayerTransform().position;
+            Vector2 playerPos = GameManager.Instance.GetPlayerTransform().position;
             return DOTween.Sequence()
                 .SetUpdate(true)
                 .Join(_vCamGameplay.transform.DOMove(new Vector3(playerPos.x, playerPos.y + 2, _vCamGameplay.transform.position.z), 

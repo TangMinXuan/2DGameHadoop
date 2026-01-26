@@ -7,8 +7,8 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 namespace HadoopCore.Scripts.Manager {
-    public class LevelManager : MonoBehaviour {
-        public static LevelManager Instance { get; private set; }
+    public class GameManager : MonoBehaviour {
+        public static GameManager Instance { get; private set; }
 
         private GameObject player;
 
@@ -41,9 +41,9 @@ namespace HadoopCore.Scripts.Manager {
 
         private void Start() {
             // TODO for test
-            DOVirtual.DelayedCall(15f, () => {
-                LevelEventCenter.TriggerGameSuccess();
-            }).SetUpdate(true);
+            // DOVirtual.DelayedCall(15f, () => {
+            //     LevelEventCenter.TriggerGameSuccess();
+            // }).SetUpdate(true);
         }
 
         // ===== Public API =====
@@ -52,7 +52,7 @@ namespace HadoopCore.Scripts.Manager {
         /// </summary>
         /// <param name="sceneName">场景名称</param>
         public void LoadScene(string sceneName) {
-            SceneManager.LoadScene(sceneName);
+            LoadingPageManager.LoadSceneWithLoading(sceneName);
         }
         
         public void ReloadCurrentScene() {
@@ -199,6 +199,9 @@ namespace HadoopCore.Scripts.Manager {
 
         private void RefreshSceneReferences() {
             // Rebind scene objects after scene load (old references become destroyed)
+            // 只有当 物体(这里是GameManager) 依赖了场景中的对象时(例如这里的player)，才需要刷新引用, 将指针指向新加载场景中的对象
+            // 反例: LoadingPageManager, 它依赖的东西都挂在它子节点上,
+            // 而子节点会跟着父节点 DontDestroyOnLoad , 因此它不需要刷新依赖
             MySugarUtil.AutoFindObjects(this, gameObject);
         }
 

@@ -35,11 +35,11 @@ namespace HadoopCore.Scripts.UI {
             menuRefs.exitBtn = MySugarUtil.TryToFindObject(menuRefs.obj, "ExitBtn");
 
             // 查找 DOTweenAnimation 组件
-            var anims = menuRefs.obj.GetComponents<DOTweenAnimation>();
+            DOTweenAnimation[] anims = menuRefs.obj.GetComponents<DOTweenAnimation>();
             menuRefs.menuAnimIn = Array.Find(anims, a => a.id == "Menu_In");
             menuRefs.menuAnimOut = Array.Find(anims, a => a.id == "Menu_Out");
 
-            LevelManager.Instance.CalculateHorizontalSlidePositions(menuRefs.obj.GetComponent<RectTransform>(), 
+            GameManager.Instance.CalculateHorizontalSlidePositions(menuRefs.obj.GetComponent<RectTransform>(), 
                 out _screenLeft, out _screenCenter, out _screenRight);
             menuRefs.obj.GetComponent<RectTransform>().anchoredPosition = _screenLeft;
             
