@@ -1581,6 +1581,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 271189789}
     m_Modifications:
+    - target: {fileID: 2156283487090942373, guid: 40dd006ce970d4a67a1a69d7d0473169, type: 3}
+      propertyPath: scaleImage
+      value: 
+      objectReference: {fileID: -476025853, guid: 979f357ea83d64b68b634ed74e877ed9, type: 3}
+    - target: {fileID: 2156283487090942373, guid: 40dd006ce970d4a67a1a69d7d0473169, type: 3}
+      propertyPath: unscaleImage
+      value: 
+      objectReference: {fileID: 1812511137, guid: 01426a1ea0a724b9eb94be396b924000, type: 3}
     - target: {fileID: 4278656511887785166, guid: 40dd006ce970d4a67a1a69d7d0473169, type: 3}
       propertyPath: m_Name
       value: UIRootCanvas

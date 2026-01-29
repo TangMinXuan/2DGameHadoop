@@ -18,8 +18,6 @@ namespace HadoopCore.Scripts.Manager {
     /// Uses DOTween for all animations and timing.
     /// </summary>
     public class LoadingPageManager : MonoBehaviour {
-        public static LoadingPageManager Instance { get; private set; }
-        
         private static string _pendingTargetScene = "LevelSelectMenu";
 
         public static void LoadSceneWithLoading(string targetSceneName, string loadingSceneName = "LoadingPage") {
@@ -51,7 +49,7 @@ namespace HadoopCore.Scripts.Manager {
         [Header("Timing")]
         [Tooltip("Ensure loading page shows at least this many seconds (real time, unscaled).")]
         [SerializeField]
-        private float minShowSeconds = 3f;
+        private float minShowSeconds = 1f;
 
         [Header("Progress Smoothing")]
         [Tooltip("Duration for progress bar animation (seconds).")]
@@ -68,13 +66,6 @@ namespace HadoopCore.Scripts.Manager {
         private float _startRealtime;
 
         private void Awake() {
-            // Singleton pattern: prevent duplicates
-            if (Instance != null && Instance != this) {
-                Destroy(gameObject);
-                return;
-            }
-            Instance = this;
-            
             // Setup UI initial state
             UIUtil.SetUIVisible(loadingUIRootCanvasGroup, false);
 
@@ -97,15 +88,12 @@ namespace HadoopCore.Scripts.Manager {
 
             // Start async load
             _asyncOp = SceneManager.LoadSceneAsync(_pendingTargetScene, LoadSceneMode.Single);
-
             if (_asyncOp == null) {
                 Debug.LogError($"[LoadingPageManager] LoadSceneAsync returned null for scene: {_pendingTargetScene}");
                 return;
             }
-
             _asyncOp.allowSceneActivation = false;
 
-            // Use DOTween to poll and update progress
             DOTween.To(
                 () => _displayProgress,
                 x => {
@@ -122,8 +110,6 @@ namespace HadoopCore.Scripts.Manager {
         }
 
         private void OnProgressUpdate() {
-            if (_asyncOp == null) return;
-
             // Calculate target progress based on AsyncOperation
             float targetProgress;
             if (_asyncOp.progress < 0.9f) {
@@ -196,10 +182,6 @@ namespace HadoopCore.Scripts.Manager {
             // Clean up tweens
             _progressTween?.Kill();
             DOTween.Kill(this);
-            
-            if (Instance == this) {
-                Instance = null;
-            }
         }
     }
 }

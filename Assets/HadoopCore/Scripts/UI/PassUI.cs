@@ -73,7 +73,7 @@ namespace HadoopCore.Scripts.UI {
                 .Append(TweenStarsEnter())
                 .AppendInterval(3f) // 跳关之前先停几秒
                 // .Append(TransitionUI.Instance.GenerateTransition(menu, false))
-                .Append(TransitionUI.Instance.GenerateTransition(GameManager.Instance.GetPlayerTransform().gameObject, false))
+                .Append( GameManager.Instance.GenerateTransition(false) )
                 .OnComplete(() => JumpToNextLevelOrBackToMenu());
         }
 
@@ -147,7 +147,7 @@ namespace HadoopCore.Scripts.UI {
             if (isUnlock) {
                 GameManager.Instance.LoadScene(GameManager.Instance.GetNextLevelName());
             } else {
-                GameManager.Instance.LoadScene("LevelSelectMenu");
+                GameManager.Instance.loadSceneSynchronously("LevelSelectMenu");
             }
         }
 

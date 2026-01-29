@@ -112,7 +112,7 @@ namespace HadoopCore.Scripts.UI {
         /// <summary>
         /// Play open transition (reveal the scene) using the default style
         /// </summary>
-        public Sequence Open(GameObject targetObj) {
+        private Sequence Open(GameObject targetObj) {
             return defaultStyle switch {
                 TransitionStyle.CircleMask => OpenCircleMask(targetObj),
                 TransitionStyle.FullscreenFade => OpenFade(),
@@ -123,7 +123,7 @@ namespace HadoopCore.Scripts.UI {
         /// <summary>
         /// Play close transition (hide the scene) using the default style
         /// </summary>
-        public Sequence Close(GameObject targetObj) {
+        private Sequence Close(GameObject targetObj) {
             return defaultStyle switch {
                 TransitionStyle.CircleMask => CloseCircleMask(targetObj),
                 TransitionStyle.FullscreenFade => CloseFade(),
@@ -229,11 +229,7 @@ namespace HadoopCore.Scripts.UI {
             // Ensure fade overlay is visible and circle mask is hidden
             if (blockerImage != null) blockerImage.gameObject.SetActive(false);
             fadeOverlay.gameObject.SetActive(true);
-            
-            // Make canvas group visible and interactive (blocks input during transition)
-            _canvasGroup.alpha = 1f;
-            _canvasGroup.interactable = true;
-            _canvasGroup.blocksRaycasts = true;
+            UIUtil.SetUIVisible(_canvasGroup, true);
             
             // Set initial state: fully transparent
             var c = fadeOverlay.color;
@@ -246,6 +242,7 @@ namespace HadoopCore.Scripts.UI {
                 .Append(DOTween.ToAlpha(() => fadeOverlay.color, x => fadeOverlay.color = x, 1f, fadeCloseDuration)
                     .SetEase(Ease.OutSine))
                 .OnComplete(() => {
+                    Debug.Log("TransitionUI: Close fade completed Action!.");
                     UIUtil.SetUIVisible(_canvasGroup, false);
                     fadeOverlay.gameObject.SetActive(false);
                 });

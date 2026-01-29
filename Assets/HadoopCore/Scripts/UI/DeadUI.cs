@@ -22,6 +22,7 @@ namespace HadoopCore.Scripts.UI {
     [Serializable]
     internal class DeathContentRefs {
         public GameObject obj;
+        [NonSerialized, DontNeedAutoFind] public GameObject menu;
         [NonSerialized, DontNeedAutoFind] public RectTransform centerBarRt;
         [NonSerialized, DontNeedAutoFind] public CanvasGroup centerBarCg;
         [NonSerialized, DontNeedAutoFind] public TMP_Text wastedTMP;
@@ -44,6 +45,7 @@ namespace HadoopCore.Scripts.UI {
         [SerializeField] private Camera uiCamera;
 
         private float _initialOrthographicSize = 8f;
+        private Vector2 _screenLeft, _screenCenter, _screenRight;
 
         private void Awake() {
             MySugarUtil.AutoFindObjects(this, gameObject);
@@ -54,6 +56,7 @@ namespace HadoopCore.Scripts.UI {
             deathFXRefs.obj.GetComponent<Volume>().profile.TryGet(out deathFXRefs.bloom);
             deathFXRefs.obj.GetComponent<Volume>().profile.TryGet(out deathFXRefs.colorAdjustments);
             deathContentRefs.obj = MySugarUtil.TryToFindObject(gameObject, "DeathContent");
+            deathContentRefs.menu = MySugarUtil.TryToFindObject(gameObject, "Menu");
             deathContentRefs.centerBarRt =
                 MySugarUtil.TryToFindComponent<RectTransform>(deathContentRefs.obj, "CenterBar");
             deathContentRefs.centerBarCg =
@@ -64,9 +67,11 @@ namespace HadoopCore.Scripts.UI {
                 MySugarUtil.TryToFindComponent<CanvasGroup>(deathContentRefs.obj, "WastedText");
             _vCamDeath = cameraRig.GetComponentInChildren<CinemachineVirtualCamera>();
             MenuDOTweenAnimation = MySugarUtil.TryToFindComponent<DOTweenAnimation>(gameObject, "Menu");
-
-
+            
             _initialOrthographicSize = _vCamDeath.m_Lens.OrthographicSize;
+            GameManager.Instance.CalculateHorizontalSlidePositions(deathContentRefs.menu.GetComponent<RectTransform>(), 
+                out _screenLeft, out _screenCenter, out _screenRight);
+            deathContentRefs.menu.GetComponent<RectTransform>().anchoredPosition = _screenLeft;
 
             LevelEventCenter.OnGameOver += GameOver;
             ResetDeathUI();
@@ -98,7 +103,7 @@ namespace HadoopCore.Scripts.UI {
             _seq.Join(TweenShowWastedTextNew(deathContentRefs.wastedTMP, deathContentRefs.wastedCg));
 
             // 4. Retry Menu
-            _seq.AppendCallback(() => {
+            _seq.OnComplete(() => {
                 if (MenuDOTweenAnimation != null) {
                     MenuDOTweenAnimation.DORestart();
                 }
@@ -124,13 +129,24 @@ namespace HadoopCore.Scripts.UI {
                 if (cam == null) cam = Camera.main;
             }
 
-            TransitionUI.Instance.GenerateTransition(retryBtn, false)
-                .OnComplete(() => { GameManager.Instance.ReloadCurrentScene(); });
+            // 调用方式1: 
+            // TransitionUI.Instance.GenerateTransition(retryBtn, false)
+            //     .OnComplete(() => { GameManager.Instance.ReloadCurrentScene(); });
+            // 问题: _seq 已在 CloseFade() 内部设置了 OnComplete，
+            // DOTween 的 OnComplete 是覆盖而非追加（Sequence 只能有一个 OnComplete!!!）
+
+            // 调用方式2:
+            DOTween.Sequence()
+                .SetUpdate(true)
+                .Append( GameManager.Instance.GenerateTransition(false) )
+                .OnComplete(() => GameManager.Instance.ReloadCurrentSceneSynchronously());
         }
 
         public void onExitBtnClick() {
-            TransitionUI.Instance.GenerateTransition(exitBtn, false)
-                .OnComplete(() => { GameManager.Instance.LoadScene("LevelSelectMenu"); });
+            DOTween.Sequence()
+                .SetUpdate(true)
+                .Append( GameManager.Instance.GenerateTransition(false) )
+                .OnComplete(() => GameManager.Instance.loadSceneSynchronously("LevelSelectMenu") );
         }
 
         // Part1.1: 镜头拉近 

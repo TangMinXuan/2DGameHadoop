@@ -515,6 +515,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: InGameUI
       objectReference: {fileID: 0}
+    - target: {fileID: 9205192683580143138, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
+      propertyPath: unscaleImage
+      value: 
+      objectReference: {fileID: 1812511137, guid: 01426a1ea0a724b9eb94be396b924000, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

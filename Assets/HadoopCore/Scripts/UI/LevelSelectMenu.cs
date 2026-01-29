@@ -74,7 +74,8 @@ namespace HadoopCore.Scripts.UI {
                 if (!saveData.Levels[levelItem.name].Unlocked && 
                     saveData.TotalStarts >= saveData.Levels[levelItem.name].RequiredStars) {
                     saveData.Levels[levelItem.name].Unlocked = true;
-                    _seq.Append(UnlockLevelAnimation(levelItem))
+                    _seq.AppendInterval(1f)
+                        .Append(UnlockLevelAnimation(levelItem))
                         .AppendCallback(() =>
                             ConfigureLevelItem(levelItem,
                                 saveData.Levels[levelItem.name].Unlocked,

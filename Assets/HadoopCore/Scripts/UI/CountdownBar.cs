@@ -1,5 +1,6 @@
 using System;
 using HadoopCore.Scripts.Manager;
+using HadoopCore.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -20,6 +21,12 @@ public class CountdownBar : MonoBehaviour {
     [Tooltip("The gradient fill Image (must be Type=Filled, Horizontal, Origin=Left)")]
     [SerializeField]
     private Image gradientFillImage;
+    
+    [SerializeField]
+    private Sprite scaleImage;
+    
+    [SerializeField]
+    private Sprite unscaleImage;
 
     [Tooltip("Tick mark RectTransforms in order (Scale_1, Scale_2, Scale_3)")] [SerializeField]
     private RectTransform[] tickRects;
@@ -265,7 +272,7 @@ public class CountdownBar : MonoBehaviour {
             while (_nextThresholdToLog >= 0) {
                 float normalizedThreshold = thresholds[_nextThresholdToLog] / totalSeconds;
                 if (fillAmount < normalizedThreshold) {
-                    Debug.Log($"[CountdownBarController] fillAmount ({fillAmount:F3}) < threshold[{_nextThresholdToLog}] ({normalizedThreshold:F3}, {thresholds[_nextThresholdToLog]}s)");
+                    tickRects[_nextThresholdToLog].GetComponent<Image>().sprite = unscaleImage;
                     _nextThresholdToLog--;
                 }
                 else {

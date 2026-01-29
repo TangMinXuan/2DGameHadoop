@@ -51,6 +51,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gradientFillImage: {fileID: 973497613532358474}
+  scaleImage: {fileID: 0}
+  unscaleImage: {fileID: 1812511137, guid: 01426a1ea0a724b9eb94be396b924000, type: 3}
   tickRects:
   - {fileID: 4592023660301543098}
   - {fileID: 4021733184528241999}

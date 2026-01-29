@@ -55,19 +55,19 @@ namespace HadoopCore.Scripts.Manager {
             LoadingPageManager.LoadSceneWithLoading(sceneName);
         }
         
-        public void ReloadCurrentScene() {
+        public void ReloadCurrentSceneSynchronously() {
             string currentSceneName = GetCurrentSceneName();
-            LoadScene(currentSceneName);
+            loadSceneSynchronously(currentSceneName);
+        }
+
+        public void loadSceneSynchronously(string sceneName) {
+            SceneManager.LoadScene(sceneName);
         }
 
         public GameSaveData GetSaveData() {
             return GameSaveData.LoadOrCreate();
         }
         
-        /// <summary>
-        /// 获取当前场景的名字
-        /// </summary>
-        /// <returns>当前活动场景的名称</returns>
         public string GetCurrentSceneName() {
             return SceneManager.GetActiveScene().name;
         }
@@ -116,7 +116,9 @@ namespace HadoopCore.Scripts.Manager {
             );
         }
 
-
+        public Sequence GenerateTransition(bool isOpen) {
+            return TransitionUI.Instance.GenerateTransition(null, isOpen);
+        }
         
         void OnDestroy() {
             // 只有当这是真正的单例实例时，才需要清理事件订阅
@@ -212,7 +214,7 @@ namespace HadoopCore.Scripts.Manager {
             if (player == null) {
                 return;
             }
-            TransitionUI.Instance.GenerateTransition(player, true);
+            GenerateTransition(true);
         }
     }
 }
