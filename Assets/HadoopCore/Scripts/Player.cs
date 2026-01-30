@@ -1,16 +1,32 @@
 using System;
+using Cinemachine;
 using HadoopCore.Scripts.Attribute;
 using HadoopCore.Scripts.InterfaceAbility;
-using HadoopCore.Scripts.UI;
+using HadoopCore.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace HadoopCore.Scripts {
     public class Player : MonoBehaviour, IPointerClickHandler, IDeadAbility {
+        [Serializable]
+        internal class CameraShakeSettings {
+            [Header("Speed")]
+            [SerializeField] private float walkThreshold = 0.1f;
+
+            [Header("Noise Gains (very subtle)")]
+            [SerializeField] private float ampWalk = 0.5f;
+            [SerializeField] private float freqWalk = 1.0f;
+
+            public float WalkThreshold => walkThreshold;
+            public float AmpWalk => ampWalk;
+            public float FreqWalk => freqWalk;
+        }
+
         [SerializeField] private float moveSpeed;
         [SerializeField] private float raycastDistance; // 射线检测的最大距离
         [SerializeField] private Transform transformTemplate;
+        [SerializeField] private CameraShakeSettings cameraShakeSettings = new CameraShakeSettings();
 
         private static readonly int Status = Animator.StringToHash("Status");
 
@@ -19,10 +35,14 @@ namespace HadoopCore.Scripts {
         private Animator _anim;
         private Collider2D _collider;
 
+        // Camera shake state
+        private CinemachineBrain _brain;
+
 
         void Awake() {
             _rb = GetComponent<Rigidbody2D>();
             _collider = GetComponent<Collider2D>();
+            _brain = FindObjectOfType<CinemachineBrain>();
 
             _anim = GetComponentInChildren<Animator>();
             if (_anim != null) {
@@ -33,6 +53,33 @@ namespace HadoopCore.Scripts {
 
         void FixedUpdate() {
             _rb.velocity = new Vector2(_moveInput.x * moveSpeed, _rb.velocity.y);
+        }
+
+        private void LateUpdate() {
+            UpdateCameraShake();
+        }
+
+        private void UpdateCameraShake() {
+            if (_brain == null) return;
+
+            ICinemachineCamera activeVcam = _brain.ActiveVirtualCamera;
+            if (activeVcam == null) return;
+
+            CinemachineVirtualCamera vcam = activeVcam as CinemachineVirtualCamera;
+            if (vcam == null) return;
+
+            CinemachineBasicMultiChannelPerlin perlin = vcam.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>();
+            if (perlin == null) return;
+
+            float vx = Mathf.Abs(_rb.velocity.x);
+
+            if (vx > cameraShakeSettings.WalkThreshold) {
+                perlin.m_AmplitudeGain = cameraShakeSettings.AmpWalk;
+                perlin.m_FrequencyGain = cameraShakeSettings.FreqWalk;
+            } else {
+                perlin.m_AmplitudeGain = 0f;
+                perlin.m_FrequencyGain = 0f;
+            }
         }
 
         private void OnCollisionEnter2D(Collision2D collision2D) {
@@ -81,6 +128,9 @@ namespace HadoopCore.Scripts {
         }
 
         private void HandleMovementInput() {
+            if (!MySugarUtil.IsGround(gameObject)) {
+                return;
+            }
             int status = _moveInput != Vector2.zero ? 1 : 0;
             _anim.SetInteger(Status, status);
             if (status == 1) {

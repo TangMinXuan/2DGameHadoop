@@ -27,7 +27,7 @@ namespace HadoopCore.Scripts {
         }
 
         void OnCollisionEnter2D(Collision2D c) {
-            if (MySugarUtil.IsGround(c.gameObject) && !_grounded) {
+            if (MySugarUtil.IsGroundObj(c.gameObject) && !_grounded) {
                 _grounded = true;
 
                 _rb.simulated = false; // 彻底不参与物理

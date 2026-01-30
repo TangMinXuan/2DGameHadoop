@@ -7,9 +7,28 @@ namespace HadoopCore.Scripts.Utils {
     public static class MySugarUtil {
         private static readonly string groundLayers = "Terrain";
 
-        public static bool IsGround(GameObject go) {
+        public static bool IsGroundObj(GameObject go) {
             return go.layer == LayerMask.NameToLayer(groundLayers) ||
                    go.layer == LayerMask.NameToLayer("Ground");
+        }
+
+        /// <summary>
+        /// 判断一个 GameObject 是否位于地面上
+        /// </summary>
+        /// <param name="go">要检测的游戏对象</param>
+        /// <param name="checkRadius">检测半径，默认为1</param>
+        /// <returns>如果在地面上返回 true，否则返回 false</returns>
+        public static bool IsGround(GameObject go, float checkRadius = 1f) {
+            if (go == null) return false;
+
+            Vector2 checkPos = go.transform.position;
+            Collider2D[] colliders = Physics2D.OverlapCircleAll(checkPos, checkRadius);
+            foreach (var col in colliders) {
+                if (col.gameObject != go && IsGroundObj(col.gameObject)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public static GameObject TryToFindObject(GameObject begin, string name) {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HadoopCore.Scripts.Attribute;
 using HadoopCore.Scripts.InterfaceAbility;
+using HadoopCore.Scripts.Utils;
 using UnityEngine;
 
 namespace HadoopCore.Scripts {
@@ -13,9 +14,9 @@ namespace HadoopCore.Scripts {
         Attack = 4 // 攻击状态
     }
 
-    public class Skeleton : MonoBehaviour, IDeadAbility {
+    public class EnemyAI : MonoBehaviour, IDeadAbility {
         private static readonly int Status = Animator.StringToHash("Status");
-        [SerializeField] private Transform skeletonTransom;
+        [SerializeField] private Transform transformTemplate;
 
         [Header("移动设置")] [SerializeField] private float patrolSpeed = 1f;
         [SerializeField] private float chaseSpeed = 2f;
@@ -69,7 +70,7 @@ namespace HadoopCore.Scripts {
                         _curState = EnemyState.Patrol;
                     }
 
-                    if (ChasePlayer()) {
+                    if (ChasePlayer() && MySugarUtil.IsGround(gameObject)) {
                         // 追到了, 开始攻击
                         _curState = EnemyState.Attack;
                     }
@@ -90,10 +91,16 @@ namespace HadoopCore.Scripts {
                     _rb.velocity = Vector2.zero;
                     break;
                 case EnemyState.Patrol:
+                    if (!MySugarUtil.IsGround(gameObject)) {
+                        break;
+                    }
                     Vector2 patrolDirection = (patrolPaths[_currentPathIndex] - (Vector2)transform.position).normalized;
                     _rb.velocity = new Vector2(patrolDirection.x * patrolSpeed, _rb.velocity.y);
                     break;
                 case EnemyState.Chase:
+                    if (!MySugarUtil.IsGround(gameObject)) {
+                        break;
+                    }
                     Vector2 chaseDirection = (_targetPlayer.position - transform.position).normalized;
                     _rb.velocity = new Vector2(chaseDirection.x * chaseSpeed, _rb.velocity.y);
                     break;
@@ -124,10 +131,10 @@ namespace HadoopCore.Scripts {
             Vector2 direction = (targetPos - currentPos).normalized;
 
             if (direction.x > 0) {
-                skeletonTransom.localRotation = Quaternion.Euler(0, 120, 0);
+                transformTemplate.localRotation = Quaternion.Euler(0, 120, 0);
             }
             else if (direction.x < 0) {
-                skeletonTransom.localRotation = Quaternion.Euler(0, -120, 0);
+                transformTemplate.localRotation = Quaternion.Euler(0, -120, 0);
             }
 
             return true;
@@ -147,12 +154,12 @@ namespace HadoopCore.Scripts {
             );
 
             for (int i = 0; i < hitCount; i++) {
-                if (_hitBuffer[i].collider != null) {
-                    if (_hitBuffer[i].collider.CompareTag("Player")) {
-                        return true;
-                    }
-                    else if (_hitBuffer[i].collider.CompareTag("Plug")) {
+                if (_hitBuffer[i].rigidbody != null) {
+                    if (_hitBuffer[i].rigidbody.CompareTag("Plug")) {
                         break;
+                    }
+                    if (_hitBuffer[i].rigidbody.CompareTag("Player")) {
+                        return true;
                     }
                 }
             }
@@ -171,10 +178,10 @@ namespace HadoopCore.Scripts {
             Vector2 direction = (_targetPlayer.position - transform.position).normalized;
 
             if (direction.x > 0) {
-                skeletonTransom.localRotation = Quaternion.Euler(0, 120, 0);
+                transformTemplate.localRotation = Quaternion.Euler(0, 120, 0);
             }
             else if (direction.x < 0) {
-                skeletonTransom.localRotation = Quaternion.Euler(0, -120, 0);
+                transformTemplate.localRotation = Quaternion.Euler(0, -120, 0);
             }
 
             return false;
