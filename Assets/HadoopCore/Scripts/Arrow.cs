@@ -31,7 +31,7 @@ namespace HadoopCore.Scripts {
         private void OnTriggerEnter2D(Collider2D triggerObj) {
             if (triggerObj.TryGetComponent<IDeadAbility>(out var deadAbility)) {
                 deadAbility.Dead(gameObject);
-                LevelEventCenter.TriggerGameOver();
+                
             }
             else {
                 Destroy(gameObject);

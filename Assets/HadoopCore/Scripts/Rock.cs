@@ -22,7 +22,6 @@ namespace HadoopCore.Scripts {
             // 检测是否碰到Player或Enemy
             if (other.CompareTag("Player") && other.TryGetComponent<IDeadAbility>(out var deadAbility)) {
                 deadAbility.Dead(gameObject);
-                LevelEventCenter.TriggerGameOver();
             }
         }
 

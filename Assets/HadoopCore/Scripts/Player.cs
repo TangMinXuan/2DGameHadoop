@@ -2,12 +2,19 @@ using System;
 using Cinemachine;
 using HadoopCore.Scripts.Attribute;
 using HadoopCore.Scripts.InterfaceAbility;
+using HadoopCore.Scripts.Manager;
 using HadoopCore.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace HadoopCore.Scripts {
+    public enum PlayerState {
+        Idle = 0, // 空闲状态
+        Walk = 1,  // 行走状态
+        Dead = 2, // 死亡状态
+    }
+    
     public class Player : MonoBehaviour, IPointerClickHandler, IDeadAbility {
         [Serializable]
         internal class CameraShakeSettings {
@@ -22,7 +29,7 @@ namespace HadoopCore.Scripts {
             public float AmpWalk => ampWalk;
             public float FreqWalk => freqWalk;
         }
-
+        
         [SerializeField] private float moveSpeed;
         [SerializeField] private float raycastDistance; // 射线检测的最大距离
         [SerializeField] private Transform transformTemplate;
@@ -37,7 +44,6 @@ namespace HadoopCore.Scripts {
 
         // Camera shake state
         private CinemachineBrain _brain;
-
 
         void Awake() {
             _rb = GetComponent<Rigidbody2D>();
@@ -99,10 +105,16 @@ namespace HadoopCore.Scripts {
 
         [Override]
         public void Dead(GameObject killer) {
-            _anim.SetInteger(Status, 2);
+            StopMovement();
+            _anim.SetInteger(Status, (int)PlayerState.Dead);
+            LevelEventCenter.TriggerGameOver();
         }
-
-
+        
+        [Override]
+        public bool IsAlive() {
+            return _anim.GetInteger(Status) != (int)PlayerState.Dead;
+        }
+        
         // Input System 回调：绑定到 Actions 里的 Move
         public void OnMove(InputAction.CallbackContext context) {
             _moveInput = context.ReadValue<Vector2>();
@@ -131,9 +143,9 @@ namespace HadoopCore.Scripts {
             if (!MySugarUtil.IsGround(gameObject)) {
                 return;
             }
-            int status = _moveInput != Vector2.zero ? 1 : 0;
-            _anim.SetInteger(Status, status);
-            if (status == 1) {
+            PlayerState status = _moveInput != Vector2.zero ? PlayerState.Walk : PlayerState.Idle;
+            _anim.SetInteger(Status, (int)status);
+            if (status == PlayerState.Walk) {
                 if (_moveInput.x > 0) {
                     transformTemplate.localRotation = Quaternion.Euler(0, 120, 0);
                 }
@@ -146,7 +158,7 @@ namespace HadoopCore.Scripts {
         private void StopMovement() {
             _moveInput = Vector2.zero;
             _rb.velocity = Vector2.zero;
-            _anim.SetInteger(Status, 0);
+            _anim.SetInteger(Status, (int)PlayerState.Idle);
         }
     }
 }
