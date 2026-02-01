@@ -243,10 +243,11 @@ namespace HadoopCore.Scripts.UI {
                     .SetEase(Ease.OutSine))
                 .OnComplete(() => {
                     Debug.Log("TransitionUI: Close fade completed Action!.");
-                    UIUtil.SetUIVisible(_canvasGroup, false);
-                    fadeOverlay.gameObject.SetActive(false);
+                    // 交给 GameManager -> SceneLoader, 播放开屏动画时, 关闭fade overlay
+                    // 如果在这里关闭的话, 会导致场景切换时, 闪一下
+                    // UIUtil.SetUIVisible(_canvasGroup, false);
+                    // fadeOverlay.gameObject.SetActive(false);
                 });
-            // Note: We do NOT hide CanvasGroup after close - scene will transition
             
             return _seq;
         }

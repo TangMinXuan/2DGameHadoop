@@ -14,7 +14,9 @@ namespace HadoopCore.Scripts.InterfaceAbility {
         
         CharacterState GetState();
 
-        void SetLogicState(CharacterState state);
+        void SetState(CharacterState state);
+
+        void SetStateWithLock(CharacterState state, bool locked, IExposeAbility caller = null);
 
         IExposeAbility GetChaseTargetExposeAbility() {
             return null;

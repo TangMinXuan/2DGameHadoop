@@ -69,6 +69,7 @@ namespace HadoopCore.Scripts {
         private Sequence _hitScratchSeq;
         
         private IExposeAbility _chaseTargetExposeAbility;
+        private bool _animLock = false;
         
         // Hit scratch state
         private Vector3 _hitScratchBaseLocalScale;
@@ -79,7 +80,7 @@ namespace HadoopCore.Scripts {
         private void Awake() {
             _rb = GetComponent<Rigidbody2D>();
             _animator = GetComponentInChildren<Animator>();
-            curState = CharacterState.Idle;
+            SetState(CharacterState.Idle);
             
             // Initialize hit scratch
             InitializeHitScratch();
@@ -100,37 +101,37 @@ namespace HadoopCore.Scripts {
         }
 
         private void Update() {
+
+            if (_animLock) {
+                return;
+            }
             
-            _animator.SetInteger(StatusKey, (int)curState);
-            
-            if (curState == CharacterState.Static) {
+            if (GetState() == CharacterState.Static) {
                 // 攻击后短暂的静止状态，等待动画完成事件(OnComplete)中切换回Idle
-                Debug.Log("[EnemyAI] Static State - waiting for attack animation to complete");
-            } else if (curState == CharacterState.Idle) {
+                Debug.Log("[EnemyAI - Update()] Static State - waiting for attack animation to complete - 理论上不会再被打印出来");
+            } else if (GetState() == CharacterState.Idle) {
                 if (Patrol()) {
-                    curState = CharacterState.Patrol;
+                    SetState(CharacterState.Patrol);
                 }
 
                 if (DetectTarget()) {
-                    curState = CharacterState.Chase; // 空闲中发现了目标, 就去追
+                    SetState(CharacterState.Chase); // 空闲中发现了目标, 就去追
                 }
-            } else if (curState == CharacterState.Patrol) {
+            } else if (GetState() == CharacterState.Patrol) {
                 Patrol();
                 if (DetectTarget()) {
-                    curState = CharacterState.Chase; // 巡逻中发现了目标, 就去追
+                    SetState(CharacterState.Chase); // 巡逻中发现了目标, 就去追
                 }
-            } else if (curState == CharacterState.Chase) {
+            } else if (GetState() == CharacterState.Chase) {
                 if (!DetectTarget()) {
-                    curState = CharacterState.Patrol; // 丢失目标, 返回巡逻
+                    SetState(CharacterState.Patrol); // 丢失目标, 返回巡逻
                 }
                 if (ChaseTarget()) {
-                    curState = CharacterState.Attack; // 追到了, 开始攻击
+                    SetStateWithLock(CharacterState.Attack, true); // 追到了, 开始攻击
                 }
-            } else if (curState == CharacterState.Attack) {
+            } else if (GetState() == CharacterState.Attack) {
                 // 攻击状态
-                _animator.SetTrigger("AttackTrigger");
-                curState = CharacterState.Static; // 攻击后必须立马转入其他状态, 防止反复触发攻击
-            } else if (curState == CharacterState.Dead) {
+            } else if (GetState() == CharacterState.Dead) {
                 // 死亡状态
             }
         }
@@ -285,14 +286,9 @@ namespace HadoopCore.Scripts {
         }
 
         [Override]
-        public int GetRank() {
-            return 1;
-        }
-
-        [Override]
         public void Dead(GameObject killer) {
+            // TODO: 缺乏更新了...
             Debug.Log("Skeleton Dead");
-            curState = CharacterState.Dead;
             _rb.velocity = Vector2.zero;
             // 可以添加死亡动画和销毁逻辑
             Destroy(gameObject, 2f);
@@ -304,13 +300,25 @@ namespace HadoopCore.Scripts {
         }
         
         [Override]
-        public void SetLogicState(CharacterState state) {
+        public void SetState(CharacterState state) {
+            if (_animLock) {
+                Debug.LogWarning("[EnemyAI - SetLogicState] 动画已被加锁, 禁止修改.");
+                return;
+            }
             curState = state;
+            _animator.SetInteger(StatusKey, (int)GetState());
+        }
+        
+        [Override]
+        public void SetStateWithLock(CharacterState state, bool locked, IExposeAbility caller = null) {
+            _animLock = locked;
+            curState = state;
+            _animator.SetInteger(StatusKey, (int)GetState());
         }
         
         [Override]
         public bool IsAlive() {
-            return curState != CharacterState.Dead;
+            return GetState() != CharacterState.Dead;
         }
 
         [Override]

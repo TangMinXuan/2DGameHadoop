@@ -35,38 +35,41 @@ namespace HadoopCore.Scripts {
 
         private Vector2 _moveInput;
         private Rigidbody2D _rb;
-        private Animator _anim;
+        private Animator _animator;
         private Collider2D _collider;
 
         // Camera shake state
         private CinemachineBrain _brain;
         
         public CharacterState curState { get; set; }
+        private bool _animLock = false;
 
         void Awake() {
             _rb = GetComponent<Rigidbody2D>();
             _collider = GetComponent<Collider2D>();
             _brain = FindObjectOfType<CinemachineBrain>();
 
-            _anim = GetComponentInChildren<Animator>();
-            if (_anim != null) {
-                _anim.applyRootMotion = false; // 动画不带位移
-                _anim.updateMode = AnimatorUpdateMode.Normal;
+            _animator = GetComponentInChildren<Animator>();
+            if (_animator != null) {
+                _animator.applyRootMotion = false; // 动画不带位移
+                _animator.updateMode = AnimatorUpdateMode.Normal;
             }
             
-            curState = CharacterState.Idle;
+            SetState(CharacterState.Idle);
         }
 
         void Update() {
-            if (_anim.GetInteger(StatusKey) == CharacterState.UnderAttack && curState == CharacterState.UnderAttack) {
+            if (_animLock) {
+                return;
+            }
+            if (_animator.GetInteger(StatusKey) == CharacterState.UnderAttack && GetState() == CharacterState.UnderAttack) {
                 // 受击状态不允许被覆盖
                 return;
             }
-            _anim.SetInteger(StatusKey, (int)curState);
         }
 
         void FixedUpdate() {
-            int status = _anim.GetInteger(StatusKey);
+            int status = _animator.GetInteger(StatusKey);
             if (status == CharacterState.Walk) {
                 _rb.velocity = new Vector2(_moveInput.x * moveSpeed, _rb.velocity.y);
             }
@@ -118,7 +121,6 @@ namespace HadoopCore.Scripts {
         [Override]
         public void Dead(GameObject killer) {
             StopMovement();
-            curState = CharacterState.Dead;
             
             // 根据killer的相对位置计算击飞方向
             Vector2 knockbackDirection;
@@ -138,7 +140,7 @@ namespace HadoopCore.Scripts {
         
         [Override]
         public bool IsAlive() {
-            return curState != CharacterState.Dead && curState != CharacterState.UnderAttack;
+            return GetState() != CharacterState.Dead && GetState() != CharacterState.UnderAttack;
         }
         
         [Override]
@@ -147,8 +149,20 @@ namespace HadoopCore.Scripts {
         }
         
         [Override]
-        public void SetLogicState(CharacterState state) {
+        public void SetState(CharacterState state) {
+            if (_animLock) {
+                Debug.LogWarning("[Player - SetState] 动画已被加锁, 禁止修改.");
+                return;
+            }
             curState = state;
+            _animator.SetInteger(StatusKey, (int)GetState());
+        }
+        
+        [Override]
+        public void SetStateWithLock(CharacterState state, bool locked, IExposeAbility caller = null) {
+            _animLock = locked;
+            curState = state;
+            _animator.SetInteger(StatusKey, (int)GetState());
         }
         
         // Input System 回调：绑定到 Actions 里的 Move
@@ -176,12 +190,11 @@ namespace HadoopCore.Scripts {
         }
 
         private void HandleMovementInput() {
-            if (curState == CharacterState.Dead || curState == CharacterState.UnderAttack) {
+            if (GetState() == CharacterState.Dead || GetState() == CharacterState.UnderAttack) {
                 return;
             }
-            // TODO 不应该在这里去 写curState , 状态转换统一收敛到Update中去
-            curState = _moveInput != Vector2.zero ? CharacterState.Walk : CharacterState.Idle;
-            if (curState == CharacterState.Walk) {
+            SetState(_moveInput != Vector2.zero ? CharacterState.Walk : CharacterState.Idle);
+            if (GetState() == CharacterState.Walk) {
                 if (_moveInput.x > 0) {
                     transformTemplate.localRotation = Quaternion.Euler(0, 120, 0);
                 }

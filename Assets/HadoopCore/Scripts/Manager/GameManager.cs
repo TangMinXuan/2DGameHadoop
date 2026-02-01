@@ -196,7 +196,7 @@ namespace HadoopCore.Scripts.Manager {
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode) {
             RefreshSceneReferences();
-            PlayOpeningTransition(); // 触发开屏效果
+            GenerateTransition(true); // 触发开屏效果
         }
 
         private void RefreshSceneReferences() {
@@ -205,16 +205,6 @@ namespace HadoopCore.Scripts.Manager {
             // 反例: LoadingPageManager, 它依赖的东西都挂在它子节点上,
             // 而子节点会跟着父节点 DontDestroyOnLoad , 因此它不需要刷新依赖
             MySugarUtil.AutoFindObjects(this, gameObject);
-        }
-
-        /// <summary>
-        /// 播放场景开场的过渡效果
-        /// </summary>
-        private void PlayOpeningTransition() {
-            if (player == null) {
-                return;
-            }
-            GenerateTransition(true);
         }
     }
 }
