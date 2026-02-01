@@ -216,7 +216,6 @@ namespace HadoopCore.Scripts {
                     if (!_chaseTargetExposeAbility.IsAlive()) {
                         return false;
                     }
-                    Debug.Log($"[EnemyAI] Detected target: {_chaseTargetExposeAbility.GetGameObject().name}");
                     return true;
                 }
             }

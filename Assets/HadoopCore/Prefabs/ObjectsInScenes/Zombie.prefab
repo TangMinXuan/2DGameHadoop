@@ -196,10 +196,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   transformTemplate: {fileID: 7982931759542846097}
   patrolSpeed: 1.5
-  chaseSpeed: 2.5
+  chaseSpeed: 3
   waypointReachDistance: 0.5
-  detectableRadius: 3
+  detectableRadius: 4
   attackableRadius: 1.5
+  detectRayOffsetX: 1
+  detectRayOffsetY: 1
   patrolPaths:
   - {x: -9, y: -1}
   - {x: -5, y: -1}

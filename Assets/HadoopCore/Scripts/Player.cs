@@ -58,6 +58,10 @@ namespace HadoopCore.Scripts {
         }
 
         void Update() {
+            if (_anim.GetInteger(StatusKey) == CharacterState.UnderAttack && curState == CharacterState.UnderAttack) {
+                // 受击状态不允许被覆盖
+                return;
+            }
             _anim.SetInteger(StatusKey, (int)curState);
         }
 
@@ -115,6 +119,20 @@ namespace HadoopCore.Scripts {
         public void Dead(GameObject killer) {
             StopMovement();
             curState = CharacterState.Dead;
+            
+            // 根据killer的相对位置计算击飞方向
+            Vector2 knockbackDirection;
+            if (killer != null) {
+                float horizontalDirection = killer.transform.position.x < transform.position.x ? 1f : -1f;
+                knockbackDirection = new Vector2(horizontalDirection, 1f).normalized;
+            } else {
+                // 如果killer为null，默认向右上方击飞
+                knockbackDirection = new Vector2(1f, 1f).normalized;
+            }
+            
+            float knockbackForce = 10f;
+            _rb.AddForce(knockbackDirection * knockbackForce, ForceMode2D.Impulse);
+            
             LevelEventCenter.TriggerGameOver();
         }
         
@@ -158,9 +176,6 @@ namespace HadoopCore.Scripts {
         }
 
         private void HandleMovementInput() {
-            if (!MySugarUtil.IsGround(gameObject)) {
-                return;
-            }
             if (curState == CharacterState.Dead || curState == CharacterState.UnderAttack) {
                 return;
             }
@@ -179,7 +194,6 @@ namespace HadoopCore.Scripts {
         private void StopMovement() {
             _moveInput = Vector2.zero;
             _rb.velocity = Vector2.zero;
-            curState = CharacterState.Idle;
         }
     }
 }

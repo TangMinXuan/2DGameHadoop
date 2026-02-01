@@ -611,18 +611,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 2301043467010580064, guid: e4c32a6a35a5d41e0aa2e3e320c055ef, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2301043467010580064, guid: e4c32a6a35a5d41e0aa2e3e320c055ef, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2301043467010580064, guid: e4c32a6a35a5d41e0aa2e3e320c055ef, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: -45
-      objectReference: {fileID: 0}
     - target: {fileID: 3406012691857803935, guid: e4c32a6a35a5d41e0aa2e3e320c055ef, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.28
@@ -663,49 +651,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5349881846059317179, guid: e4c32a6a35a5d41e0aa2e3e320c055ef, type: 3}
-      propertyPath: moveSpeed
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 6432994887249252791, guid: e4c32a6a35a5d41e0aa2e3e320c055ef, type: 3}
       propertyPath: m_Name
       value: Player
-      objectReference: {fileID: 0}
-    - target: {fileID: 6833768233366553886, guid: e4c32a6a35a5d41e0aa2e3e320c055ef, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6833768233366553886, guid: e4c32a6a35a5d41e0aa2e3e320c055ef, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6833768233366553886, guid: e4c32a6a35a5d41e0aa2e3e320c055ef, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 45.000004
-      objectReference: {fileID: 0}
-    - target: {fileID: 7108233642956466868, guid: e4c32a6a35a5d41e0aa2e3e320c055ef, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8088248893537693527, guid: e4c32a6a35a5d41e0aa2e3e320c055ef, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 72.09
-      objectReference: {fileID: 0}
-    - target: {fileID: 8088248893537693527, guid: e4c32a6a35a5d41e0aa2e3e320c055ef, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 179.99998
-      objectReference: {fileID: 0}
-    - target: {fileID: 8088248893537693527, guid: e4c32a6a35a5d41e0aa2e3e320c055ef, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 179.99998
-      objectReference: {fileID: 0}
-    - target: {fileID: 9056166584657225644, guid: e4c32a6a35a5d41e0aa2e3e320c055ef, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9056166584657225644, guid: e4c32a6a35a5d41e0aa2e3e320c055ef, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: -0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3294,22 +3242,6 @@ PrefabInstance:
     - target: {fileID: 87750000444450890, guid: 77fc3f522d5fa4bc78cc608534ebec34, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1785803988490614780, guid: 77fc3f522d5fa4bc78cc608534ebec34, type: 3}
-      propertyPath: chaseSpeed
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 1785803988490614780, guid: 77fc3f522d5fa4bc78cc608534ebec34, type: 3}
-      propertyPath: detectRayOffsetX
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1785803988490614780, guid: 77fc3f522d5fa4bc78cc608534ebec34, type: 3}
-      propertyPath: detectRayOffsetY
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1785803988490614780, guid: 77fc3f522d5fa4bc78cc608534ebec34, type: 3}
-      propertyPath: detectableRadius
-      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 6555551954792095586, guid: 77fc3f522d5fa4bc78cc608534ebec34, type: 3}
       propertyPath: m_Name
