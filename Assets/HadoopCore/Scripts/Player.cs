@@ -3,19 +3,15 @@ using Cinemachine;
 using HadoopCore.Scripts.Attribute;
 using HadoopCore.Scripts.InterfaceAbility;
 using HadoopCore.Scripts.Manager;
+using HadoopCore.Scripts.Shared;
 using HadoopCore.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace HadoopCore.Scripts {
-    public enum PlayerState {
-        Idle = 0, // 空闲状态
-        Walk = 1,  // 行走状态
-        Dead = 2, // 死亡状态
-    }
     
-    public class Player : MonoBehaviour, IPointerClickHandler, IDeadAbility {
+    public class Player : MonoBehaviour, IPointerClickHandler, IExposeAbility {
         [Serializable]
         internal class CameraShakeSettings {
             [Header("Speed")]
@@ -35,7 +31,7 @@ namespace HadoopCore.Scripts {
         [SerializeField] private Transform transformTemplate;
         [SerializeField] private CameraShakeSettings cameraShakeSettings = new CameraShakeSettings();
 
-        private static readonly int Status = Animator.StringToHash("Status");
+        private static readonly int StatusKey = Animator.StringToHash("Status");
 
         private Vector2 _moveInput;
         private Rigidbody2D _rb;
@@ -44,6 +40,8 @@ namespace HadoopCore.Scripts {
 
         // Camera shake state
         private CinemachineBrain _brain;
+        
+        public CharacterState curState { get; set; }
 
         void Awake() {
             _rb = GetComponent<Rigidbody2D>();
@@ -55,10 +53,20 @@ namespace HadoopCore.Scripts {
                 _anim.applyRootMotion = false; // 动画不带位移
                 _anim.updateMode = AnimatorUpdateMode.Normal;
             }
+            
+            curState = CharacterState.Idle;
+        }
+
+        void Update() {
+            _anim.SetInteger(StatusKey, (int)curState);
         }
 
         void FixedUpdate() {
-            _rb.velocity = new Vector2(_moveInput.x * moveSpeed, _rb.velocity.y);
+            int status = _anim.GetInteger(StatusKey);
+            if (status == CharacterState.Walk) {
+                _rb.velocity = new Vector2(_moveInput.x * moveSpeed, _rb.velocity.y);
+            }
+            // Idle, Dead, UnderAttack 等状态不做速度处理
         }
 
         private void LateUpdate() {
@@ -106,13 +114,23 @@ namespace HadoopCore.Scripts {
         [Override]
         public void Dead(GameObject killer) {
             StopMovement();
-            _anim.SetInteger(Status, (int)PlayerState.Dead);
+            curState = CharacterState.Dead;
             LevelEventCenter.TriggerGameOver();
         }
         
         [Override]
         public bool IsAlive() {
-            return _anim.GetInteger(Status) != (int)PlayerState.Dead;
+            return curState != CharacterState.Dead && curState != CharacterState.UnderAttack;
+        }
+        
+        [Override]
+        public CharacterState GetState() {
+            return curState;
+        }
+        
+        [Override]
+        public void SetLogicState(CharacterState state) {
+            curState = state;
         }
         
         // Input System 回调：绑定到 Actions 里的 Move
@@ -143,9 +161,12 @@ namespace HadoopCore.Scripts {
             if (!MySugarUtil.IsGround(gameObject)) {
                 return;
             }
-            PlayerState status = _moveInput != Vector2.zero ? PlayerState.Walk : PlayerState.Idle;
-            _anim.SetInteger(Status, (int)status);
-            if (status == PlayerState.Walk) {
+            if (curState == CharacterState.Dead || curState == CharacterState.UnderAttack) {
+                return;
+            }
+            // TODO 不应该在这里去 写curState , 状态转换统一收敛到Update中去
+            curState = _moveInput != Vector2.zero ? CharacterState.Walk : CharacterState.Idle;
+            if (curState == CharacterState.Walk) {
                 if (_moveInput.x > 0) {
                     transformTemplate.localRotation = Quaternion.Euler(0, 120, 0);
                 }
@@ -158,7 +179,7 @@ namespace HadoopCore.Scripts {
         private void StopMovement() {
             _moveInput = Vector2.zero;
             _rb.velocity = Vector2.zero;
-            _anim.SetInteger(Status, (int)PlayerState.Idle);
+            curState = CharacterState.Idle;
         }
     }
 }

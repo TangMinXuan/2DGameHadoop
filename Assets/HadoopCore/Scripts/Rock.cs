@@ -20,7 +20,7 @@ namespace HadoopCore.Scripts {
 
         private void OnTriggerEnter2D(Collider2D other) {
             // 检测是否碰到Player或Enemy
-            if (other.CompareTag("Player") && other.TryGetComponent<IDeadAbility>(out var deadAbility)) {
+            if (other.CompareTag("Player") && other.TryGetComponent<IExposeAbility>(out var deadAbility)) {
                 deadAbility.Dead(gameObject);
             }
         }

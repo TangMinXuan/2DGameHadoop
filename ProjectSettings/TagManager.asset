@@ -7,8 +7,11 @@ TagManager:
   - Plug
   - CoinBox
   - Chest
-  - Enemy
   - Weight
+  - Monster
+  - SeniorMonster
+  - Boss
+  - Enemy
   layers:
   - Default
   - TransparentFX

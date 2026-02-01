@@ -92,7 +92,7 @@ namespace HadoopCore.Scripts.UI {
             // 2. DOTween推: 镜头缓慢拉近 + 黑边缓慢增长 + 镜头缓慢模糊 + 镜头晃动
             _seq.Join(TweenZoomIn(5f).SetEase(Ease.Linear)); // (Hold) 镜头拉近 In = 慢启动，Out = 慢停止
             _seq.Join(TweenVignetteIn(0.5f).SetEase(Ease.Linear)); // (Hold) 黑边增长
-            _seq.Join(TweenDutchShake(5f, 2f, 1).SetEase(Ease.Linear)); // 相机抖动
+            // _seq.Join(TweenDutchShake(5f, 2f, 1).SetEase(Ease.Linear)); // 相机抖动
             _seq.AppendInterval(1f); // Hold 3 秒
 
             // 3. CenterBar + WastedText 由远到近飞入, 泛光
@@ -212,7 +212,7 @@ namespace HadoopCore.Scripts.UI {
                     () => deathFXRefs.bloom.intensity.value,
                     x => deathFXRefs.bloom.intensity.value = x,
                     intensity,
-                    1f
+                    0.25f
                 ))
                 .AppendInterval(durationAfterComplete)
                 .OnComplete(() => {
@@ -227,7 +227,7 @@ namespace HadoopCore.Scripts.UI {
                     () => deathFXRefs.colorAdjustments.postExposure.value,
                     x => deathFXRefs.colorAdjustments.postExposure.value = x,
                     postExposure,
-                    1f
+                    0.25f
                 ))
                 .AppendInterval(durationAfterComplete)
                 .OnComplete(() => {

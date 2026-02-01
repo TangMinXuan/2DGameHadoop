@@ -29,7 +29,7 @@ namespace HadoopCore.Scripts {
         }
 
         private void OnTriggerEnter2D(Collider2D triggerObj) {
-            if (triggerObj.TryGetComponent<IDeadAbility>(out var deadAbility)) {
+            if (triggerObj.TryGetComponent<IExposeAbility>(out var deadAbility)) {
                 deadAbility.Dead(gameObject);
                 
             }

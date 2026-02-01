@@ -3,20 +3,13 @@ using System.Collections.Generic;
 using DG.Tweening;
 using HadoopCore.Scripts.Attribute;
 using HadoopCore.Scripts.InterfaceAbility;
+using HadoopCore.Scripts.Shared;
 using HadoopCore.Scripts.Utils;
 using UnityEngine;
 
 namespace HadoopCore.Scripts {
-    public enum EnemyState {
-        Dead = 0, // 死亡状态
-        Idle = 1, // 空闲状态
-        Patrol = 2, // 巡逻状态
-        Chase = 3, // 追击状态
-        Attack = 4, // 攻击状态
-        Static = 5 // 攻击后短暂的静止状态
-    }
 
-    public class EnemyAI : MonoBehaviour, IDeadAbility {        
+    public class EnemyAI : MonoBehaviour, IExposeAbility {
         [Serializable]
         internal class HitScratchSettings {
             [Header("Sprite Reference")]
@@ -52,25 +45,30 @@ namespace HadoopCore.Scripts {
         private static readonly int StatusKey = Animator.StringToHash("Status");
         [SerializeField] private Transform transformTemplate;
 
-        [Header("移动设置")] [SerializeField] private float patrolSpeed = 1f;
-        [SerializeField] private float chaseSpeed = 2f;
+        [Header("移动设置")] 
+        [SerializeField] private float patrolSpeed = 2f;
+        [SerializeField] private float chaseSpeed = 3;
         [SerializeField] private float waypointReachDistance = 0.5f; // 到达路径点的判定距离
 
-        [Header("检测设置")] [SerializeField] private float detectableRadius = 3f;
+        [Header("检测设置")] 
+        [SerializeField] private float detectableRadius = 3f;
         [SerializeField] private float attackableRadius = 1.5f; // 进入攻击距离, 就去锁住Player的移动
-        private Transform _headTransform; // 视线起点在敌人头部附近
+        [SerializeField] private float detectRayOffsetX = 3f; // 射线起始位置X偏移量
+        [SerializeField] private float detectRayOffsetY = 1f; // 射线起始位置Y偏移量
 
         [Header("巡逻路径")] [SerializeField] private List<Vector2> patrolPaths; // 巡逻路径点列表
 
         [SerializeField] private HitScratchSettings hitScratchSettings = new HitScratchSettings();
         
-        public GameObject chaseTarget { get; private set; }
-        public EnemyState curState { get; set; }
+        public CharacterState curState { get; set; }
         
         private int _currentPathIndex = 0; // 当前目标路径点索引
         private Rigidbody2D _rb;
         private Animator _animator;
-        private RaycastHit2D[] _hitBuffer = new RaycastHit2D[5];
+        private RaycastHit2D[] _hitBuffer = new RaycastHit2D[1];
+        private Sequence _hitScratchSeq;
+        
+        private IExposeAbility _chaseTargetExposeAbility;
         
         // Hit scratch state
         private Vector3 _hitScratchBaseLocalScale;
@@ -81,9 +79,7 @@ namespace HadoopCore.Scripts {
         private void Awake() {
             _rb = GetComponent<Rigidbody2D>();
             _animator = GetComponentInChildren<Animator>();
-            chaseTarget = GameObject.FindGameObjectWithTag("Player");
-            _headTransform = Array.Find(GetComponentsInChildren<Transform>(), t => t.name == "head");
-            curState = EnemyState.Idle;
+            curState = CharacterState.Idle;
             
             // Initialize hit scratch
             InitializeHitScratch();
@@ -104,77 +100,62 @@ namespace HadoopCore.Scripts {
         }
 
         private void Update() {
-            // if ((int)curState != _animator.GetInteger(Status)) {
-            //     curState = (EnemyState)_animator.GetInteger(Status);
-            // }
+            
             _animator.SetInteger(StatusKey, (int)curState);
-            switch (curState) {
-                case EnemyState.Static:
-                    break; // 攻击后短暂的静止状态，等待动画完成事件(OnComplete)中切换回Idle
-                case EnemyState.Idle:
-                    if (Patrol()) {
-                        curState = EnemyState.Patrol;
-                    }
+            
+            if (curState == CharacterState.Static) {
+                // 攻击后短暂的静止状态，等待动画完成事件(OnComplete)中切换回Idle
+                Debug.Log("[EnemyAI] Static State - waiting for attack animation to complete");
+            } else if (curState == CharacterState.Idle) {
+                if (Patrol()) {
+                    curState = CharacterState.Patrol;
+                }
 
-                    if (DetectTarget()) {
-                        // 空闲中发现了目标, 就去追
-                        curState = EnemyState.Chase;
-                    }
-
-                    break;
-                case EnemyState.Patrol:
-                    Patrol();
-                    if (DetectTarget()) {
-                        // 巡逻中发现了目标, 就去追
-                        curState = EnemyState.Chase;
-                    }
-
-                    break;
-                case EnemyState.Chase:
-                    if (!DetectTarget()) {
-                        // 丢失目标, 返回巡逻
-                        curState = EnemyState.Patrol;
-                    }
-
-                    if (ChaseTarget() && MySugarUtil.IsGround(gameObject)) {
-                        // 追到了, 开始攻击
-                        curState = EnemyState.Attack;
-                        _animator.SetTrigger("AttackTrigger");
-                    }
-
-                    break;
-                case EnemyState.Attack:
-                    break;
-                case EnemyState.Dead:
-                    break;
+                if (DetectTarget()) {
+                    curState = CharacterState.Chase; // 空闲中发现了目标, 就去追
+                }
+            } else if (curState == CharacterState.Patrol) {
+                Patrol();
+                if (DetectTarget()) {
+                    curState = CharacterState.Chase; // 巡逻中发现了目标, 就去追
+                }
+            } else if (curState == CharacterState.Chase) {
+                if (!DetectTarget()) {
+                    curState = CharacterState.Patrol; // 丢失目标, 返回巡逻
+                }
+                if (ChaseTarget()) {
+                    curState = CharacterState.Attack; // 追到了, 开始攻击
+                }
+            } else if (curState == CharacterState.Attack) {
+                // 攻击状态
+                _animator.SetTrigger("AttackTrigger");
+                curState = CharacterState.Static; // 攻击后必须立马转入其他状态, 防止反复触发攻击
+            } else if (curState == CharacterState.Dead) {
+                // 死亡状态
             }
         }
 
         private void FixedUpdate() {
-            switch (_animator.GetInteger(StatusKey)) {
-                case 1:
-                    _rb.velocity = Vector2.zero;
-                    break;
-                case 2:
-                    if (!MySugarUtil.IsGround(gameObject)) {
-                        break;
-                    }
-                    Vector2 patrolDirection = (patrolPaths[_currentPathIndex] - (Vector2)transform.position).normalized;
-                    _rb.velocity = new Vector2(patrolDirection.x * patrolSpeed, _rb.velocity.y);
-                    break;
-                case 3:
-                    if (!MySugarUtil.IsGround(gameObject)) {
-                        break;
-                    }
-                    Vector2 chaseDirection = (chaseTarget.transform.position - transform.position).normalized;
-                    _rb.velocity = new Vector2(chaseDirection.x * chaseSpeed, _rb.velocity.y);
-                    break;
-                case 4:
-                    _rb.velocity = Vector2.zero; // 攻击时停止移动
-                    break;
-                case 0:
-                    _rb.velocity = Vector2.zero; // 死亡时停止移动
-                    break;
+            CharacterState curAnimState = CharacterState.FromValue(_animator.GetInteger(StatusKey));
+            if (curAnimState == CharacterState.Idle) {
+                _rb.velocity = Vector2.zero;
+            } else if (curAnimState == CharacterState.Patrol) {
+                if (!MySugarUtil.IsGround(gameObject)) {
+                    return;
+                }
+                Vector2 patrolDirection = (patrolPaths[_currentPathIndex] - (Vector2)transform.position).normalized;
+                _rb.velocity = new Vector2(patrolDirection.x * patrolSpeed, _rb.velocity.y);
+            } else if (curAnimState == CharacterState.Chase) {
+                if (!MySugarUtil.IsGround(gameObject)) {
+                    return;
+                }
+                Transform targetTransform = _chaseTargetExposeAbility.GetTransform();
+                Vector2 chaseDirection = (targetTransform.position - transform.position).normalized;
+                _rb.velocity = new Vector2(chaseDirection.x * chaseSpeed, _rb.velocity.y);
+            } else if (curAnimState == CharacterState.Attack) {
+                _rb.velocity = Vector2.zero; // 攻击时停止移动
+            } else if (curAnimState == CharacterState.Dead) {
+                _rb.velocity = Vector2.zero; // 死亡时停止移动
             }
         }
 
@@ -206,31 +187,37 @@ namespace HadoopCore.Scripts {
         }
 
         private bool DetectTarget() {
-            chaseTarget.transform.gameObject.TryGetComponent(out IDeadAbility deadAbility);
-            if (deadAbility == null || !deadAbility.IsAlive()) {
-                // 死了的目标不去检测
-                return false;
-            }
-            float distanceToPlayer = Vector2.Distance(_headTransform.position, chaseTarget.transform.position);
-            if (distanceToPlayer > detectableRadius) {
-                return false;
-            }
-
+            // 根据 transformTemplate.localRotation.y 确定射线方向和偏移
+            bool facingRight = transformTemplate.localRotation.y >= 0;
+            Vector2 direction = facingRight ? Vector2.right : Vector2.left;
+            float offsetX = facingRight ? detectRayOffsetX : -detectRayOffsetX;
+            Vector2 rayOrigin = (Vector2)transformTemplate.position + new Vector2(offsetX, detectRayOffsetY);
             int hitCount = Physics2D.RaycastNonAlloc(
-                _headTransform.position,
-                (chaseTarget.transform.position - _headTransform.position).normalized,
+                rayOrigin,
+                direction,
                 _hitBuffer,
-                distanceToPlayer
+                detectableRadius
             );
 
-            for (int i = 0; i < hitCount; i++) {
-                if (_hitBuffer[i].rigidbody != null) {
-                    if (_hitBuffer[i].rigidbody.CompareTag("Plug")) {
-                        break;
+            if (_hitBuffer[0].rigidbody != null) {
+                string tag = _hitBuffer[0].rigidbody.tag;
+                if (tag == null || !CharacterRank.ContainsTag(tag)) {
+                    // 只检测Character的tag, 如果中途有其他障碍物(例如:Plug)挡住了, 就停止检测
+                    return false;
+                }
+                if (CharacterRank.GetRank(tag) >= CharacterRank.GetRank(gameObject.tag)) {
+                    // 碰到比自己等级高的角色, 就停止检测
+                    // 高等级的角色死亡后, 记得Destroy!!! 不然会一直挡住低等级角色的检测
+                    return false;
+                }
+                if (CharacterRank.GetRank(tag) < CharacterRank.GetRank(gameObject.tag)) {
+                    // 碰到比自己等级低的角色, 就去追
+                    _chaseTargetExposeAbility = _hitBuffer[0].rigidbody.GetComponent<IExposeAbility>();
+                    if (!_chaseTargetExposeAbility.IsAlive()) {
+                        return false;
                     }
-                    if (_hitBuffer[i].rigidbody.CompareTag("Player")) {
-                        return true;
-                    }
+                    Debug.Log($"[EnemyAI] Detected target: {_chaseTargetExposeAbility.GetGameObject().name}");
+                    return true;
                 }
             }
 
@@ -239,14 +226,14 @@ namespace HadoopCore.Scripts {
 
         private bool ChaseTarget() {
             // 是否已经追到了
-            float distanceToPlayer = Vector2.Distance(_headTransform.position, chaseTarget.transform.position);
+            Transform targetTransform = _chaseTargetExposeAbility.GetTransform();
+            float distanceToPlayer = Vector2.Distance(transformTemplate.position, targetTransform.position);
             if (distanceToPlayer <= attackableRadius) {
                 return true;
             }
 
             // 计算移动方向
-            Vector2 direction = (chaseTarget.transform.position - transform.position).normalized;
-
+            Vector2 direction = (targetTransform.position - transform.position).normalized;
             if (direction.x > 0) {
                 transformTemplate.localRotation = Quaternion.Euler(0, 120, 0);
             }
@@ -264,7 +251,8 @@ namespace HadoopCore.Scripts {
             Transform scratchTransform = hitScratchSettings.SpriteRenderer.transform;
 
             // 根据当前朝向和攻击距离计算位置
-            Vector2 direction = (chaseTarget.transform.position - transform.position).normalized;
+            Transform targetTransform = _chaseTargetExposeAbility.GetTransform();
+            Vector2 direction = (targetTransform.position - transform.position).normalized;
             float facingOffsetX = direction.x > 0 ? attackableRadius : -attackableRadius;
             Vector3 baseLocalPosition = new Vector3(facingOffsetX, _hitScratchLocalOffsetY, scratchTransform.localPosition.z);
 
@@ -298,23 +286,52 @@ namespace HadoopCore.Scripts {
         }
 
         [Override]
+        public int GetRank() {
+            return 1;
+        }
+
+        [Override]
         public void Dead(GameObject killer) {
             Debug.Log("Skeleton Dead");
-            curState = EnemyState.Dead;
+            curState = CharacterState.Dead;
             _rb.velocity = Vector2.zero;
             // 可以添加死亡动画和销毁逻辑
             Destroy(gameObject, 2f);
         }
         
         [Override]
+        public CharacterState GetState() {
+            return curState;
+        }
+        
+        [Override]
+        public void SetLogicState(CharacterState state) {
+            curState = state;
+        }
+        
+        [Override]
         public bool IsAlive() {
-            return curState != EnemyState.Dead;
+            return curState != CharacterState.Dead;
         }
 
+        [Override]
+        public IExposeAbility GetChaseTargetExposeAbility() {
+            return _chaseTargetExposeAbility;
+        }
         private void OnDrawGizmosSelected() {
-            // 可视化检测范围
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(transform.position, detectableRadius);
+            // 可视化检测范围（考虑offset偏移）
+            if (transformTemplate != null) {
+                bool facingRight = transformTemplate.localRotation.y >= 0;
+                float offsetX = facingRight ? detectRayOffsetX : -detectRayOffsetX;
+                Vector2 rayOrigin = (Vector2)transformTemplate.position + new Vector2(offsetX, detectRayOffsetY);
+                Vector2 direction = facingRight ? Vector2.right : Vector2.left;
+                Vector2 rayEnd = rayOrigin + direction * detectableRadius;
+                
+                Gizmos.color = Color.red;
+                Gizmos.DrawSphere(rayOrigin, 0.1f); // 射线起点
+                Gizmos.DrawLine(rayOrigin, rayEnd); // 射线
+                Gizmos.DrawWireSphere(rayEnd, 0.15f); // 射线终点
+            }
 
             // 可视化巡逻路径
             if (patrolPaths != null && patrolPaths.Count > 1) {
