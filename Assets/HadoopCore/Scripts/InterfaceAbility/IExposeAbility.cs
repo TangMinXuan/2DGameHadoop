@@ -3,18 +3,11 @@ using UnityEngine;
 
 namespace HadoopCore.Scripts.InterfaceAbility {
     public interface IExposeAbility {
-
-        int GetRank() {
-            return 0;
-        }
-        
-        void Dead(GameObject killer);
-        
         bool IsAlive();
         
         CharacterState GetState();
 
-        void SetState(CharacterState state);
+        bool SetState(CharacterState state);
 
         void SetStateWithLock(CharacterState state, bool locked, IExposeAbility caller = null);
 

@@ -40,8 +40,8 @@ namespace HadoopCore.Scripts {
 
         // Camera shake state
         private CinemachineBrain _brain;
-        
-        public CharacterState curState { get; set; }
+
+        private CharacterState _curState;
         private bool _animLock = false;
 
         void Awake() {
@@ -60,10 +60,6 @@ namespace HadoopCore.Scripts {
 
         void Update() {
             if (_animLock) {
-                return;
-            }
-            if (_animator.GetInteger(StatusKey) == CharacterState.UnderAttack && GetState() == CharacterState.UnderAttack) {
-                // 受击状态不允许被覆盖
                 return;
             }
         }
@@ -117,26 +113,6 @@ namespace HadoopCore.Scripts {
                 StopMovement();
             }
         }
-
-        [Override]
-        public void Dead(GameObject killer) {
-            StopMovement();
-            
-            // 根据killer的相对位置计算击飞方向
-            Vector2 knockbackDirection;
-            if (killer != null) {
-                float horizontalDirection = killer.transform.position.x < transform.position.x ? 1f : -1f;
-                knockbackDirection = new Vector2(horizontalDirection, 1f).normalized;
-            } else {
-                // 如果killer为null，默认向右上方击飞
-                knockbackDirection = new Vector2(1f, 1f).normalized;
-            }
-            
-            float knockbackForce = 10f;
-            _rb.AddForce(knockbackDirection * knockbackForce, ForceMode2D.Impulse);
-            
-            LevelEventCenter.TriggerGameOver();
-        }
         
         [Override]
         public bool IsAlive() {
@@ -145,24 +121,40 @@ namespace HadoopCore.Scripts {
         
         [Override]
         public CharacterState GetState() {
-            return curState;
+            return _curState;
         }
         
         [Override]
-        public void SetState(CharacterState state) {
+        public bool SetState(CharacterState state) {
             if (_animLock) {
                 Debug.LogWarning("[Player - SetState] 动画已被加锁, 禁止修改.");
-                return;
+                return false;
             }
-            curState = state;
+            if (state == CharacterState.Dead || state == CharacterState.UnderAttack || state == CharacterState.Attack) {
+                Debug.LogWarning($"[Player - SetState] ${state}状态必须使用 SetStateWithLock 方法设置!");
+                return false;
+            }
+            _curState = state;
             _animator.SetInteger(StatusKey, (int)GetState());
+            return true;
         }
         
         [Override]
         public void SetStateWithLock(CharacterState state, bool locked, IExposeAbility caller = null) {
             _animLock = locked;
-            curState = state;
+            _curState = state;
             _animator.SetInteger(StatusKey, (int)GetState());
+            if (state == CharacterState.Dead) {
+                StopMovement();
+                // 根据killer的相对位置计算击飞方向
+                if (caller != null) {
+                    float horizontalDirection = caller.GetTransform().position.x < transform.position.x ? 1f : -1f;
+                    Vector2 knockbackDirection = new Vector2(horizontalDirection, 1f).normalized;
+                    float knockbackForce = 10f;
+                    _rb.AddForce(knockbackDirection * knockbackForce, ForceMode2D.Impulse);
+                }
+                LevelEventCenter.TriggerGameOver();
+            }
         }
         
         // Input System 回调：绑定到 Actions 里的 Move
@@ -190,9 +182,6 @@ namespace HadoopCore.Scripts {
         }
 
         private void HandleMovementInput() {
-            if (GetState() == CharacterState.Dead || GetState() == CharacterState.UnderAttack) {
-                return;
-            }
             SetState(_moveInput != Vector2.zero ? CharacterState.Walk : CharacterState.Idle);
             if (GetState() == CharacterState.Walk) {
                 if (_moveInput.x > 0) {

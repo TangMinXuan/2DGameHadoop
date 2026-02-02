@@ -59,8 +59,8 @@ namespace HadoopCore.Scripts {
         [Header("巡逻路径")] [SerializeField] private List<Vector2> patrolPaths; // 巡逻路径点列表
 
         [SerializeField] private HitScratchSettings hitScratchSettings = new HitScratchSettings();
-        
-        public CharacterState curState { get; set; }
+
+        private CharacterState _curState;
         
         private int _currentPathIndex = 0; // 当前目标路径点索引
         private Rigidbody2D _rb;
@@ -284,36 +284,41 @@ namespace HadoopCore.Scripts {
                 .Insert(hitScratchSettings.FadeOutDelay, hitScratchSettings.SpriteRenderer.DOFade(0f, hitScratchSettings.FadeOutDuration)
                     .SetEase(Ease.InQuad)); // Fade out (0.20s - 0.50s)
         }
-
-        [Override]
-        public void Dead(GameObject killer) {
-            // TODO: 缺乏更新了...
-            Debug.Log("Skeleton Dead");
-            _rb.velocity = Vector2.zero;
-            // 可以添加死亡动画和销毁逻辑
-            Destroy(gameObject, 2f);
-        }
         
         [Override]
         public CharacterState GetState() {
-            return curState;
+            return _curState;
         }
         
         [Override]
-        public void SetState(CharacterState state) {
+        public bool SetState(CharacterState state) {
             if (_animLock) {
                 Debug.LogWarning("[EnemyAI - SetLogicState] 动画已被加锁, 禁止修改.");
-                return;
+                return false;
             }
-            curState = state;
+            if (state == CharacterState.Dead || state == CharacterState.UnderAttack || state == CharacterState.Attack) {
+                Debug.LogWarning($"[EnemyAI - SetLogicState] ${state}状态必须使用 SetStateWithLock 方法设置!");
+                return false;
+            }
+            _curState = state;
             _animator.SetInteger(StatusKey, (int)GetState());
+            return true;
         }
         
         [Override]
         public void SetStateWithLock(CharacterState state, bool locked, IExposeAbility caller = null) {
             _animLock = locked;
-            curState = state;
+            _curState = state;
             _animator.SetInteger(StatusKey, (int)GetState());
+            if (state == CharacterState.Dead) {
+                _rb.velocity = Vector2.zero;
+                if (caller != null) {
+                    float horizontalDirection = caller.GetTransform().position.x < transform.position.x ? 1f : -1f;
+                    Vector2 knockbackDirection = new Vector2(horizontalDirection, 1f).normalized;
+                    float knockbackForce = 2f;
+                    _rb.AddForce(knockbackDirection * knockbackForce, ForceMode2D.Impulse);
+                }
+            }
         }
         
         [Override]

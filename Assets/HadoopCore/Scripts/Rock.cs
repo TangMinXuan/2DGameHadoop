@@ -2,6 +2,7 @@ using System.Collections;
 using HadoopCore.Scripts.Attribute;
 using HadoopCore.Scripts.InterfaceAbility;
 using HadoopCore.Scripts.Manager;
+using HadoopCore.Scripts.Shared;
 using HadoopCore.Scripts.UI;
 using HadoopCore.Scripts.Utils;
 using UnityEngine;
@@ -19,9 +20,11 @@ namespace HadoopCore.Scripts {
         }
 
         private void OnTriggerEnter2D(Collider2D other) {
-            // 检测是否碰到Player或Enemy
-            if (other.CompareTag("Player") && other.TryGetComponent<IExposeAbility>(out var deadAbility)) {
-                deadAbility.Dead(gameObject);
+            if (other.TryGetComponent<IExposeAbility>(out var victimAbility)) {
+                if (!victimAbility.IsAlive()) {
+                    return;
+                }
+                victimAbility.SetStateWithLock(CharacterState.Dead, true);
             }
         }
 

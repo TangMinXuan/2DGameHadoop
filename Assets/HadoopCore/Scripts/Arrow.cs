@@ -1,7 +1,5 @@
-using System;
 using HadoopCore.Scripts.InterfaceAbility;
-using HadoopCore.Scripts.Manager;
-using HadoopCore.Scripts.UI;
+using HadoopCore.Scripts.Shared;
 using UnityEngine;
 
 namespace HadoopCore.Scripts {
@@ -29,16 +27,16 @@ namespace HadoopCore.Scripts {
         }
 
         private void OnTriggerEnter2D(Collider2D triggerObj) {
-            if (triggerObj.TryGetComponent<IExposeAbility>(out var deadAbility)) {
-                deadAbility.Dead(gameObject);
-                
-            }
-            else {
+            if (triggerObj.TryGetComponent<IExposeAbility>(out var victimAbility)) {
+                if (!victimAbility.IsAlive()) {
+                    return;
+                }
+                victimAbility.SetStateWithLock(CharacterState.Dead, true);
+            } else {
                 Destroy(gameObject);
             }
         }
 
-        // TODO: 不确定是否要抽出来, 做成Util
         private bool IsOutOfCameraBounds() {
             // 将物体位置转换为视口坐标(0-1范围)
             Vector3 viewportPos = _mainCamera.WorldToViewportPoint(transform.position);
