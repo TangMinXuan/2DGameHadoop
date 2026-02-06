@@ -106,6 +106,9 @@ namespace HadoopCore.Scripts {
         }
 
         private void OnTriggerEnter2D(Collider2D triggerObj) {
+            if (!IsAlive()) {
+                return;
+            }
             IPlayerPickup pickedUpObj = triggerObj.GetComponentInParent<IPlayerPickup>() ??
                                         triggerObj.GetComponent<IPlayerPickup>();
             if (pickedUpObj != null) {
@@ -116,7 +119,7 @@ namespace HadoopCore.Scripts {
         
         [Override]
         public bool IsAlive() {
-            return GetState() != CharacterState.Dead && GetState() != CharacterState.UnderAttack;
+            return GetState() != CharacterState.Dead || GetState() != CharacterState.UnderAttack;
         }
         
         [Override]

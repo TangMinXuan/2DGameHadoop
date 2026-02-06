@@ -18,11 +18,11 @@ namespace HadoopCore.Scripts.Manager {
     /// Uses DOTween for all animations and timing.
     /// </summary>
     public class LoadingPageManager : MonoBehaviour {
-        private static string _pendingTargetScene = "LevelSelectMenu";
+        private static string _pendingTargetScene = "Scene_1";
 
-        public static void LoadSceneWithLoading(string targetSceneName, string loadingSceneName = "LoadingPage") {
+        public static void LoadSceneWithLoading(string targetSceneName) {
             _pendingTargetScene = targetSceneName;
-            SceneManager.LoadScene(loadingSceneName, LoadSceneMode.Single);
+            SceneManager.LoadScene("LoadingPage", LoadSceneMode.Single);
         }
 
         // ---------------------------

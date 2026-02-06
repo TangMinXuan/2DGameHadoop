@@ -78,8 +78,7 @@ namespace HadoopCore.Scripts.Manager {
             return "Level_" + (currentLevelNumber + 1);
         }
 
-        public void CalculateHorizontalSlidePositions(
-            RectTransform panel,
+        public void CalculateHorizontalSlidePositions(RectTransform panel,
             out Vector2 offscreenLeft,
             out Vector2 center,
             out Vector2 offscreenRight,
