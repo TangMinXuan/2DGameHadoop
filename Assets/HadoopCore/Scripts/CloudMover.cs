@@ -2,104 +2,137 @@ using UnityEngine;
 using DG.Tweening;
 
 /// <summary>
-/// Moves a cloud GameObject to the right using DOTween and destroys it when it exits the camera view.
-/// Must be initialized via Init() before activation.
+/// Handles dynamic cloud movement using DOTween.
+/// No Instantiate/Destroy - cloud loops forever once started.
 /// </summary>
 [RequireComponent(typeof(SpriteRenderer))]
 public class CloudMover : MonoBehaviour
 {
-    private Camera _camera;
-    private float _speed;
-    private float _despawnMargin;
-    private bool _isInitialized;
-
+    private SpriteRenderer _spriteRenderer;
     private Tween _moveTween;
+    private bool _isRunning;
+
+    // Cached parameters for looping
+    private Camera _camera;
+    private float _spawnX;
+    private Vector2 _yRange;
+    private Vector2 _speedRange;
+    private Sprite[] _sprites;
+    private float _despawnMargin;
+
+    private void Awake()
+    {
+        _spriteRenderer = GetComponent<SpriteRenderer>();
+        if (_spriteRenderer == null)
+        {
+            Debug.LogError($"[CloudMover] SpriteRenderer missing on {gameObject.name}");
+        }
+    }
 
     /// <summary>
-    /// Initialize the cloud mover with required parameters.
-    /// Must be called before the GameObject is activated.
+    /// Start the dynamic movement loop. Cloud will loop forever until stopped.
     /// </summary>
-    /// <param name="cam">The camera used to calculate the right boundary.</param>
-    /// <param name="speed">Movement speed (units per second).</param>
-    /// <param name="despawnMargin">Extra distance beyond camera right edge before destroying.</param>
-    public void Init(Camera cam, float speed, float despawnMargin)
+    /// <param name="cam">Camera for bounds calculation.</param>
+    /// <param name="spawnX">X position where cloud spawns (off-screen left).</param>
+    /// <param name="yRange">Y range (min, max) for random spawn position.</param>
+    /// <param name="speedRange">Speed range (min, max) for random speed.</param>
+    /// <param name="sprites">Array of cloud sprites to randomly pick from.</param>
+    /// <param name="despawnMargin">Distance past camera right edge before looping.</param>
+    public void StartDynamicLoop(Camera cam, float spawnX, Vector2 yRange, Vector2 speedRange, Sprite[] sprites, float despawnMargin)
     {
+        if (cam == null)
+        {
+            Debug.LogError($"[CloudMover] Camera is null on {gameObject.name}. Cannot start.");
+            return;
+        }
+
+        if (_spriteRenderer == null)
+        {
+            Debug.LogError($"[CloudMover] SpriteRenderer is null on {gameObject.name}. Cannot start.");
+            return;
+        }
+
+        // Cache parameters
         _camera = cam;
-        _speed = speed;
+        _spawnX = spawnX;
+        _yRange = yRange;
+        _speedRange = speedRange;
+        _sprites = sprites;
         _despawnMargin = despawnMargin;
-        _isInitialized = true;
+        _isRunning = true;
+
+        // Start first loop
+        StartNextLoop();
     }
 
-    private void OnEnable()
+    /// <summary>
+    /// Stop the dynamic loop. Cloud will stop at current position.
+    /// </summary>
+    public void StopLoop()
     {
-        if (!_isInitialized)
-        {
-            // Not yet initialized - this can happen if the prefab is placed in scene directly
-            // without going through CloudGenerator. In that case, do nothing on enable.
-            return;
-        }
-
-        StartMovement();
+        _isRunning = false;
+        KillTween();
     }
 
-    private void StartMovement()
+    /// <summary>
+    /// Check if this cloud is currently running its loop.
+    /// </summary>
+    public bool IsRunning => _isRunning;
+
+    private void StartNextLoop()
     {
-        if (_camera == null)
+        if (!_isRunning) return;
+        if (_camera == null || _spriteRenderer == null) return;
+
+        // Kill previous tween to prevent accumulation
+        KillTween();
+
+        // Randomize sprite
+        if (_sprites != null && _sprites.Length > 0)
         {
-            Debug.LogError("[CloudMover] Camera is null. Cannot start movement. Destroying.");
-            Destroy(gameObject);
-            return;
+            int spriteIndex = Random.Range(0, _sprites.Length);
+            _spriteRenderer.sprite = _sprites[spriteIndex];
         }
 
-        // Handle invalid speed
-        if (_speed <= 0f)
+        // Randomize Y position
+        float randomY = Random.Range(_yRange.x, _yRange.y);
+        transform.position = new Vector3(_spawnX, randomY, transform.position.z);
+
+        // Randomize speed
+        float speed = Random.Range(_speedRange.x, _speedRange.y);
+        if (speed <= 0f)
         {
-            Debug.LogWarning("[CloudMover] Speed is <= 0. Clamping to 0.1 to avoid infinite duration.");
-            _speed = 0.1f;
+            Debug.LogWarning($"[CloudMover] Speed <= 0 on {gameObject.name}. Clamping to 0.1.");
+            speed = 0.1f;
         }
+
+        // Ensure sprite is fully visible
+        Color c = _spriteRenderer.color;
+        c.a = 1f;
+        _spriteRenderer.color = c;
 
         // Calculate right camera bound for 2D orthographic
-        // Using the cloud's z position relative to camera for proper 2D calculation
         float zDistance = Mathf.Abs(_camera.transform.position.z - transform.position.z);
         Vector3 viewportRight = _camera.ViewportToWorldPoint(new Vector3(1f, 0.5f, zDistance));
         float cameraRight = viewportRight.x;
 
-        // Target position: camera right edge + despawn margin
         float targetX = cameraRight + _despawnMargin;
         float currentX = transform.position.x;
-
-        // Calculate duration based on distance and speed
         float distance = targetX - currentX;
-        
+
         if (distance <= 0f)
         {
-            // Already past target, destroy immediately
-            Debug.LogWarning("[CloudMover] Cloud is already past target position. Destroying.");
-            Destroy(gameObject);
+            // Already past target, restart immediately
+            StartNextLoop();
             return;
         }
 
-        float duration = distance / _speed;
+        float duration = distance / speed;
 
         // Start DOTween movement
         _moveTween = transform.DOMoveX(targetX, duration)
             .SetEase(Ease.Linear)
-            .OnComplete(OnMovementComplete);
-    }
-
-    private void OnMovementComplete()
-    {
-        Destroy(gameObject);
-    }
-
-    private void OnDisable()
-    {
-        KillTween();
-    }
-
-    private void OnDestroy()
-    {
-        KillTween();
+            .OnComplete(StartNextLoop);
     }
 
     private void KillTween()
@@ -109,5 +142,17 @@ public class CloudMover : MonoBehaviour
             _moveTween.Kill();
             _moveTween = null;
         }
+    }
+
+    private void OnDisable()
+    {
+        _isRunning = false;
+        KillTween();
+    }
+
+    private void OnDestroy()
+    {
+        _isRunning = false;
+        KillTween();
     }
 }

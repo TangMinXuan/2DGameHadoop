@@ -119,7 +119,13 @@ namespace HadoopCore.Scripts {
         
         [Override]
         public bool IsAlive() {
-            return GetState() != CharacterState.Dead || GetState() != CharacterState.UnderAttack;
+            if (GetState() == CharacterState.Dead) {
+                return false;
+            }
+            if (GetState() == CharacterState.UnderAttack) {
+                return false;
+            }
+            return true;
         }
         
         [Override]

@@ -178,18 +178,18 @@ namespace HadoopCore.Scripts {
             Vector2 direction = (targetPos - currentPos).normalized;
 
             if (direction.x > 0) {
-                transformTemplate.localRotation = Quaternion.Euler(0, 120, 0);
+                transformTemplate.rotation = Quaternion.Euler(0, 120, 0);
             }
             else if (direction.x < 0) {
-                transformTemplate.localRotation = Quaternion.Euler(0, -120, 0);
+                transformTemplate.rotation = Quaternion.Euler(0, -120, 0);
             }
 
             return true;
         }
 
         private bool DetectTarget() {
-            // 根据 transformTemplate.localRotation.y 确定射线方向和偏移
-            bool facingRight = transformTemplate.localRotation.y >= 0;
+            // 根据 transformTemplate.rotation.y 确定射线方向和偏移
+            bool facingRight = transformTemplate.rotation.y >= 0;
             Vector2 direction = facingRight ? Vector2.right : Vector2.left;
             float offsetX = facingRight ? detectRayOffsetX : -detectRayOffsetX;
             Vector2 rayOrigin = (Vector2)transformTemplate.position + new Vector2(offsetX, detectRayOffsetY);
@@ -225,6 +225,9 @@ namespace HadoopCore.Scripts {
         }
 
         private bool ChaseTarget() {
+            if (!_chaseTargetExposeAbility.IsAlive()) {
+                return false;
+            }
             // 是否已经追到了
             Transform targetTransform = _chaseTargetExposeAbility.GetTransform();
             float distanceToPlayer = Vector2.Distance(transformTemplate.position, targetTransform.position);
@@ -235,10 +238,9 @@ namespace HadoopCore.Scripts {
             // 计算移动方向
             Vector2 direction = (targetTransform.position - transform.position).normalized;
             if (direction.x > 0) {
-                transformTemplate.localRotation = Quaternion.Euler(0, 120, 0);
-            }
-            else if (direction.x < 0) {
-                transformTemplate.localRotation = Quaternion.Euler(0, -120, 0);
+                transformTemplate.rotation = Quaternion.Euler(0, 120, 0);
+            } else if (direction.x < 0) {
+                transformTemplate.rotation = Quaternion.Euler(0, -120, 0);
             }
 
             return false;
@@ -264,7 +266,7 @@ namespace HadoopCore.Scripts {
 
             // Randomize rotation
             float randomRotation = UnityEngine.Random.Range(-hitScratchSettings.RotationRange, hitScratchSettings.RotationRange);
-            scratchTransform.localRotation = Quaternion.Euler(0f, 0f, randomRotation);
+            scratchTransform.rotation = Quaternion.Euler(0f, 0f, randomRotation);
 
             // Randomize position offset
             float offsetX = UnityEngine.Random.Range(-hitScratchSettings.PositionOffsetRange, hitScratchSettings.PositionOffsetRange);
@@ -323,7 +325,13 @@ namespace HadoopCore.Scripts {
         
         [Override]
         public bool IsAlive() {
-            return GetState() != CharacterState.Dead;
+            if (GetState() == CharacterState.Dead) {
+                return false;
+            }
+            if (GetState() == CharacterState.UnderAttack) {
+                return false;
+            }
+            return true;
         }
 
         [Override]
@@ -333,7 +341,7 @@ namespace HadoopCore.Scripts {
         private void OnDrawGizmosSelected() {
             // 可视化检测范围（考虑offset偏移）
             if (transformTemplate != null) {
-                bool facingRight = transformTemplate.localRotation.y >= 0;
+                bool facingRight = transformTemplate.rotation.y >= 0;
                 float offsetX = facingRight ? detectRayOffsetX : -detectRayOffsetX;
                 Vector2 rayOrigin = (Vector2)transformTemplate.position + new Vector2(offsetX, detectRayOffsetY);
                 Vector2 direction = facingRight ? Vector2.right : Vector2.left;

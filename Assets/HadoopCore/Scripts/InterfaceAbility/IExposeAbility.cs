@@ -3,7 +3,15 @@ using UnityEngine;
 
 namespace HadoopCore.Scripts.InterfaceAbility {
     public interface IExposeAbility {
-        bool IsAlive();
+        bool IsAlive() {
+            if (GetState() == CharacterState.Dead) {
+                return false;
+            }
+            if (GetState() == CharacterState.UnderAttack) {
+                return false;
+            }
+            return true;
+        }
         
         CharacterState GetState();
 

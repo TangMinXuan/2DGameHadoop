@@ -1,0 +1,240 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+namespace HadoopCore.Scripts.Manager {
+    
+    /// <summary>
+    /// Serializable entry for scene-to-BGM mapping.
+    /// </summary>
+    [Serializable]
+    public class SceneBgmEntry {
+        [Tooltip("Scene name (case-insensitive match)")]
+        public string sceneName;
+        
+        [Tooltip("BGM clip to play for this scene")]
+        public AudioClip bgmClip;
+    }
+    /// <summary>
+    /// Minimal audio system for BGM and SFX.
+    /// Singleton with DontDestroyOnLoad.
+    /// </summary>
+    public class AudioManager : MonoBehaviour {
+        public static AudioManager Instance { get; private set; }
+
+        [Header("Audio Sources")]
+        [Tooltip("AudioSource for background music (should be set to loop)")]
+        [SerializeField] private AudioSource bgmSource;
+        
+        [Tooltip("AudioSource for sound effects (one-shot playback)")]
+        [SerializeField] private AudioSource sfxSource;
+
+        [Header("BGM Configuration")]
+        [Tooltip("Map scene names to their background music clips")]
+        [SerializeField] private List<SceneBgmEntry> sceneBgmMappings = new List<SceneBgmEntry>();
+
+        [Header("Fade Settings")]
+        [Tooltip("Enable fade transition when switching BGM")]
+        [SerializeField] private bool enableFade = true;
+        
+        [Tooltip("Duration of fade out/in transition in seconds")]
+        [SerializeField] private float fadeDuration = 0.5f;
+
+        [Header("Default Volumes")]
+        [SerializeField] private float defaultBgmVolume = 1f;
+        [SerializeField] private float defaultSfxVolume = 1f;
+
+        private Coroutine _fadeCoroutine;
+
+        void Awake() {
+            // Singleton pattern: prevent duplicates across scene loads
+            if (Instance != null && Instance != this) {
+                Destroy(gameObject);
+                return;
+            }
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+
+            // Subscribe to scene changes
+            SceneManager.activeSceneChanged += OnActiveSceneChanged;
+
+            // Initialize volumes
+            if (bgmSource != null) {
+                bgmSource.volume = defaultBgmVolume;
+                bgmSource.loop = true;
+            }
+            if (sfxSource != null) {
+                sfxSource.volume = defaultSfxVolume;
+            }
+        }
+
+        void Start() {
+            // Play BGM for the initial scene
+            string currentSceneName = SceneManager.GetActiveScene().name;
+            PlayBgmForScene(currentSceneName, false); // No fade on initial load
+        }
+
+        void OnDestroy() {
+            // Only cleanup if this is the actual singleton instance
+            if (Instance != this) {
+                return;
+            }
+
+            SceneManager.activeSceneChanged -= OnActiveSceneChanged;
+            Instance = null;
+        }
+
+        #region Public API
+
+        /// <summary>
+        /// Play a sound effect. Can be hooked to UI Button OnClick events.
+        /// </summary>
+        /// <param name="clip">The AudioClip to play</param>
+        /// <param name="volumeScale">Volume multiplier (0-1)</param>
+        public void PlaySfx(AudioClip clip, float volumeScale = 1f) {
+            if (clip == null) {
+                Debug.LogWarning("[AudioManager] PlaySfx called with null clip");
+                return;
+            }
+            if (sfxSource == null) {
+                Debug.LogError("[AudioManager] sfxSource is not assigned");
+                return;
+            }
+            sfxSource.PlayOneShot(clip, volumeScale);
+        }
+
+        /// <summary>
+        /// Manually play a specific BGM clip.
+        /// </summary>
+        /// <param name="clip">The BGM clip to play</param>
+        /// <param name="useFade">Whether to fade transition</param>
+        public void PlayBgm(AudioClip clip, bool useFade = true) {
+            if (bgmSource == null) {
+                Debug.LogError("[AudioManager] bgmSource is not assigned");
+                return;
+            }
+
+            // Skip if same clip is already playing
+            if (bgmSource.clip == clip && bgmSource.isPlaying) {
+                return;
+            }
+
+            if (useFade && enableFade && bgmSource.isPlaying) {
+                if (_fadeCoroutine != null) {
+                    StopCoroutine(_fadeCoroutine);
+                }
+                _fadeCoroutine = StartCoroutine(FadeBgm(clip));
+            } else {
+                bgmSource.Stop();
+                bgmSource.clip = clip;
+                bgmSource.volume = defaultBgmVolume;
+                if (clip != null) {
+                    bgmSource.Play();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Stop the current BGM.
+        /// </summary>
+        /// <param name="useFade">Whether to fade out</param>
+        public void StopBgm(bool useFade = true) {
+            if (bgmSource == null) return;
+
+            if (useFade && enableFade && bgmSource.isPlaying) {
+                if (_fadeCoroutine != null) {
+                    StopCoroutine(_fadeCoroutine);
+                }
+                _fadeCoroutine = StartCoroutine(FadeBgm());
+            } else {
+                bgmSource.Stop();
+            }
+        }
+
+        /// <summary>
+        /// Set BGM volume (0-1).
+        /// </summary>
+        public void SetBgmVolume(float volume) {
+            defaultBgmVolume = Mathf.Clamp01(volume);
+            if (bgmSource != null) {
+                bgmSource.volume = defaultBgmVolume;
+            }
+        }
+
+        /// <summary>
+        /// Set SFX volume (0-1).
+        /// </summary>
+        public void SetSfxVolume(float volume) {
+            defaultSfxVolume = Mathf.Clamp01(volume);
+            if (sfxSource != null) {
+                sfxSource.volume = defaultSfxVolume;
+            }
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        private void OnActiveSceneChanged(Scene previousScene, Scene newScene) {
+            PlayBgmForScene(newScene.name, true);
+        }
+
+        private void PlayBgmForScene(string sceneName, bool useFade) {
+            AudioClip clip = GetBgmClipForScene(sceneName);
+            
+            if (clip != null) {
+                PlayBgm(clip, useFade);
+            } else {
+                // No mapping found - optionally stop current BGM or keep playing
+                Debug.Log($"[AudioManager] No BGM mapping found for scene: {sceneName}");
+            }
+        }
+
+        private AudioClip GetBgmClipForScene(string sceneName) {
+            foreach (var entry in sceneBgmMappings) {
+                if (string.Equals(entry.sceneName, sceneName, StringComparison.OrdinalIgnoreCase)) {
+                    return entry.bgmClip;
+                }
+            }
+            return null;
+        }
+
+        private IEnumerator FadeBgm(AudioClip newClip = null) {
+            float startVolume = bgmSource.volume;
+
+            // Fade out
+            float elapsed = 0f;
+            while (elapsed < fadeDuration) {
+                elapsed += Time.unscaledDeltaTime;
+                bgmSource.volume = Mathf.Lerp(startVolume, 0f, elapsed / fadeDuration);
+                yield return null;
+            }
+            bgmSource.volume = 0f;
+            bgmSource.Stop();
+
+            // If newClip provided, switch and fade in
+            if (newClip != null) {
+                bgmSource.clip = newClip;
+                bgmSource.Play();
+
+                // Fade in
+                elapsed = 0f;
+                while (elapsed < fadeDuration) {
+                    elapsed += Time.unscaledDeltaTime;
+                    bgmSource.volume = Mathf.Lerp(0f, defaultBgmVolume, elapsed / fadeDuration);
+                    yield return null;
+                }
+                bgmSource.volume = defaultBgmVolume;
+            } else {
+                // Fade-out only: restore default volume for next play
+                bgmSource.volume = defaultBgmVolume;
+            }
+
+            _fadeCoroutine = null;
+        }
+
+        #endregion
+    }
+}

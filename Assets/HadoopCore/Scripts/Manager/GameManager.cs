@@ -47,10 +47,6 @@ namespace HadoopCore.Scripts.Manager {
         }
 
         // ===== Public API =====
-        /// <summary>
-        /// 加载指定名称的场景
-        /// </summary>
-        /// <param name="sceneName">场景名称</param>
         public void LoadScene(string sceneName) {
             LoadingPageManager.LoadSceneWithLoading(sceneName);
         }

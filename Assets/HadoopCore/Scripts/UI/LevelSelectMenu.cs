@@ -156,8 +156,7 @@ namespace HadoopCore.Scripts.UI {
             }
         }
 
-        private void PlayClickFeedbackAndEnterLevel(Transform levelItemTransform, Button button, string level)
-        {
+        private void PlayClickFeedbackAndEnterLevel(Transform levelItemTransform, Button button, string level) {
             if (levelItemTransform == null)
             {
                 OnLevelButtonClicked(level);
