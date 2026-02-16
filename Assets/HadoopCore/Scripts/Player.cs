@@ -11,7 +11,7 @@ using UnityEngine.InputSystem;
 
 namespace HadoopCore.Scripts {
     
-    public class Player : MonoBehaviour, IPointerClickHandler, IExposeAbility {
+    public class Player : MonoBehaviour, IExposeAbility {
         [Serializable]
         internal class CameraShakeSettings {
             [Header("Speed")]
@@ -27,6 +27,7 @@ namespace HadoopCore.Scripts {
         }
         
         [SerializeField] private float moveSpeed;
+        [SerializeField] private float moveSpeedWhileFalling = 1f;
         [SerializeField] private float raycastDistance; // 射线检测的最大距离
         [SerializeField] private Transform transformTemplate;
         [SerializeField] private CameraShakeSettings cameraShakeSettings = new CameraShakeSettings();
@@ -37,6 +38,7 @@ namespace HadoopCore.Scripts {
         private Rigidbody2D _rb;
         private Animator _animator;
         private Collider2D _collider;
+        private float _curSpeed = 0f;
 
         // Camera shake state
         private CinemachineBrain _brain;
@@ -62,14 +64,28 @@ namespace HadoopCore.Scripts {
             if (_animLock) {
                 return;
             }
+            
         }
 
         void FixedUpdate() {
-            int status = _animator.GetInteger(StatusKey);
-            if (status == CharacterState.Walk) {
-                _rb.velocity = new Vector2(_moveInput.x * moveSpeed, _rb.velocity.y);
+            if (_animLock) {
+                return;
             }
-            // Idle, Dead, UnderAttack 等状态不做速度处理
+            _rb.velocity = new Vector2(_moveInput.x * _curSpeed, _rb.velocity.y); // 这同时也会锁住水平速度，bomb的冲击波就无效了
+            
+            if (Mathf.Abs(_rb.velocity.y) > 0.1f && GetState() != CharacterState.Fall) {
+                _curSpeed = moveSpeedWhileFalling;
+                SetState(CharacterState.Fall);
+            } else if (Mathf.Abs(_rb.velocity.y) <= 0.1f && GetState() == CharacterState.Fall) {
+                _curSpeed = 0;
+                SetState(CharacterState.Idle);
+            } else if (Mathf.Abs(_moveInput.x) > 0.1f && GetState() == CharacterState.Idle) {
+                _curSpeed = moveSpeed;
+                SetState(CharacterState.Walk);
+            } else if (Mathf.Abs(_moveInput.x) <= 0.1f && GetState() == CharacterState.Walk) {
+                _curSpeed = 0;
+                SetState(CharacterState.Idle);
+            }
         }
 
         private void LateUpdate() {
@@ -101,7 +117,7 @@ namespace HadoopCore.Scripts {
 
         private void OnCollisionEnter2D(Collision2D collision2D) {
             if (collision2D.gameObject.CompareTag("Plug")) {
-                StopMovement();
+                // StopMovement(); 会导致卡脚
             }
         }
 
@@ -172,33 +188,21 @@ namespace HadoopCore.Scripts {
             HandleMovementInput();
         }
 
-        [Override]
-        public void OnPointerClick(PointerEventData eventData) {
-            if (_moveInput != Vector2.zero) {
-                return;
-            }
-
-            // 向右打一条很短的射线, 如果碰撞到了plug, 说明玩家在贴着plug操作, 就保持不动
-            RaycastHit2D[] hits = new RaycastHit2D[1];
-            int hitCount = _collider.Cast(Vector2.right, hits, raycastDistance);
-            if (hitCount > 0 && hits[0].collider.CompareTag("Plug")) {
-                return;
-            }
-
-            _moveInput = Vector2.right;
-
-            HandleMovementInput();
-        }
-
         private void HandleMovementInput() {
-            SetState(_moveInput != Vector2.zero ? CharacterState.Walk : CharacterState.Idle);
-            if (GetState() == CharacterState.Walk) {
-                if (_moveInput.x > 0) {
-                    transformTemplate.localRotation = Quaternion.Euler(0, 120, 0);
-                }
-                else if (_moveInput.x < 0) {
-                    transformTemplate.localRotation = Quaternion.Euler(0, -120, 0);
-                }
+            if (GetState() == CharacterState.Dead || GetState() == CharacterState.UnderAttack) {
+                return;
+            }
+
+            if (GetState() == CharacterState.Fall) {
+                _curSpeed = moveSpeedWhileFalling;
+            } else {
+                _curSpeed = moveSpeed;
+            }
+            
+            if (_moveInput.x > 0) {
+                transformTemplate.localRotation = Quaternion.Euler(0, 120, 0);
+            } else if (_moveInput.x < 0) {
+                transformTemplate.localRotation = Quaternion.Euler(0, -120, 0);
             }
         }
 

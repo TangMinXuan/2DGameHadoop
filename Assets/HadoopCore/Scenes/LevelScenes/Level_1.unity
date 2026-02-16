@@ -661,6 +661,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Backgrounds
       objectReference: {fileID: 0}
+    - target: {fileID: 8718449771256135166, guid: 55e050a55029d4c2da03ef8f92c48c12, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 88.72806
+      objectReference: {fileID: 0}
+    - target: {fileID: 8718449771256135166, guid: 55e050a55029d4c2da03ef8f92c48c12, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 34.28
+      objectReference: {fileID: 0}
+    - target: {fileID: 8718449771256135166, guid: 55e050a55029d4c2da03ef8f92c48c12, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.5516
+      objectReference: {fileID: 0}
+    - target: {fileID: 8718449771256135166, guid: 55e050a55029d4c2da03ef8f92c48c12, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.2849
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

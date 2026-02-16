@@ -280,6 +280,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 3
+  moveSpeedWhileFalling: 1
   raycastDistance: 1
   transformTemplate: {fileID: 3775910678952085565}
   cameraShakeSettings:

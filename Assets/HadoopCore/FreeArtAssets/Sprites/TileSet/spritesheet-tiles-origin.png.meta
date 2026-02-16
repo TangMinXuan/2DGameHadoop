@@ -1945,7 +1945,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: spritesheet-tiles-default_88
+      name: bomb_active
       rect:
         serializedVersion: 2
         x: 1024
@@ -2323,13 +2323,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: spritesheet-tiles-default_106
+      name: bomb_inactive
       rect:
         serializedVersion: 2
         x: 1024
-        y: 768
+        y: 769
         width: 64
-        height: 64
+        height: 63
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -6706,6 +6706,8 @@ TextureImporter:
       Plug_Body: -1870541254
       Plug_Feet: 1661763237
       Plug_Head: 637064337
+      bomb_active: 661712710
+      bomb_inactive: -1839601838
       obj-weight: 680637781
       spritesheet-tiles-default_0: -1736278792
       spritesheet-tiles-default_1: -1771763725
@@ -6716,7 +6718,6 @@ TextureImporter:
       spritesheet-tiles-default_103: 477303796
       spritesheet-tiles-default_104: 1406959523
       spritesheet-tiles-default_105: -259840035
-      spritesheet-tiles-default_106: -1839601838
       spritesheet-tiles-default_107: -782261974
       spritesheet-tiles-default_108: 1611849558
       spritesheet-tiles-default_109: -1684235017
@@ -6975,7 +6976,6 @@ TextureImporter:
       spritesheet-tiles-default_85: -2139203006
       spritesheet-tiles-default_86: 502680586
       spritesheet-tiles-default_87: -1958332308
-      spritesheet-tiles-default_88: 661712710
       spritesheet-tiles-default_89: 1173407546
       spritesheet-tiles-default_9: 39953145
       spritesheet-tiles-default_90: 1990192194

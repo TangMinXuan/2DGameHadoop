@@ -10,6 +10,7 @@ namespace HadoopCore.Scripts.Shared {
         public static readonly CharacterState Attack = new(5, "Attack");            // 攻击状态
         public static readonly CharacterState Static = new(6, "Static");            // 攻击后短暂的静止状态
         public static readonly CharacterState UnderAttack = new(7, "UnderAttack");  // 受击状态
+        public static readonly CharacterState Fall = new(8, "Fall");                // 下落状态
 
         private static readonly Dictionary<int, CharacterState> StateMap = new() {
             { 0, Dead },
@@ -19,7 +20,8 @@ namespace HadoopCore.Scripts.Shared {
             { 4, Chase },
             { 5, Attack },
             { 6, Static },
-            { 7, UnderAttack }
+            { 7, UnderAttack },
+            { 8, Fall }
         };
 
         private readonly int _value;

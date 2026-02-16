@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DG.Tweening;
 using HadoopCore.Scripts.Attribute;
 using HadoopCore.Scripts.InterfaceAbility;
@@ -65,7 +66,7 @@ namespace HadoopCore.Scripts {
         private int _currentPathIndex = 0; // 当前目标路径点索引
         private Rigidbody2D _rb;
         private Animator _animator;
-        private RaycastHit2D[] _hitBuffer = new RaycastHit2D[1];
+        private RaycastHit2D[] _hitBuffer = new RaycastHit2D[3];
         private Sequence _hitScratchSeq;
         
         private IExposeAbility _chaseTargetExposeAbility;
@@ -124,7 +125,7 @@ namespace HadoopCore.Scripts {
                 }
             } else if (GetState() == CharacterState.Chase) {
                 if (!DetectTarget()) {
-                    SetState(CharacterState.Patrol); // 丢失目标, 返回巡逻
+                    SetState(CharacterState.Idle); // 丢失目标, 返回Idle
                 }
                 if (ChaseTarget()) {
                     SetStateWithLock(CharacterState.Attack, true); // 追到了, 开始攻击
@@ -139,24 +140,18 @@ namespace HadoopCore.Scripts {
         private void FixedUpdate() {
             CharacterState curAnimState = CharacterState.FromValue(_animator.GetInteger(StatusKey));
             if (curAnimState == CharacterState.Idle) {
-                _rb.velocity = Vector2.zero;
+                // _rb.velocity = Vector2.zero; 这一句会导致Monster下落速度很慢
             } else if (curAnimState == CharacterState.Patrol) {
-                if (!MySugarUtil.IsGround(gameObject)) {
-                    return;
-                }
                 Vector2 patrolDirection = (patrolPaths[_currentPathIndex] - (Vector2)transform.position).normalized;
                 _rb.velocity = new Vector2(patrolDirection.x * patrolSpeed, _rb.velocity.y);
             } else if (curAnimState == CharacterState.Chase) {
-                if (!MySugarUtil.IsGround(gameObject)) {
-                    return;
-                }
                 Transform targetTransform = _chaseTargetExposeAbility.GetTransform();
                 Vector2 chaseDirection = (targetTransform.position - transform.position).normalized;
                 _rb.velocity = new Vector2(chaseDirection.x * chaseSpeed, _rb.velocity.y);
             } else if (curAnimState == CharacterState.Attack) {
                 _rb.velocity = Vector2.zero; // 攻击时停止移动
             } else if (curAnimState == CharacterState.Dead) {
-                _rb.velocity = Vector2.zero; // 死亡时停止移动
+                
             }
         }
 
@@ -199,28 +194,26 @@ namespace HadoopCore.Scripts {
                 _hitBuffer,
                 detectableRadius
             );
-
-            if (_hitBuffer[0].rigidbody != null) {
-                string tag = _hitBuffer[0].rigidbody.tag;
+            
+            foreach (var hit in _hitBuffer.Where(h => h.rigidbody != null)) {
+                string tag = hit.rigidbody.tag;
                 if (tag == null || !CharacterRank.ContainsTag(tag)) {
                     // 只检测Character的tag, 如果中途有其他障碍物(例如:Plug)挡住了, 就停止检测
                     return false;
                 }
-                if (CharacterRank.GetRank(tag) >= CharacterRank.GetRank(gameObject.tag)) {
+                if (CharacterRank.GetRank(tag) > CharacterRank.GetRank(gameObject.tag)) {
                     // 碰到比自己等级高的角色, 就停止检测
-                    // 高等级的角色死亡后, 记得Destroy!!! 不然会一直挡住低等级角色的检测
                     return false;
                 }
                 if (CharacterRank.GetRank(tag) < CharacterRank.GetRank(gameObject.tag)) {
                     // 碰到比自己等级低的角色, 就去追
-                    _chaseTargetExposeAbility = _hitBuffer[0].rigidbody.GetComponent<IExposeAbility>();
+                    _chaseTargetExposeAbility = hit.rigidbody.GetComponent<IExposeAbility>();
                     if (!_chaseTargetExposeAbility.IsAlive()) {
                         return false;
                     }
                     return true;
                 }
             }
-
             return false;
         }
 
