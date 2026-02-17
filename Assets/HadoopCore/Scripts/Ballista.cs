@@ -1,12 +1,15 @@
 using System;
 using System.Collections;
+using HadoopCore.Scripts.InterfaceAbility;
+using HadoopCore.Scripts.Shared;
 using UnityEngine;
 
 namespace HadoopCore.Scripts {
-    public class Ballista : MonoBehaviour {
+    public class Ballista : MonoBehaviour, IExposeAbility {
         [SerializeField] LayerMask groundLayers; // Ground层，用于检测地面
         [SerializeField] float shootDelay = 1.0f;
         [SerializeField] private GameObject arrowPrefab;
+        [SerializeField] private GameObject ballistaBreakVFXPrefab;
 
         private Rigidbody2D _rb;
         private bool _grounded;
@@ -46,6 +49,30 @@ namespace HadoopCore.Scripts {
                     // arrow 使用 ballista 的位置和朝向
                     Instantiate(arrowPrefab, transform.position, transform.rotation);
                 }
+            }
+        }
+
+        private void BallistaBreak() {
+            _rb.simulated = false; // 彻底不参与物理
+            var ballistaBreakVFX = Instantiate(ballistaBreakVFXPrefab, transform.position, Quaternion.identity);
+            var particleSystem = ballistaBreakVFX.GetComponentInChildren<ParticleSystem>();
+            if (particleSystem != null) {
+                particleSystem.Play();
+            }
+            gameObject.SetActive(false);
+        }
+
+        public CharacterState GetState() {
+            return CharacterState.Idle;
+        }
+
+        public bool SetState(CharacterState state) {
+            throw new NotImplementedException();
+        }
+
+        public void SetStateWithLock(CharacterState state, bool locked, IExposeAbility caller = null) {
+            if (state == CharacterState.Dead) {
+                BallistaBreak();
             }
         }
     }

@@ -14,9 +14,11 @@ namespace HadoopCore.Scripts {
         private bool hasTriggered = false;
         
         private Animator _animator;
+        private Collider2D _collider;
 
         void Awake() {
             _animator = GetComponent<Animator>();
+            _collider = GetComponent<Collider2D>();
         }
 
         void OnCollisionEnter2D(Collision2D collision) {

@@ -4,7 +4,25 @@ using HadoopCore.Scripts.Annotation;
 using UnityEngine;
 
 namespace HadoopCore.Scripts.Utils {
+    /// <summary>
+    /// 组件查找位置
+    /// </summary>
+    public enum ComponentSearchLocation {
+        Self,
+        Parent,
+        Children
+    }
+    
     public static class MySugarUtil {
+        /// <summary>
+        /// 默认查找顺序: Self -> Parent -> Children
+        /// </summary>
+        public static readonly ComponentSearchLocation[] DefaultSearchOrder = {
+            ComponentSearchLocation.Self,
+            ComponentSearchLocation.Parent,
+            ComponentSearchLocation.Children
+        };
+        
         private static readonly string groundLayers = "Terrain";
 
         public static bool IsGroundObj(GameObject go) {
@@ -50,6 +68,38 @@ namespace HadoopCore.Scripts.Utils {
             GameObject owner = TryToFindObject(begin, componentOwner);
 
             return owner != null ? owner.GetComponent<T>() : null;
+        }
+
+        public static bool TryToFindComponent<T>(GameObject begin, out T result, params ComponentSearchLocation[] searchOrder) where T : class {
+            result = null;
+            if (begin == null) return false;
+            
+            // 如果没有指定顺序，使用默认顺序
+            if (searchOrder == null || searchOrder.Length == 0) {
+                searchOrder = DefaultSearchOrder;
+            }
+            
+            foreach (var location in searchOrder) {
+                T component = null;
+                switch (location) {
+                    case ComponentSearchLocation.Self:
+                        begin.TryGetComponent(out component);
+                        break;
+                    case ComponentSearchLocation.Parent:
+                        component = begin.GetComponentInParent<T>();
+                        break;
+                    case ComponentSearchLocation.Children:
+                        component = begin.GetComponentInChildren<T>();
+                        break;
+                }
+                
+                if (component != null) {
+                    result = component;
+                    return true;
+                }
+            }
+            
+            return false;
         }
 
         /// <summary>

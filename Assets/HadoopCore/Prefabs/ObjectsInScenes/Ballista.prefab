@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1440253588407837685}
   - component: {fileID: 4736706473885022954}
   - component: {fileID: 3817612471701385627}
+  - component: {fileID: 8114105399498159211}
   m_Layer: 0
   m_Name: Ballista
   m_TagString: Untagged
@@ -132,6 +133,52 @@ MonoBehaviour:
     m_Bits: 8
   shootDelay: 3
   arrowPrefab: {fileID: 2741646791659023697, guid: ddaa7b65c5baf4bc69fc7f4e10367e15, type: 3}
+  ballistaBreakVFXPrefab: {fileID: 4520605688956228686, guid: ea78b2fd83d0e43938f2fd95d425b347, type: 3}
+--- !u!61 &8114105399498159211
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2862956272150461789}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0.51137066, y: -0.33350182}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 16, y: 16}
+    newSize: {x: 16, y: 16}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 11.686701, y: 10.530565}
+  m_EdgeRadius: 0
 --- !u!1 &4949892517279769266
 GameObject:
   m_ObjectHideFlags: 0

@@ -217,4 +217,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   impactThreshold: 3
   blastRadius: 3
-  blastForce: 30
+  blastForce: 20
