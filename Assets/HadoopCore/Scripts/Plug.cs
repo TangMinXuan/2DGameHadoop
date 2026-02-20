@@ -42,6 +42,7 @@ namespace HadoopCore.Scripts {
         [SerializeField] private ShakeConfig shakeConfig;
         [SerializeField] private Sprite[] phaseSprites;
         [SerializeField] private GameObject plugBreakVFXPrefab;
+        [SerializeField] private GameObject exclamationMarkVFX;
 
         private SpriteRenderer _spriteRenderer;
         private Rigidbody2D _rb;
@@ -79,6 +80,7 @@ namespace HadoopCore.Scripts {
             }
             else if (_clickCount == 6) {
                 _phase = 3;
+                ActivateOnceExclamationMarkVFX(mouseClickPosition + new Vector3(1f, 1f, 0));
             }
 
             _spriteRenderer.sprite = LoadSpriteForPhase();
@@ -216,6 +218,13 @@ namespace HadoopCore.Scripts {
 
             visual.position = visualWorldPos; // 还原可视对象世界姿态（保持静止不跳）
             visual.rotation = visualWorldRot;
+        }
+        
+        private void ActivateOnceExclamationMarkVFX(Vector3 position) {
+            if (exclamationMarkVFX != null) {
+                exclamationMarkVFX.transform.position = position;
+                exclamationMarkVFX.SetActive(true);
+            }
         }
 
         private void OnDisable() {

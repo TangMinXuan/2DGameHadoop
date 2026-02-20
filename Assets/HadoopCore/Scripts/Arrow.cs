@@ -31,6 +31,9 @@ namespace HadoopCore.Scripts {
                 if (!victimAbility.IsAlive()) {
                     return;
                 }
+                if (victimAbility.GetGameObject().tag == "Ballista") {
+                    return;
+                }
                 victimAbility.SetStateWithLock(CharacterState.Dead, true);
             } else {
                 Destroy(gameObject);

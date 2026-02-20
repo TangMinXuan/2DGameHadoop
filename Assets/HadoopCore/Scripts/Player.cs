@@ -73,7 +73,7 @@ namespace HadoopCore.Scripts {
             }
             _rb.velocity = new Vector2(_moveInput.x * _curSpeed, _rb.velocity.y); // 这同时也会锁住水平速度，bomb的冲击波就无效了
             
-            if (Mathf.Abs(_rb.velocity.y) > 0.1f && GetState() != CharacterState.Fall) {
+            if (Mathf.Abs(_rb.velocity.y) > 3f && GetState() != CharacterState.Fall) {
                 _curSpeed = moveSpeedWhileFalling;
                 SetState(CharacterState.Fall);
             } else if (Mathf.Abs(_rb.velocity.y) <= 0.1f && GetState() == CharacterState.Fall) {

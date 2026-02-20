@@ -12,6 +12,7 @@ TagManager:
   - SeniorMonster
   - Boss
   - Enemy
+  - Ballista
   layers:
   - Default
   - TransparentFX

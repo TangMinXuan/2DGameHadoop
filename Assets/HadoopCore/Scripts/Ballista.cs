@@ -14,6 +14,7 @@ namespace HadoopCore.Scripts {
         private Rigidbody2D _rb;
         private bool _grounded;
         private bool _cleanupStarted;
+        private bool _isAlive = true;
 
         private void Awake() {
             _rb = GetComponent<Rigidbody2D>();
@@ -43,16 +44,15 @@ namespace HadoopCore.Scripts {
         private IEnumerator ShootArrow() {
             while (true) {
                 yield return new WaitForSeconds(shootDelay);
-
                 // generate arrow
                 if (arrowPrefab != null) {
-                    // arrow 使用 ballista 的位置和朝向
-                    Instantiate(arrowPrefab, transform.position, transform.rotation);
+                    Instantiate(arrowPrefab, transform.position, transform.rotation); // arrow 使用 ballista 的位置和朝向
                 }
             }
         }
 
         private void BallistaBreak() {
+            _isAlive = false;
             _rb.simulated = false; // 彻底不参与物理
             var ballistaBreakVFX = Instantiate(ballistaBreakVFXPrefab, transform.position, Quaternion.identity);
             var particleSystem = ballistaBreakVFX.GetComponentInChildren<ParticleSystem>();
@@ -62,8 +62,12 @@ namespace HadoopCore.Scripts {
             gameObject.SetActive(false);
         }
 
+        public bool IsAlive() {
+            return _isAlive;
+        }
+
         public CharacterState GetState() {
-            return CharacterState.Idle;
+            throw new NotImplementedException();
         }
 
         public bool SetState(CharacterState state) {

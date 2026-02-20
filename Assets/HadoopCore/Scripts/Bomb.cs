@@ -30,7 +30,9 @@ namespace HadoopCore.Scripts {
             float impactForce = collision.relativeVelocity.magnitude;
 
             // 2. 判断力度是否足够大
-            // (可选：你也可以判断碰撞对象的标签，比如 if (collision.gameObject.CompareTag("Ground")))
+            if (collision.gameObject.CompareTag("Plug")) {
+                impactForce -= 3f;
+            }
             if (impactForce > impactThreshold) {
                 // 3. 标记为已触发，并启动引信
                 hasTriggered = true;

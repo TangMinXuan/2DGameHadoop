@@ -35,7 +35,6 @@ namespace HadoopCore.Scripts {
             // Debug.Log($"碰撞力度 {impactForce}");
             if (impactForce > impactThreshold) {
                 _hasTriggered = true; // 3. 标记为已触发，并启动引信
-                
                 if (MySugarUtil.TryToFindComponent<IExposeAbility>(collision.gameObject, out var victimAbility, 
                         ComponentSearchLocation.Parent, ComponentSearchLocation.Self)) {
                     if (!victimAbility.IsAlive()) {

@@ -7,6 +7,7 @@ using HadoopCore.Scripts.InterfaceAbility;
 using HadoopCore.Scripts.Shared;
 using HadoopCore.Scripts.Utils;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace HadoopCore.Scripts {
 
@@ -45,6 +46,7 @@ namespace HadoopCore.Scripts {
 
         private static readonly int StatusKey = Animator.StringToHash("Status");
         [SerializeField] private Transform transformTemplate;
+        [SerializeField] private GameObject exclamationMarkVFX;
 
         [Header("移动设置")] 
         [SerializeField] private float patrolSpeed = 2f;
@@ -81,6 +83,7 @@ namespace HadoopCore.Scripts {
         private void Awake() {
             _rb = GetComponent<Rigidbody2D>();
             _animator = GetComponentInChildren<Animator>();
+            _animator.speed = Random.Range(0.8f, 1.2f);
             SetState(CharacterState.Idle);
             
             // Initialize hit scratch
@@ -116,11 +119,13 @@ namespace HadoopCore.Scripts {
                 }
 
                 if (DetectTarget()) {
+                    ActivateOnceExclamationMarkVFX(transform.position);
                     SetState(CharacterState.Chase); // 空闲中发现了目标, 就去追
                 }
             } else if (GetState() == CharacterState.Patrol) {
                 Patrol();
                 if (DetectTarget()) {
+                    ActivateOnceExclamationMarkVFX(transform.position);
                     SetState(CharacterState.Chase); // 巡逻中发现了目标, 就去追
                 }
             } else if (GetState() == CharacterState.Chase) {
@@ -185,34 +190,44 @@ namespace HadoopCore.Scripts {
         private bool DetectTarget() {
             // 根据 transformTemplate.rotation.y 确定射线方向和偏移
             bool facingRight = transformTemplate.rotation.y >= 0;
-            Vector2 direction = facingRight ? Vector2.right : Vector2.left;
             float offsetX = facingRight ? detectRayOffsetX : -detectRayOffsetX;
             Vector2 rayOrigin = (Vector2)transformTemplate.position + new Vector2(offsetX, detectRayOffsetY);
-            int hitCount = Physics2D.RaycastNonAlloc(
-                rayOrigin,
-                direction,
-                _hitBuffer,
-                detectableRadius
-            );
             
-            foreach (var hit in _hitBuffer.Where(h => h.rigidbody != null)) {
-                string tag = hit.rigidbody.tag;
-                if (tag == null || !CharacterRank.ContainsTag(tag)) {
-                    // 只检测Character的tag, 如果中途有其他障碍物(例如:Plug)挡住了, 就停止检测
-                    return false;
-                }
-                if (CharacterRank.GetRank(tag) > CharacterRank.GetRank(gameObject.tag)) {
-                    // 碰到比自己等级高的角色, 就停止检测
-                    return false;
-                }
-                if (CharacterRank.GetRank(tag) < CharacterRank.GetRank(gameObject.tag)) {
-                    // 碰到比自己等级低的角色, 就去追
-                    _chaseTargetExposeAbility = hit.rigidbody.GetComponent<IExposeAbility>();
-                    if (!_chaseTargetExposeAbility.IsAlive()) {
-                        return false;
+            // 定义两个方向的射线参数: (方向, 距离)
+            var rayParams = new (Vector2 dir, float dist)[] {
+                (facingRight ? Vector2.right : Vector2.left, detectableRadius),      // 面向方向, 全长
+                (facingRight ? Vector2.left : Vector2.right, detectableRadius * 0.5f) // 背向方向, 半长
+            };
+            
+            foreach (var (direction, distance) in rayParams) {
+                int hitCount = Physics2D.RaycastNonAlloc(
+                    rayOrigin,
+                    direction,
+                    _hitBuffer,
+                    distance
+                );
+                
+                foreach (var hit in _hitBuffer.Where(h => h.rigidbody != null)) {
+                    string tag = hit.rigidbody.tag;
+                    if (tag == null || !CharacterRank.ContainsTag(tag)) {
+                        // 只检测Character的tag, 如果中途有其他障碍物(例如:Plug)挡住了, 就跳过这条射线
+                        break;
                     }
-                    return true;
+                    if (CharacterRank.GetRank(tag) > CharacterRank.GetRank(gameObject.tag)) {
+                        // 碰到比自己等级高的角色, 就跳过这条射线
+                        break;
+                    }
+                    if (CharacterRank.GetRank(tag) < CharacterRank.GetRank(gameObject.tag)) {
+                        // 碰到比自己等级低的角色, 就去追
+                        _chaseTargetExposeAbility = hit.rigidbody.GetComponent<IExposeAbility>();
+                        if (!_chaseTargetExposeAbility.IsAlive()) {
+                            break;
+                        }
+                        return true;
+                    }
                 }
+                // 清空 hitBuffer 以便下一条射线使用
+                Array.Clear(_hitBuffer, 0, _hitBuffer.Length);
             }
             return false;
         }
@@ -326,24 +341,41 @@ namespace HadoopCore.Scripts {
             }
             return true;
         }
+        
+        private void ActivateOnceExclamationMarkVFX(Vector3 position) {
+            bool facingRight = transformTemplate.rotation.y >= 0;
+            position = facingRight ? position + new Vector3(1.5f, 2.5f, 0f) : position + new Vector3(-1.5f, 2.5f, 0f);
+            if (exclamationMarkVFX != null) {
+                exclamationMarkVFX.transform.position = position;
+                exclamationMarkVFX.SetActive(true);
+            }
+        }
 
         [Override]
         public IExposeAbility GetChaseTargetExposeAbility() {
             return _chaseTargetExposeAbility;
         }
         private void OnDrawGizmosSelected() {
-            // 可视化检测范围（考虑offset偏移）
+            // 可视化检测范围（双向射线）
             if (transformTemplate != null) {
                 bool facingRight = transformTemplate.rotation.y >= 0;
                 float offsetX = facingRight ? detectRayOffsetX : -detectRayOffsetX;
                 Vector2 rayOrigin = (Vector2)transformTemplate.position + new Vector2(offsetX, detectRayOffsetY);
-                Vector2 direction = facingRight ? Vector2.right : Vector2.left;
-                Vector2 rayEnd = rayOrigin + direction * detectableRadius;
                 
+                // 面向方向射线（全长，红色）
+                Vector2 forwardDir = facingRight ? Vector2.right : Vector2.left;
+                Vector2 forwardEnd = rayOrigin + forwardDir * detectableRadius;
                 Gizmos.color = Color.red;
                 Gizmos.DrawSphere(rayOrigin, 0.1f); // 射线起点
-                Gizmos.DrawLine(rayOrigin, rayEnd); // 射线
-                Gizmos.DrawWireSphere(rayEnd, 0.15f); // 射线终点
+                Gizmos.DrawLine(rayOrigin, forwardEnd);
+                Gizmos.DrawWireSphere(forwardEnd, 0.15f);
+                
+                // 背向方向射线（半长，黄色）
+                Vector2 backwardDir = facingRight ? Vector2.left : Vector2.right;
+                Vector2 backwardEnd = rayOrigin + backwardDir * (detectableRadius * 0.5f);
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawLine(rayOrigin, backwardEnd);
+                Gizmos.DrawWireSphere(backwardEnd, 0.12f);
             }
 
             // 可视化巡逻路径
