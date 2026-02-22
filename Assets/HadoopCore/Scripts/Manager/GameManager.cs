@@ -16,6 +16,7 @@ namespace HadoopCore.Scripts.Manager {
         private float _cachedScale = 1f; // 缓存时间缩放值. 缺少这个变量会导致下落的物体停止在半空
         private PlayerInput _playerInput;
         private InputAction _esc;
+        private string _previousSceneName = "GameStartPage";
 
 
         void Awake() {
@@ -36,7 +37,7 @@ namespace HadoopCore.Scripts.Manager {
             LevelEventCenter.OnGamePaused += Pause;
             LevelEventCenter.OnGameResumed += Resume;
             LevelEventCenter.OnGameOver += GameOver;
-            LevelEventCenter.OnGameRestart += GameRestart;
+            LevelEventCenter.OnLevelFinishedSignReset += LevelFinishedSignReset;
         }
 
         private void Start() {
@@ -48,16 +49,25 @@ namespace HadoopCore.Scripts.Manager {
 
         // ===== Public API =====
         public void LoadScene(string sceneName) {
+            _previousSceneName = GetCurrentSceneName();
+            LevelEventCenter.TriggerLevelFinishedSignReset();
             LoadingPageManager.LoadSceneWithLoading(sceneName);
         }
         
         public void ReloadCurrentSceneSynchronously() {
             string currentSceneName = GetCurrentSceneName();
+            _previousSceneName = currentSceneName;
             loadSceneSynchronously(currentSceneName);
         }
 
-        public void loadSceneSynchronously(string sceneName) {
-            SceneManager.LoadScene(sceneName);
+        public void loadSceneSynchronously(string sceneName, LoadSceneMode mode = LoadSceneMode.Single) {
+            _previousSceneName = GetCurrentSceneName();
+            LevelEventCenter.TriggerLevelFinishedSignReset();
+            SceneManager.LoadScene(sceneName, mode);
+        }
+        
+        public void loadPreviousScene() {
+            loadSceneSynchronously(_previousSceneName);
         }
 
         public GameSaveData GetSaveData() {
@@ -78,7 +88,7 @@ namespace HadoopCore.Scripts.Manager {
             out Vector2 offscreenLeft,
             out Vector2 center,
             out Vector2 offscreenRight,
-            float extraMargin = 50f // 可选：多推出去一点，防止边缘露出
+            float extraMargin = 100f // 可选：多推出去一点，防止边缘露出
         ) {
             // 确保 Canvas 已经完成布局
             Canvas.ForceUpdateCanvases();
@@ -125,7 +135,7 @@ namespace HadoopCore.Scripts.Manager {
             LevelEventCenter.OnGamePaused -= Pause;
             LevelEventCenter.OnGameResumed -= Resume;
             LevelEventCenter.OnGameOver -= GameOver;
-            LevelEventCenter.OnGameRestart -= GameRestart;
+            LevelEventCenter.OnLevelFinishedSignReset -= LevelFinishedSignReset;
             
             // 空值检查：防止在Awake中检测到重复实例后直接return，导致_esc未初始化
             if (_esc != null) {
@@ -181,8 +191,8 @@ namespace HadoopCore.Scripts.Manager {
             // Pause();
         }
 
-        private void GameRestart() {
-            Debug.Log("Game Restarted");
+        private void LevelFinishedSignReset() {
+            Debug.Log("LevelFinishedSignReset");
         }
 
         private void GameSuccess() {
@@ -191,6 +201,7 @@ namespace HadoopCore.Scripts.Manager {
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode) {
             RefreshSceneReferences();
+            LevelEventCenter.TriggerLevelFinishedSignReset();
             GenerateTransition(true); // 触发开屏效果
         }
 

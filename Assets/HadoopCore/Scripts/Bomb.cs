@@ -39,7 +39,6 @@ namespace HadoopCore.Scripts {
                 _animator.SetTrigger("TriggerBoom");
             } else {
                 // 打印一下碰撞力度，方便调试
-                Debug.Log($"碰撞力度 {impactForce} 不足以引爆炸弹");
             }
         }
         

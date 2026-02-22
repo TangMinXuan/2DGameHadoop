@@ -175,7 +175,7 @@ namespace HadoopCore.Scripts {
                 if (caller != null) {
                     float horizontalDirection = caller.GetTransform().position.x < transform.position.x ? 1f : -1f;
                     Vector2 knockbackDirection = new Vector2(horizontalDirection, 1f).normalized;
-                    float knockbackForce = 10f;
+                    float knockbackForce = 5f;
                     _rb.AddForce(knockbackDirection * knockbackForce, ForceMode2D.Impulse);
                 }
                 LevelEventCenter.TriggerGameOver();

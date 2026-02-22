@@ -4,84 +4,110 @@ using HadoopCore.Scripts.Annotation;
 using HadoopCore.Scripts.Manager;
 using HadoopCore.Scripts.Utils;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace HadoopCore.Scripts.UI {
     [Serializable]
     internal class MenuRefs {
         public GameObject obj;
-        [NonSerialized] public GameObject resumeBtn;
-        [NonSerialized] public GameObject retryBtn;
-        [NonSerialized] public GameObject exitBtn;
-        [NonSerialized, DontNeedAutoFind] public DOTweenAnimation menuAnimIn;
-        [NonSerialized, DontNeedAutoFind] public DOTweenAnimation menuAnimOut;
+        [NonSerialized, DontNeedAutoFind] public Button resumeBtn;
+        [NonSerialized, DontNeedAutoFind] public Button settingsBtn;
+        [NonSerialized, DontNeedAutoFind] public Button retryBtn;
+        [NonSerialized, DontNeedAutoFind] public Button exitBtn;
     }
 
     public class PauseUI : MonoBehaviour {
         
-        [SerializeField] private GameObject transitionUI;
         [SerializeField] private MenuRefs menuRefs;
         private CanvasGroup _canvasGroup;
-        private Vector2 _screenLeft, _screenCenter, _screenRight;
+        private Sequence _seq;
         
         private void Awake() {
             MySugarUtil.AutoFindObjects(this, gameObject);
             
             _canvasGroup = GetComponent<CanvasGroup>();
 
-            // 使用 MySugarUtil 查找 Menu 对象和三个按钮
+            // 使用 MySugarUtil 查找 Menu 对象和按钮
             menuRefs.obj = MySugarUtil.TryToFindObject(gameObject, "Menu");
-            menuRefs.resumeBtn = MySugarUtil.TryToFindObject(menuRefs.obj, "ResumeBtn");
-            menuRefs.retryBtn = MySugarUtil.TryToFindObject(menuRefs.obj, "RetryBtn");
-            menuRefs.exitBtn = MySugarUtil.TryToFindObject(menuRefs.obj, "ExitBtn");
-
-            // 查找 DOTweenAnimation 组件
-            DOTweenAnimation[] anims = menuRefs.obj.GetComponents<DOTweenAnimation>();
-            menuRefs.menuAnimIn = Array.Find(anims, a => a.id == "Menu_In");
-            menuRefs.menuAnimOut = Array.Find(anims, a => a.id == "Menu_Out");
-
-            GameManager.Instance.CalculateHorizontalSlidePositions(menuRefs.obj.GetComponent<RectTransform>(), 
-                out _screenLeft, out _screenCenter, out _screenRight);
-            menuRefs.obj.GetComponent<RectTransform>().anchoredPosition = _screenLeft;
-            
-            if (menuRefs.menuAnimIn != null) {
-                menuRefs.menuAnimIn.autoKill = false;
-                menuRefs.menuAnimIn.CreateTween(true, false);
-                menuRefs.menuAnimIn.endValueV2 = _screenCenter;
-                menuRefs.menuAnimIn.tween?.OnStart(() => { menuRefs.obj.GetComponent<RectTransform>().anchoredPosition = _screenLeft; });
-            }
-            
-            if (menuRefs.menuAnimOut != null) {
-                menuRefs.menuAnimOut.autoKill = false;
-                menuRefs.menuAnimOut.CreateTween(true, false);
-                menuRefs.menuAnimIn.endValueV2 = _screenRight;
-                menuRefs.menuAnimOut.tween?.OnStart(() => { menuRefs.obj.GetComponent<RectTransform>().anchoredPosition = _screenCenter; });
-                menuRefs.menuAnimOut.tween?.OnComplete(() => { UIUtil.SetUIVisible(_canvasGroup, false); });
-            }
+            menuRefs.resumeBtn = MySugarUtil.TryToFindObject(menuRefs.obj, "ResumeBtn").GetComponent<Button>();
+            menuRefs.settingsBtn = MySugarUtil.TryToFindObject(menuRefs.obj, "SettingsBtn").GetComponent<Button>();
+            menuRefs.retryBtn = MySugarUtil.TryToFindObject(menuRefs.obj, "RetryBtn").GetComponent<Button>();
+            menuRefs.exitBtn = MySugarUtil.TryToFindObject(menuRefs.obj, "ExitBtn").GetComponent<Button>();
+            menuRefs.resumeBtn.onClick.AddListener(OnResumeBtnClick);
+            menuRefs.settingsBtn.onClick.AddListener(OnSettingsBtnClick);
+            menuRefs.retryBtn.onClick.AddListener(OnRetryBtnClick);
+            menuRefs.exitBtn.onClick.AddListener(OnExitBtnClick);
 
             LevelEventCenter.OnGamePaused += OnGamePaused;
             LevelEventCenter.OnGameResumed += OnGameResumed;
             UIUtil.SetUIVisible(_canvasGroup, false);
         }
 
-        public void OnResumeBtnClick() {
-            LevelEventCenter.TriggerGameResumed();
+        private void OnResumeBtnClick() {
+            _seq?.Kill();
+            _seq = DOTween.Sequence()
+                .SetUpdate(true)
+                .Append(menuRefs.resumeBtn.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
+                .Append(menuRefs.resumeBtn.transform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
+                .OnComplete(() => LevelEventCenter.TriggerGameResumed())
+                .SetLink(gameObject);
+        }
+        
+        private void OnSettingsBtnClick() {
+            _seq?.Kill();
+            _seq = DOTween.Sequence()
+                .SetUpdate(true)
+                .Append(menuRefs.settingsBtn.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
+                .Append(menuRefs.settingsBtn.transform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
+                .OnComplete(() => GameManager.Instance.loadSceneSynchronously("SettingsMenu", LoadSceneMode.Additive))
+                .SetLink(gameObject);
+        }
+        
+        private void OnRetryBtnClick() {
+            _seq?.Kill();
+            _seq = DOTween.Sequence()
+                .SetUpdate(true)
+                .Append(menuRefs.retryBtn.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
+                .Append(menuRefs.retryBtn.transform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
+                .OnComplete(() => GameManager.Instance.ReloadCurrentSceneSynchronously())
+                .SetLink(gameObject);
+        }
+        
+        private void OnExitBtnClick() {
+            _seq?.Kill();
+            _seq = DOTween.Sequence()
+                .SetUpdate(true)
+                .Append(menuRefs.exitBtn.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
+                .Append(menuRefs.exitBtn.transform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
+                .OnComplete(() => GameManager.Instance.loadSceneSynchronously("GameStartPage"));
         }
 
         private void OnGamePaused() {
+            menuRefs.obj.transform.localScale = Vector3.zero;
             UIUtil.SetUIVisible(_canvasGroup, true);
-
-            if (menuRefs.menuAnimIn != null) {
-                menuRefs.menuAnimIn.DORestartById("Menu_In");
-            }
+            menuRefs.obj.transform.DOScale(1f, 0.3f)
+                .SetUpdate(true)
+                .SetEase(Ease.OutBack)
+                .SetLink(gameObject);
         }
 
         private void OnGameResumed() {
-            if (menuRefs.menuAnimOut != null) {
-                menuRefs.menuAnimOut.DORestartById("Menu_Out");
-            }
+            menuRefs.obj.transform.DOScale(0.1f, 0.3f)
+                .SetUpdate(true)
+                .SetEase(Ease.OutBack)
+                .OnComplete( () => UIUtil.SetUIVisible(_canvasGroup, false) )
+                .SetLink(gameObject);
         }
 
         private void OnDestroy() {
+            _seq?.Kill();
+            _seq = null;
+
+            menuRefs.resumeBtn.onClick.RemoveListener(OnResumeBtnClick);
+            menuRefs.settingsBtn.onClick.RemoveListener(OnSettingsBtnClick);
+            menuRefs.retryBtn.onClick.RemoveListener(OnRetryBtnClick);
+            menuRefs.exitBtn.onClick.RemoveListener(OnExitBtnClick);
             LevelEventCenter.OnGamePaused -= OnGamePaused;
             LevelEventCenter.OnGameResumed -= OnGameResumed;
         }

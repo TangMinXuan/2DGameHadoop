@@ -1,6 +1,7 @@
 using DG.Tweening;
 using HadoopCore.Scripts.Manager;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class StartMenuController : MonoBehaviour {
@@ -26,36 +27,35 @@ public class StartMenuController : MonoBehaviour {
     }
 
     private void OnStartGameClicked() {
-        Debug.Log("Clicked: Start Game");
-        
         _seq = DOTween.Sequence()
             .SetId("StartGameBtnTween")
             .Append(btnStartGame.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
             .Append(btnStartGame.transform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
-            .OnComplete(() => GameManager.Instance.loadSceneSynchronously("LevelSelectMenu"));
+            .OnComplete(() => GameManager.Instance.loadSceneSynchronously("LevelSelectMenu"))
+            .SetLink(gameObject);
     }
 
     private void OnSettingsClicked() {
-        Debug.Log("Clicked: Settings");
-        
         _seq = DOTween.Sequence()
             .SetId("SettingsBtnTween")
             .Append(btnSettings.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
             .Append(btnSettings.transform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
-            .OnComplete(() => GameManager.Instance.loadSceneSynchronously("SettingsMenu"));
+            .OnComplete(() => GameManager.Instance.loadSceneSynchronously("SettingsMenu", LoadSceneMode.Additive))
+            .SetLink(gameObject);
     }
 
     private void OnAboutClicked() {
-        Debug.Log("Clicked: About");
-
         _seq = DOTween.Sequence()
             .SetId("AboutBtnTween")
             .Append(btnSettings.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
-            .Append(btnSettings.transform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad));
+            .Append(btnSettings.transform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
+            .OnComplete(() => GameManager.Instance.loadSceneSynchronously("AboutPage"))
+            .SetLink(gameObject);
     }
 
     private void OnDestroy() {
         _seq?.Kill();
+        _seq = null;
         
         // Clean up listeners
         if (btnStartGame != null)

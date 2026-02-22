@@ -16,7 +16,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &684036735606518250
 Transform:
   m_ObjectHideFlags: 0
@@ -93,7 +93,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5819566672250592642
 Transform:
   m_ObjectHideFlags: 0
@@ -166,6 +166,7 @@ GameObject:
   - component: {fileID: 3562791663022661412}
   - component: {fileID: 759459138640403944}
   - component: {fileID: 8044114883571394942}
+  - component: {fileID: 3801758611640967952}
   m_Layer: 0
   m_Name: Rock
   m_TagString: Weight
@@ -282,3 +283,51 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rockBreakVFXPrefab: {fileID: 4520605688956228686, guid: 0fc6a4e547ee14ea6a68c8b309685860, type: 3}
+  impactThreshold: 2
+--- !u!68 &3801758611640967952
+EdgeCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6716485400256308872}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_EdgeRadius: 0
+  m_Points:
+  - {x: -7.175928, y: -1.6299624}
+  - {x: -6.3845954, y: 2.2728148}
+  - {x: 0.24701273, y: 5.862451}
+  - {x: 4.830719, y: 5.5323524}
+  - {x: 7.351933, y: 0.5021709}
+  - {x: 6.4208884, y: -4.2106423}
+  - {x: -5.7298956, y: -4.3232894}
+  - {x: -7.21491, y: -1.6092238}
+  m_AdjacentStartPoint: {x: 0, y: 0}
+  m_AdjacentEndPoint: {x: 0, y: 0}
+  m_UseAdjacentStartPoint: 0
+  m_UseAdjacentEndPoint: 0

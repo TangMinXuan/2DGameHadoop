@@ -1,6 +1,7 @@
 using DG.Tweening;
 using HadoopCore.Scripts.Manager;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
@@ -90,13 +91,13 @@ public class SettingsMenuController : MonoBehaviour
     }
 
     private void OnDoneClicked() {
-        Debug.Log("Clicked: Done");
-        
         _seq = DOTween.Sequence()
             .SetId("DoneBtnTween")
+            .SetUpdate(true)
             .Append(btnDone.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
             .Append(btnDone.transform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
-            .OnComplete(() => GameManager.Instance.loadSceneSynchronously("GameStartPage"));
+            .SetLink(gameObject)
+            .OnComplete(() => SceneManager.UnloadSceneAsync("SettingsMenu"));
     }
 
     private void OnBGMSliderChanged(float value)

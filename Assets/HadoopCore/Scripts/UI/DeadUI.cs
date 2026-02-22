@@ -44,8 +44,9 @@ namespace HadoopCore.Scripts.UI {
 
         [SerializeField] private Camera uiCamera;
 
-        private float _initialOrthographicSize = 8f;
+        private float _initialOrthographicSize;
         private Vector2 _screenLeft, _screenCenter, _screenRight;
+        private Transform _playerTransform;
 
         private void Awake() {
             MySugarUtil.AutoFindObjects(this, gameObject);
@@ -65,13 +66,17 @@ namespace HadoopCore.Scripts.UI {
                 MySugarUtil.TryToFindComponent<TMP_Text>(deathContentRefs.obj, "WastedText");
             deathContentRefs.wastedCg =
                 MySugarUtil.TryToFindComponent<CanvasGroup>(deathContentRefs.obj, "WastedText");
-            _vCamDeath = cameraRig.GetComponentInChildren<CinemachineVirtualCamera>();
+            _vCamDeath = MySugarUtil.TryToFindComponent<CinemachineVirtualCamera>(cameraRig, "VCam_Death");
             MenuDOTweenAnimation = MySugarUtil.TryToFindComponent<DOTweenAnimation>(gameObject, "Menu");
             
             _initialOrthographicSize = _vCamDeath.m_Lens.OrthographicSize;
             GameManager.Instance.CalculateHorizontalSlidePositions(deathContentRefs.menu.GetComponent<RectTransform>(), 
                 out _screenLeft, out _screenCenter, out _screenRight);
             deathContentRefs.menu.GetComponent<RectTransform>().anchoredPosition = _screenLeft;
+            _playerTransform = GameObject.Find("Player").transform;
+            if (_playerTransform) {
+                _vCamDeath.Follow = _playerTransform;
+            }
 
             LevelEventCenter.OnGameOver += GameOver;
             ResetDeathUI();
@@ -81,12 +86,13 @@ namespace HadoopCore.Scripts.UI {
             // 组件级的初始化 - 这些会在reset()中重置
             UIUtil.SetUIVisible(_canvasGroup, true);
             deathFXRefs.obj.GetComponent<Volume>().weight = 1;
-            _vCamDeath.Priority = 1;
+            _vCamDeath.Priority = 2;
 
             // 1. 时间缩放 - 渐进式慢动作
             _seq = DOTween.Sequence()
                 .SetId("DeathPresentation")
                 .SetUpdate(true)
+                .SetLink(gameObject)
                 .Join(TweenTimeScale(0.2f, 0.05f).SetEase(Ease.OutCubic));
 
             // 2. DOTween推: 镜头缓慢拉近 + 黑边缓慢增长 + 镜头缓慢模糊 + 镜头晃动
@@ -156,7 +162,7 @@ namespace HadoopCore.Scripts.UI {
                 x => _vCamDeath.m_Lens.OrthographicSize = x,
                 orthographicSize,
                 0.35f
-            );
+            ).SetUpdate(true);
         }
 
         // Part1.2: 黑边增长
@@ -166,7 +172,7 @@ namespace HadoopCore.Scripts.UI {
                 x => deathFXRefs.vignette.intensity.value = x,
                 intensity,
                 0.35f
-            );
+            ).SetUpdate(true);
         }
 
         // Part1.3: 镜头晃动
@@ -359,6 +365,7 @@ namespace HadoopCore.Scripts.UI {
 
             if (_vCamDeath != null) {
                 _vCamDeath.m_Lens.OrthographicSize = _initialOrthographicSize;
+                _vCamDeath.Priority = 0;
             }
 
             if (deathFXRefs.vignette != null) {
@@ -367,9 +374,6 @@ namespace HadoopCore.Scripts.UI {
 
             if (deathFXRefs != null && deathFXRefs.obj != null)
                 deathFXRefs.obj.GetComponent<Volume>().weight = 0;
-
-            if (_vCamDeath != null)
-                _vCamDeath.Priority = 0;
 
             if (_canvasGroup != null)
                 UIUtil.SetUIVisible(_canvasGroup, false);

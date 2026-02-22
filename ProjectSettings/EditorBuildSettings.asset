@@ -26,4 +26,82 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/HadoopCore/Scenes/SettingsMenu.unity
     guid: 7a33c6c0b8bcb4c7ca21d8b289a9be74
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_4.unity
+    guid: e2bcca2489b664835b45e6e88b686143
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_5.unity
+    guid: 0cfbb643d206446e39cc20a12f5d0d91
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_6.unity
+    guid: 42118b8680c864516b8ced39842d4112
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_7.unity
+    guid: ecfd830b32bc440bbb003fa87bc042d5
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_8.unity
+    guid: beafb8aa4ac534b26bb4148a65898a62
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_9.unity
+    guid: 1b9d52066556a46eba2c59e39ba21f79
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_10.unity
+    guid: 42a2642cf7e4148bca8e7671eb220d66
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_11.unity
+    guid: 73b67c836b8434b83a2d984b4340a4ed
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_12.unity
+    guid: f35626e0979af4e018016ad4d2f36206
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_13.unity
+    guid: 67267976787cc42fda37368755125a0d
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_14.unity
+    guid: 30e5e7198dba04ed98efdd5b92c8846c
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_15.unity
+    guid: 6919fa5763bc14ca5a97872d9bcab0f5
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_16.unity
+    guid: b32a96c53929342f59a28a55ca9159f6
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_17.unity
+    guid: 8cc04075e0e6e4b81a2418f63cb0c0e7
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_18.unity
+    guid: e5c07b74883a742ebb224cebf3aa5c05
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_19.unity
+    guid: 302527f76e3844bd788942ec7b693cab
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_20.unity
+    guid: 259217cdedfb14485925c167b7faac5e
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_21.unity
+    guid: c53763e6caf944928a062e2e43237857
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_22.unity
+    guid: d0c3f17fddd8e468cba755cdf9595841
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_23.unity
+    guid: f2ed27d6cf1f54e6fa64522fb062967c
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_24.unity
+    guid: 61db61d76ebff4ce7ac16175c7d7d8e5
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_25.unity
+    guid: 0da83a56a15e3473994fd6d67ce0bd19
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_26.unity
+    guid: 182113b1a5f444a5796e54d0424e8075
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_27.unity
+    guid: 1baa78025006e4c20999f3b92294fcea
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/LevelScenes/Level_28.unity
+    guid: 71c4cb36a176e4e8db3dc69c745d3b0a
+  - enabled: 1
+    path: Assets/HadoopCore/Scenes/AboutPage.unity
+    guid: 3b17e6d08a7d840ef9e7a9d5fdbb09af
   m_configObjects: {}

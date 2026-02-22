@@ -49,7 +49,7 @@ namespace HadoopCore.Scripts.Manager {
         [Header("Timing")]
         [Tooltip("Ensure loading page shows at least this many seconds (real time, unscaled).")]
         [SerializeField]
-        private float minShowSeconds = 1f;
+        private float minShowSeconds = 0.5f;
 
         [Header("Progress Smoothing")]
         [Tooltip("Duration for progress bar animation (seconds).")]

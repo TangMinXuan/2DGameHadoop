@@ -12,7 +12,6 @@ namespace HadoopCore.Scripts {
         [SerializeField] private GameObject ballistaBreakVFXPrefab;
 
         private Rigidbody2D _rb;
-        private bool _grounded;
         private bool _cleanupStarted;
         private bool _isAlive = true;
 
@@ -20,12 +19,8 @@ namespace HadoopCore.Scripts {
             _rb = GetComponent<Rigidbody2D>();
         }
 
-        // 砸到地面时被调用
         void OnCollisionEnter2D(Collision2D c) {
-            if (IsGround(c.gameObject) && !_grounded) {
-                _grounded = true;
-                StartGroundLogic();
-            }
+            StartGroundLogic();
         }
 
         private bool IsGround(GameObject go) {
