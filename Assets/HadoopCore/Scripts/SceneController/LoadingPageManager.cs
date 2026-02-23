@@ -1,12 +1,12 @@
-using UnityEngine;
 using DG.Tweening;
 using HadoopCore.Scripts.Utils;
 using TMPro;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
-namespace HadoopCore.Scripts.Manager {
+namespace HadoopCore.Scripts.SceneController {
     /// <summary>
     /// Put this on a GameObject in LoadingScene.
     /// Responsibilities:

@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: MAT_Metaball
+  m_Name: MAT_Metaball_WaterBall
   m_Shader: {fileID: 4800000, guid: 52992933808a543f8b74065e1fcadfcf, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -115,7 +115,7 @@ Material:
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _Color: {r: 0.44495374, g: 0.6765894, b: 0.9339623, a: 1}
+    - _Color: {r: 0.44495362, g: 0.6765894, b: 0.9339623, a: 0.4}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _StrokeColor: {r: 0.44705883, g: 0.6784314, b: 0.9372549, a: 1}

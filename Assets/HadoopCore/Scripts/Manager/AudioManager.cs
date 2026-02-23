@@ -35,6 +35,9 @@ namespace HadoopCore.Scripts.Manager {
         [Tooltip("Map scene names to their background music clips")]
         [SerializeField] private List<SceneBgmEntry> sceneBgmMappings = new List<SceneBgmEntry>();
 
+        // Runtime dictionary built from the serialized list for O(1) lookup
+        private Dictionary<string, AudioClip> _sceneBgmDict;
+
         [Header("Fade Settings")]
         [Tooltip("Enable fade transition when switching BGM")]
         [SerializeField] private bool enableFade = true;
@@ -43,8 +46,8 @@ namespace HadoopCore.Scripts.Manager {
         [SerializeField] private float fadeDuration = 0.5f;
 
         [Header("Default Volumes")]
-        [SerializeField] private float defaultBgmVolume = 1f;
-        [SerializeField] private float defaultSfxVolume = 1f;
+        [SerializeField] private float defaultBgmVolume = 0.8f;
+        [SerializeField] private float defaultSfxVolume = 0.8f;
 
         private Coroutine _fadeCoroutine;
 
@@ -56,6 +59,14 @@ namespace HadoopCore.Scripts.Manager {
             }
             Instance = this;
             DontDestroyOnLoad(gameObject);
+
+            // Build runtime lookup dictionary from serialized list
+            _sceneBgmDict = new Dictionary<string, AudioClip>(StringComparer.OrdinalIgnoreCase);
+            foreach (var entry in sceneBgmMappings) {
+                if (entry != null && !string.IsNullOrEmpty(entry.sceneName) && entry.bgmClip != null) {
+                    _sceneBgmDict[entry.sceneName] = entry.bgmClip;
+                }
+            }
 
             // Subscribe to scene changes
             SceneManager.activeSceneChanged += OnActiveSceneChanged;
@@ -154,6 +165,16 @@ namespace HadoopCore.Scripts.Manager {
         }
 
         /// <summary>
+        /// Get current BGM volume (0-1).
+        /// </summary>
+        public float GetBgmVolume() => defaultBgmVolume;
+
+        /// <summary>
+        /// Get current SFX volume (0-1).
+        /// </summary>
+        public float GetSfxVolume() => defaultSfxVolume;
+
+        /// <summary>
         /// Set BGM volume (0-1).
         /// </summary>
         public void SetBgmVolume(float volume) {
@@ -186,17 +207,16 @@ namespace HadoopCore.Scripts.Manager {
             
             if (clip != null) {
                 PlayBgm(clip, useFade);
-            } else {
-                // No mapping found - optionally stop current BGM or keep playing
-                Debug.Log($"[AudioManager] No BGM mapping found for scene: {sceneName}");
             }
         }
 
         private AudioClip GetBgmClipForScene(string sceneName) {
-            foreach (var entry in sceneBgmMappings) {
-                if (string.Equals(entry.sceneName, sceneName, StringComparison.OrdinalIgnoreCase)) {
-                    return entry.bgmClip;
-                }
+            if (_sceneBgmDict.TryGetValue(sceneName, out AudioClip clip)) {
+                return clip;
+            }
+            // Fallback to "default" entry if no match found
+            if (_sceneBgmDict.TryGetValue("default", out AudioClip defaultClip)) {
+                return defaultClip;
             }
             return null;
         }

@@ -3,7 +3,7 @@ using UnityEngine;
 namespace HadoopCore.Scripts.Water {
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
     [RequireComponent(typeof(Rigidbody2D), typeof(CircleCollider2D))]
-    public class WaterBall2D : MonoBehaviour {
+    public class MetaBall2D : MonoBehaviour {
         [Header("设置")] public float radius = 1f;
 
         public int resolution = 50; // 圆周上有多少个点 (越多越圆，但也越耗能)
@@ -13,7 +13,7 @@ namespace HadoopCore.Scripts.Water {
         public float damping = 2f;
 
         private Mesh mesh;
-        private Vector3[] basePositions; // 【新增】这里也是关键，记录每个点的"家"
+        private Vector3[] basePositions;
         private Vector3[] vertices;
         private Vector3[] vertexVelocities; // 速度记录
 

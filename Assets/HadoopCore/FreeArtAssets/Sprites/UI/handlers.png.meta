@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 140334c41750a41cdb5e11650bd62faf
+guid: d06f2eb1e258a42ceb84fc24e212079a
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -97,13 +97,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Tail_dust_0
+      name: handlers_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 1068
-        width: 220
-        height: 178
+        x: 87
+        y: 586
+        width: 342
+        height: 355
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -111,20 +111,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 0a092c0562d7945ccbb55e92ae6fa731
-      internalID: 126423712
+      spriteID: ea22261d1d25d44868c41e5e9d4f1094
+      internalID: -108621856
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Tail_dust_1
+      name: handlers_1
       rect:
         serializedVersion: 2
-        x: 0
-        y: 890
-        width: 220
-        height: 178
+        x: 584
+        y: 586
+        width: 356
+        height: 357
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -132,20 +132,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 04f76fc088d8042fcae47658d6f93a20
-      internalID: -1736526631
+      spriteID: ebd187c6735844c4b8c45ab33223551f
+      internalID: -1005364867
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Tail_dust_2
+      name: handlers_2
       rect:
         serializedVersion: 2
-        x: 0
-        y: 712
-        width: 220
-        height: 178
+        x: 83
+        y: 80
+        width: 352
+        height: 370
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -153,20 +153,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 99a99ef2611334967a94913fd37d0e60
-      internalID: 1300323565
+      spriteID: 0c6052b0bdbe54719882513eae59a0af
+      internalID: 1385335732
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Tail_dust_3
+      name: handlers_3
       rect:
         serializedVersion: 2
-        x: 0
-        y: 534
-        width: 220
-        height: 178
+        x: 583
+        y: 84
+        width: 359
+        height: 361
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -174,71 +174,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: c59b1b3ee359647f4823c13215d390dd
-      internalID: -991783353
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Tail_dust_4
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 356
-        width: 220
-        height: 178
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 0a7564b53d2ba402596dff72ec6775b9
-      internalID: 362855316
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Tail_dust_5
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 178
-        width: 220
-        height: 178
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 33fc73d72b44040d1aa43f520cd266ab
-      internalID: 1640326016
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Tail_dust_6
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 0
-        width: 220
-        height: 178
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 8d2e54cc09033449487922e0835e6e42
-      internalID: -803735708
+      spriteID: c89bd1fcf7d5f403986f2f691c359d99
+      internalID: -541908873
       vertices: []
       indices: 
       edges: []
@@ -254,13 +191,10 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Tail_dust_0: 126423712
-      Tail_dust_1: -1736526631
-      Tail_dust_2: 1300323565
-      Tail_dust_3: -991783353
-      Tail_dust_4: 362855316
-      Tail_dust_5: 1640326016
-      Tail_dust_6: -803735708
+      handlers_0: -108621856
+      handlers_1: -1005364867
+      handlers_2: 1385335732
+      handlers_3: -541908873
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

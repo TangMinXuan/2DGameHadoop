@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 5360053466877880177}
   - component: {fileID: 1285450937300826516}
   - component: {fileID: 4746465262613779111}
+  - component: {fileID: 1319753993199582703}
   m_Layer: 9
   m_Name: WaterBall
   m_TagString: Untagged
@@ -97,7 +98,7 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 0.06
+  m_Radius: 0.15
 --- !u!33 &5360053466877880177
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -160,7 +161,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10f03ea36624442fa421b896a81c173c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  radius: 0.2
+  radius: 0.35
   resolution: 50
-  springForce: 50
+  springForce: 150
   damping: 5
+--- !u!114 &1319753993199582703
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6259542643402412230}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22fb4718321a74d6dae19e835b3f236e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  waterLayer: 9
+  fireLayer: 11
+  dustLayer: 12
+  dustConvertVFXPrefab: {fileID: 4520605688956228686, guid: 674152da2a4f74c1a901be629469553a, type: 3}

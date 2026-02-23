@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace HadoopCore.Scripts.Manager {
     public static class LevelEventCenter {
@@ -11,6 +12,7 @@ namespace HadoopCore.Scripts.Manager {
         public static event Action OnGameSuccess;
         public static event Action OnLevelFinishedSignReset;
         public static event Action OnPlayerDied;
+        public static event Action<GameObject> OnOneEnemyDead;
 
         // 发布事件
         public static void TriggerGamePaused() => OnGamePaused?.Invoke();
@@ -32,5 +34,6 @@ namespace HadoopCore.Scripts.Manager {
             OnLevelFinishedSignReset?.Invoke();
         }
         public static void TriggerPlayerDied() => OnPlayerDied?.Invoke();
+        public static void TriggerOneEnemyDead(GameObject enemy) => OnOneEnemyDead?.Invoke(enemy);
     }
 }

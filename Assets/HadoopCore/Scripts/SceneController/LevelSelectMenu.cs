@@ -1,14 +1,13 @@
-using System;
 using System.Collections.Generic;
+using DG.Tweening;
 using HadoopCore.Scripts.Annotation;
 using HadoopCore.Scripts.Manager;
 using HadoopCore.Scripts.Utils;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using DG.Tweening;
 
-namespace HadoopCore.Scripts.UI {
+namespace HadoopCore.Scripts.SceneController {
     public class LevelSelectMenu : MonoBehaviour {
         
         [SerializeField] private GameObject levelGridContainer;

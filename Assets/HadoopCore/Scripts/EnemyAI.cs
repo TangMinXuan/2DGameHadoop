@@ -4,6 +4,7 @@ using System.Linq;
 using DG.Tweening;
 using HadoopCore.Scripts.Attribute;
 using HadoopCore.Scripts.InterfaceAbility;
+using HadoopCore.Scripts.Manager;
 using HadoopCore.Scripts.Shared;
 using HadoopCore.Scripts.Utils;
 using UnityEngine;
@@ -321,6 +322,7 @@ namespace HadoopCore.Scripts {
             _curState = state;
             _animator.SetInteger(StatusKey, (int)GetState());
             if (state == CharacterState.Dead) {
+                LevelEventCenter.TriggerOneEnemyDead(gameObject);
                 _rb.velocity = Vector2.zero;
                 if (caller != null) {
                     float horizontalDirection = caller.GetTransform().position.x < transform.position.x ? 1f : -1f;
