@@ -1,6 +1,10 @@
 using UnityEngine;
 
 namespace HadoopCore.Scripts.UI {
+    
+    /**
+     * 已暂时不用
+     */
     public class SmartTouchZone : MonoBehaviour, ICanvasRaycastFilter {
         [Header("设置")] [Tooltip("只在点击这些层级时触发移动 (例如 Ground/Floor)")]
         public LayerMask walkableLayer; // 这里只勾选你的 地板/地形 Layer

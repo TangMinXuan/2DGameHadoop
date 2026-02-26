@@ -12,7 +12,7 @@ namespace HadoopCore.Editor {
         public static void CreateDefaultSaveFile() {
             GameSaveData saveData = GameSaveData.LoadOrCreate();
             Debug.Log($"[SaveSystemEditorTools] Default save file created/loaded at: {GameSaveData.GetSaveFilePath()}");
-            Debug.Log($"[SaveSystemEditorTools] Total levels: {saveData.Levels.Count}");
+            Debug.Log($"[SaveSystemEditorTools] Total levels: {saveData.LevelDic.Count}");
             Debug.Log($"[SaveSystemEditorTools] Save data:\n{UnityEngine.JsonUtility.ToJson(saveData, true)}");
         }
         
@@ -37,7 +37,7 @@ namespace HadoopCore.Editor {
             }
             
             GameSaveData newSave = GameSaveData.LoadOrCreate();
-            Debug.Log($"[SaveSystemEditorTools] Created new default save file with {newSave.Levels.Count} levels.");
+            Debug.Log($"[SaveSystemEditorTools] Created new default save file with {newSave.LevelDic.Count} levels.");
         }
         
         [MenuItem("Tools/Save System/Open Save File Location")]
@@ -69,10 +69,10 @@ namespace HadoopCore.Editor {
             Debug.Log($"Schema Version: {saveData.SchemaVersion}");
             Debug.Log($"Game Version: {saveData.Version}");
             Debug.Log($"Total Stars: {saveData.TotalStarts}");
-            Debug.Log($"Total Levels: {saveData.Levels.Count}");
+            Debug.Log($"Total Levels: {saveData.LevelDic.Count}");
             Debug.Log($"\n--- Level Progress ---");
             
-            foreach (var kvp in saveData.Levels) {
+            foreach (var kvp in saveData.LevelDic) {
                 var level = kvp.Value;
                 Debug.Log($"{kvp.Key}: Unlocked={level.Unlocked}, Stars={level.BestStars}, Time={level.BestTime:F1}s, Required={level.RequiredStars}");
             }
@@ -85,7 +85,7 @@ namespace HadoopCore.Editor {
             GameSaveData saveData = GameSaveData.LoadOrCreate();
             
             int unlockedCount = 0;
-            foreach (var kvp in saveData.Levels) {
+            foreach (var kvp in saveData.LevelDic) {
                 if (!kvp.Value.Unlocked) {
                     kvp.Value.Unlocked = true;
                     unlockedCount++;
@@ -96,21 +96,6 @@ namespace HadoopCore.Editor {
             Debug.Log($"[SaveSystemEditorTools] Unlocked {unlockedCount} levels. All levels are now accessible!");
         }
         
-        [MenuItem("Tools/Save System/Give Max Stars (Cheat)")]
-        public static void GiveMaxStars() {
-            GameSaveData saveData = GameSaveData.LoadOrCreate();
-            
-            foreach (var kvp in saveData.Levels) {
-                kvp.Value.BestStars = 3;
-                kvp.Value.BestTime = 60f;
-                kvp.Value.Unlocked = true;
-            }
-            
-            saveData.UpdateTotalStars();
-            GameSaveData.Save(saveData);
-            
-            Debug.Log($"[SaveSystemEditorTools] All levels now have 3 stars! Total stars: {saveData.TotalStarts}");
-        }
     }
 }
 

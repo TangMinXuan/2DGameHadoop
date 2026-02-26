@@ -498,7 +498,6 @@ GameObject:
   - component: {fileID: 9128859541359122737}
   - component: {fileID: 310212234832935161}
   - component: {fileID: 3582089536029001890}
-  - component: {fileID: 4061829448456390174}
   m_Layer: 10
   m_Name: RightZone
   m_TagString: Untagged
@@ -576,21 +575,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ControlPath: <Keyboard>/d
---- !u!114 &4061829448456390174
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5902206419983328214}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 68baf94f55ea4095bcdf831ac84250b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  walkableLayer:
-    serializedVersion: 2
-    m_Bits: 1024
 --- !u!1 &7339728605947957830
 GameObject:
   m_ObjectHideFlags: 0
@@ -603,7 +587,6 @@ GameObject:
   - component: {fileID: 3795364153683422311}
   - component: {fileID: 8649068669000495234}
   - component: {fileID: 6899873915956082511}
-  - component: {fileID: 4510456995416134604}
   m_Layer: 10
   m_Name: LeftZone
   m_TagString: Untagged
@@ -681,21 +664,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ControlPath: <Keyboard>/a
---- !u!114 &4510456995416134604
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7339728605947957830}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 68baf94f55ea4095bcdf831ac84250b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  walkableLayer:
-    serializedVersion: 2
-    m_Bits: 1024
 --- !u!1 &8101626810818307671
 GameObject:
   m_ObjectHideFlags: 0
@@ -725,8 +693,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 4729416588519044676}
   - {fileID: 6772596176826426304}
+  - {fileID: 4729416588519044676}
   - {fileID: 1637841699756693865}
   - {fileID: 6877930297992922092}
   m_Father: {fileID: 0}

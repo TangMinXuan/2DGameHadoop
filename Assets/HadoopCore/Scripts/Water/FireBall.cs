@@ -1,10 +1,12 @@
 using HadoopCore.Scripts.InterfaceAbility;
+using HadoopCore.Scripts.Manager;
 using HadoopCore.Scripts.Shared;
 using HadoopCore.Scripts.Utils;
 using UnityEngine;
 
 namespace HadoopCore.Scripts.Water {
     public class FireBall : MonoBehaviour {
+        [SerializeField] private GameObject dustConvertVFX;
 
         public bool enableBurn = true;
 
@@ -17,6 +19,19 @@ namespace HadoopCore.Scripts.Water {
                     return;
                 }
                 victimAbility.SetStateWithLock(CharacterState.Dead, true);
+                if (dustConvertVFX != null) {
+                    dustConvertVFX.SetActive(true);
+                    dustConvertVFX.GetComponentInChildren<ParticleSystem>()?.Play();
+                }
+            }
+            
+            if (collision.rigidbody.tag == "Chest") {
+                collision.rigidbody.gameObject.SetActive(false);
+                if (dustConvertVFX != null) {
+                    dustConvertVFX.SetActive(true);
+                    dustConvertVFX.GetComponentInChildren<ParticleSystem>()?.Play();
+                }
+                LevelEventCenter.TriggerGameOver();
             }
         }
     }

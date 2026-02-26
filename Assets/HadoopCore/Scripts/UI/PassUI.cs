@@ -85,7 +85,7 @@ namespace HadoopCore.Scripts.UI {
                 _start = CalculateStars(remainingSeconds);
                 ApplyStarsImg(_start);
             }
-            _saveData.Levels.TryGetValue(GameManager.Instance.GetCurrentSceneName(), out var levelProgress);
+            _saveData.LevelDic.TryGetValue(GameManager.Instance.GetCurrentSceneName(), out var levelProgress);
             levelProgress ??= new LevelProgress().WithUnlocked(true);
             
             // 1) TimeRemain
@@ -108,9 +108,17 @@ namespace HadoopCore.Scripts.UI {
                 levelProgress.BestStars = _start;
                 isUpdated = true;
             }
+            if (!levelProgress.Unlocked) {
+                levelProgress.Unlocked = true;
+                isUpdated = true;
+            }
+            if (!levelProgress.IsPass) {
+                levelProgress.IsPass = true;
+                isUpdated = true;
+            }
             if (isUpdated) {
-                _saveData.Levels[GameManager.Instance.GetCurrentSceneName()] = levelProgress;
-                _saveData.SaveToFile();
+                _saveData.LevelDic[GameManager.Instance.GetCurrentSceneName()] = levelProgress;
+                GameManager.Instance.SaveGameDataAsync(_saveData);
             }
         }
 
@@ -143,7 +151,7 @@ namespace HadoopCore.Scripts.UI {
         }
 
         private void JumpToNextLevelOrBackToMenu() {
-            bool isUnlock = _saveData.Levels[GameManager.Instance.GetNextLevelName()].Unlocked;
+            bool isUnlock = _saveData.LevelDic[GameManager.Instance.GetNextLevelName()].Unlocked;
             if (isUnlock) {
                 GameManager.Instance.LoadScene(GameManager.Instance.GetNextLevelName());
             } else {

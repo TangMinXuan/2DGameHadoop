@@ -63,7 +63,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 100
   m_TargetDisplay: 0
 --- !u!114 &5668435332054972694
 MonoBehaviour:
@@ -431,6 +431,70 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5160564727978744021}
     m_Modifications:
+    - target: {fileID: 310212234832935161, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 2082715804, guid: 8fb4da8d7714b46dc9268beddd3df931, type: 3}
+    - target: {fileID: 310212234832935161, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
+      propertyPath: m_Color.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4729416588519044676, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4729416588519044676, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4729416588519044676, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 330
+      objectReference: {fileID: 0}
+    - target: {fileID: 4729416588519044676, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 190
+      objectReference: {fileID: 0}
+    - target: {fileID: 4729416588519044676, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -250
+      objectReference: {fileID: 0}
+    - target: {fileID: 4729416588519044676, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 5902206419983328214, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6772596176826426304, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6772596176826426304, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6772596176826426304, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 330
+      objectReference: {fileID: 0}
+    - target: {fileID: 6772596176826426304, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 190
+      objectReference: {fileID: 0}
+    - target: {fileID: 6772596176826426304, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 250
+      objectReference: {fileID: 0}
+    - target: {fileID: 6772596176826426304, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 6877930297992922092, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -120
+      objectReference: {fileID: 0}
     - target: {fileID: 7248133010382704161, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -514,6 +578,14 @@ PrefabInstance:
     - target: {fileID: 8101626810818307671, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
       propertyPath: m_Name
       value: InGameUI
+      objectReference: {fileID: 0}
+    - target: {fileID: 8649068669000495234, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 724293194, guid: 8fb4da8d7714b46dc9268beddd3df931, type: 3}
+    - target: {fileID: 8649068669000495234, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
+      propertyPath: m_Color.a
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9205192683580143138, guid: 30f9f6b15552145c4a6ff6da6bb1b37e, type: 3}
       propertyPath: unscaleImage

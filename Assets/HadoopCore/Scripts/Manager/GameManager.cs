@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using DG.Tweening;
 using HadoopCore.Scripts.SceneController;
 using HadoopCore.Scripts.UI;
@@ -15,9 +16,10 @@ namespace HadoopCore.Scripts.Manager {
 
         private bool _isPaused;
         private float _cachedScale = 1f; // 缓存时间缩放值. 缺少这个变量会导致下落的物体停止在半空
-        private PlayerInput _playerInput;
         private InputAction _esc;
         private string _previousSceneName = "GameStartPage";
+        
+        private GameSaveData _gameSaveData;
 
 
         void Awake() {
@@ -31,8 +33,12 @@ namespace HadoopCore.Scripts.Manager {
             RefreshSceneReferences();
             SceneManager.sceneLoaded += OnSceneLoaded;
 
-            _playerInput = GetComponent<PlayerInput>();
-            _esc = _playerInput.actions["Esc"];
+            // 不再使用 PlayerInput 组件, 改为直接创建 InputAction
+            // 原因: 多个 PlayerInput 会通过 InputUser 独占设备配对,
+            // 导致 Player 的 PlayerInput 拿不到键盘/鼠标, OnScreenButton 也失效
+            _esc = new InputAction("Esc", InputActionType.Button, "<Keyboard>/escape");
+            _esc.Enable();
+            
             _esc.performed += EscBtnListener;
 
             LevelEventCenter.OnGamePaused += Pause;
@@ -71,9 +77,73 @@ namespace HadoopCore.Scripts.Manager {
             loadSceneSynchronously(_previousSceneName);
         }
 
+        #region 存档相关
         public GameSaveData GetSaveData() {
-            return GameSaveData.LoadOrCreate();
+            if (_gameSaveData == null) {
+                _gameSaveData = GameSaveData.LoadOrCreate(CreateDefaultSave);
+            }
+            return _gameSaveData;
         }
+
+        public void SaveGameDataAsync(GameSaveData gameSaveData) {
+            if (gameSaveData == null) {
+                return;
+            }
+            _gameSaveData = gameSaveData; // 同步更新内存引用
+            GameSaveData.Save(_gameSaveData);
+            Debug.Log("[GameManager] SaveGameDataAsync: save completed.");
+        }
+        
+        /// <summary>
+        /// 计算解锁某一层所需的最低星数。
+        /// 公式：t*50%*1 + t*30%*2 + t*20%*3，其中 t = 上一层最大关卡 id，结果向上取整。
+        /// 第1层（levels 1-5）无需星星，返回 0。
+        /// </summary>
+        private static int CalcRequiredStarsForLayer(int layer) {
+            if (layer <= 1) return 0;
+            // 上一层最大关卡 id = (layer - 1) * 5
+            int t = (layer - 1) * 5;
+            float required = t * 0.5f * 1 + t * 0.3f * 2 + t * 0.2f * 3;
+            return Mathf.CeilToInt(required);
+        }
+        
+        private static GameSaveData CreateDefaultSave() {
+            var data = new GameSaveData {
+                SchemaVersion = 1,
+                Version = Application.version,
+                CurLayer = 1
+            };
+
+            // 默认 settings
+            data.Settings.Add("musicVolume", 0.8f);
+            data.Settings.Add("sfxVolume", 0.8f);
+            data.Settings.Add("language", "en");
+
+            // 初始化50个关卡，每5关为一层，共10层
+            // 第1层（Level_1~5）直接解锁，其余层初始锁定
+            // 解锁下一层所需星数：t*50%*1 + t*30%*2 + t*20%*3，t = 上一层最大关卡 id
+            for (int i = 1; i <= 50; i++) {
+                string levelName = $"Level_{i}";
+                int layer = Mathf.CeilToInt(i / 5f); // 第几层（1-based）
+                bool unlocked = layer == 1;           // 只有第1层默认解锁
+                int requiredStars = CalcRequiredStarsForLayer(layer);
+
+                data.LevelDic[levelName] = new LevelProgress {
+                    LevelId = i,
+                    Unlocked = unlocked,
+                    BestStars = 0,
+                    BestTime = 0,
+                    RequiredStars = requiredStars
+                };
+            }
+            return data;
+        }
+
+        public static GameSaveData exposeCreateDefaultSave() {
+            return CreateDefaultSave();
+        }
+
+        #endregion
         
         public string GetCurrentSceneName() {
             return SceneManager.GetActiveScene().name;
@@ -141,6 +211,9 @@ namespace HadoopCore.Scripts.Manager {
             // 空值检查：防止在Awake中检测到重复实例后直接return，导致_esc未初始化
             if (_esc != null) {
                 _esc.performed -= EscBtnListener;
+                _esc.Disable();
+                _esc.Dispose();
+                _esc = null;
             }
 
             SceneManager.sceneLoaded -= OnSceneLoaded;
@@ -193,7 +266,6 @@ namespace HadoopCore.Scripts.Manager {
         }
 
         private void LevelFinishedSignReset() {
-            Debug.Log("LevelFinishedSignReset");
         }
 
         private void GameSuccess() {
