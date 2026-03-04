@@ -117,6 +117,7 @@ namespace HadoopCore.Scripts.UI {
         }
 
         public void onRetryBtnClick() {
+            AudioManager.Instance.PlayBtnSfx();
             // 确保不会带着慢动作重载
             Time.timeScale = 1f;
 
@@ -145,10 +146,12 @@ namespace HadoopCore.Scripts.UI {
             DOTween.Sequence()
                 .SetUpdate(true)
                 .Append( GameManager.Instance.GenerateTransition(false) )
-                .OnComplete(() => GameManager.Instance.ReloadCurrentSceneSynchronously());
+                .OnComplete(() => GameManager.Instance.ReloadCurrentSceneSynchronously())
+                .SetLink(gameObject);
         }
 
         public void onExitBtnClick() {
+            AudioManager.Instance.PlayBtnSfx();
             DOTween.Sequence()
                 .SetUpdate(true)
                 .Append( GameManager.Instance.GenerateTransition(false) )

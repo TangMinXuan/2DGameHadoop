@@ -241,23 +241,13 @@ namespace HadoopCore.Scripts.Manager {
 
         private void Pause() {
             _isPaused = true;
-
             _cachedScale = Time.timeScale;
             Time.timeScale = 0f; // 全局停表
-
-            AudioListener.pause = true; // 全局音频暂停
-            Cursor.visible = true; // 桌面端可见鼠标
-            Cursor.lockState = CursorLockMode.None;
         }
 
         private void Resume() {
             _isPaused = false;
             Time.timeScale = _cachedScale;
-            AudioListener.pause = false;
-            // 如果你的游戏需要锁鼠标：
-            // Cursor.visible = false;
-            // Cursor.lockState = CursorLockMode.Locked;
-            // EventBus.Raise(GameResumed);
         }
 
         private void GameOver() {

@@ -132,11 +132,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 861132016853969216, guid: 321e2f59c56f34c3ea56e46ac274b277, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 4.69
+      value: 4.679
       objectReference: {fileID: 0}
     - target: {fileID: 861132016853969216, guid: 321e2f59c56f34c3ea56e46ac274b277, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 4.05
+      value: 3.992
       objectReference: {fileID: 0}
     - target: {fileID: 861132016853969216, guid: 321e2f59c56f34c3ea56e46ac274b277, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1295,7 +1295,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4588844515906909255, guid: 40dd006ce970d4a67a1a69d7d0473169, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 4639308233799708287, guid: 40dd006ce970d4a67a1a69d7d0473169, type: 3}
       propertyPath: m_AnchorMax.y
@@ -3891,15 +3891,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1785803988490614780, guid: 77fc3f522d5fa4bc78cc608534ebec34, type: 3}
       propertyPath: patrolPaths.Array.size
-      value: 0
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1785803988490614780, guid: 77fc3f522d5fa4bc78cc608534ebec34, type: 3}
       propertyPath: patrolPaths.Array.data[0].x
-      value: -2.27
+      value: 4.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1785803988490614780, guid: 77fc3f522d5fa4bc78cc608534ebec34, type: 3}
+      propertyPath: patrolPaths.Array.data[0].y
+      value: -2
       objectReference: {fileID: 0}
     - target: {fileID: 1785803988490614780, guid: 77fc3f522d5fa4bc78cc608534ebec34, type: 3}
       propertyPath: patrolPaths.Array.data[1].x
-      value: 2.6
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1785803988490614780, guid: 77fc3f522d5fa4bc78cc608534ebec34, type: 3}
+      propertyPath: patrolPaths.Array.data[1].y
+      value: -2
       objectReference: {fileID: 0}
     - target: {fileID: 6555551954792095586, guid: 77fc3f522d5fa4bc78cc608534ebec34, type: 3}
       propertyPath: m_Name
@@ -6261,12 +6269,12 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 698148818641715058, guid: 70dbb3fbbb49b4bafacb50ad1fd68e6e, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1372012150}
     - targetCorrespondingSourceObject: {fileID: 8512332761033331651, guid: 70dbb3fbbb49b4bafacb50ad1fd68e6e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1940147380}
+    - targetCorrespondingSourceObject: {fileID: 698148818641715058, guid: 70dbb3fbbb49b4bafacb50ad1fd68e6e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1372012150}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 70dbb3fbbb49b4bafacb50ad1fd68e6e, type: 3}
 --- !u!4 &2726394215704862471 stripped
@@ -6329,15 +6337,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1785803988490614780, guid: 77fc3f522d5fa4bc78cc608534ebec34, type: 3}
       propertyPath: patrolPaths.Array.size
-      value: 0
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1785803988490614780, guid: 77fc3f522d5fa4bc78cc608534ebec34, type: 3}
       propertyPath: patrolPaths.Array.data[0].x
-      value: -2.27
+      value: -4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1785803988490614780, guid: 77fc3f522d5fa4bc78cc608534ebec34, type: 3}
+      propertyPath: patrolPaths.Array.data[0].y
+      value: -2
       objectReference: {fileID: 0}
     - target: {fileID: 1785803988490614780, guid: 77fc3f522d5fa4bc78cc608534ebec34, type: 3}
       propertyPath: patrolPaths.Array.data[1].x
-      value: 2.6
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1785803988490614780, guid: 77fc3f522d5fa4bc78cc608534ebec34, type: 3}
+      propertyPath: patrolPaths.Array.data[1].y
+      value: -2
       objectReference: {fileID: 0}
     - target: {fileID: 6555551954792095586, guid: 77fc3f522d5fa4bc78cc608534ebec34, type: 3}
       propertyPath: m_Name

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using HadoopCore.Scripts.InterfaceAbility;
+using HadoopCore.Scripts.Manager;
 using HadoopCore.Scripts.Shared;
 using UnityEngine;
 
@@ -17,10 +18,16 @@ namespace HadoopCore.Scripts {
 
         private void Awake() {
             _rb = GetComponent<Rigidbody2D>();
+            LevelEventCenter.OnGameOver += StopShooting;
+            LevelEventCenter.OnGameSuccess += StopShooting;
         }
 
         void OnCollisionEnter2D(Collision2D c) {
-            StartGroundLogic();
+            if (IsGround(c.gameObject)) {
+                StartGroundLogic();
+            } else if (c.rigidbody.gameObject.tag == "Plug") {
+                StartGroundLogic();
+            }
         }
 
         private bool IsGround(GameObject go) {
@@ -55,6 +62,15 @@ namespace HadoopCore.Scripts {
                 particleSystem.Play();
             }
             gameObject.SetActive(false);
+        }
+        
+        private void StopShooting() {
+            StopAllCoroutines();
+        }
+
+        private void OnDestroy() {
+            LevelEventCenter.OnGameOver -= StopShooting;
+            LevelEventCenter.OnGameSuccess -= StopShooting;
         }
 
         public bool IsAlive() {

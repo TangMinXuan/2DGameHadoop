@@ -92,6 +92,10 @@ namespace HadoopCore.Scripts.SceneController {
             if (sliderSFX != null) {
                 sliderSFX.onValueChanged.AddListener(OnSFXSliderChanged);
             }
+            
+            btnBGM_Speaker.onClick.AddListener(() => AudioManager.Instance.PlayBtnSfx());
+            btnSFX_Speaker.onClick.AddListener(() => AudioManager.Instance.PlayBtnSfx());
+            btnDone.onClick.AddListener(() => AudioManager.Instance.PlayBtnSfx());
         }
 
         private void OnBGMSpeakerClicked() {

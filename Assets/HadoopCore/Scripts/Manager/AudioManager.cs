@@ -34,6 +34,8 @@ namespace HadoopCore.Scripts.Manager {
         [Header("BGM Configuration")]
         [Tooltip("Map scene names to their background music clips")]
         [SerializeField] private List<SceneBgmEntry> sceneBgmMappings = new List<SceneBgmEntry>();
+        
+        [SerializeField] private AudioClip btnClickedSfx;
 
         // Runtime dictionary built from the serialized list for O(1) lookup
         private Dictionary<string, AudioClip> _sceneBgmDict;
@@ -69,7 +71,7 @@ namespace HadoopCore.Scripts.Manager {
             }
 
             // Subscribe to scene changes
-            SceneManager.activeSceneChanged += OnActiveSceneChanged;
+            SceneManager.sceneLoaded += OnSceneLoaded;
 
             // Initialize volumes
             if (bgmSource != null) {
@@ -93,27 +95,27 @@ namespace HadoopCore.Scripts.Manager {
                 return;
             }
 
-            SceneManager.activeSceneChanged -= OnActiveSceneChanged;
+            SceneManager.sceneLoaded -= OnSceneLoaded;
             Instance = null;
         }
 
         #region Public API
+        
+        public void PlayBtnSfx() {
+            PlaySfx(btnClickedSfx);
+        }
 
         /// <summary>
         /// Play a sound effect. Can be hooked to UI Button OnClick events.
         /// </summary>
         /// <param name="clip">The AudioClip to play</param>
         /// <param name="volumeScale">Volume multiplier (0-1)</param>
-        public void PlaySfx(AudioClip clip, float volumeScale = 1f) {
-            if (clip == null) {
-                Debug.LogWarning("[AudioManager] PlaySfx called with null clip");
-                return;
-            }
+        private void PlaySfx(AudioClip clip) {
             if (sfxSource == null) {
                 Debug.LogError("[AudioManager] sfxSource is not assigned");
                 return;
             }
-            sfxSource.PlayOneShot(clip, volumeScale);
+            sfxSource.PlayOneShot(clip);
         }
 
         /// <summary>
@@ -121,7 +123,7 @@ namespace HadoopCore.Scripts.Manager {
         /// </summary>
         /// <param name="clip">The BGM clip to play</param>
         /// <param name="useFade">Whether to fade transition</param>
-        public void PlayBgm(AudioClip clip, bool useFade = true) {
+        private void PlayBgm(AudioClip clip, bool useFade = true) {
             if (bgmSource == null) {
                 Debug.LogError("[AudioManager] bgmSource is not assigned");
                 return;
@@ -198,25 +200,31 @@ namespace HadoopCore.Scripts.Manager {
 
         #region Private Methods
 
-        private void OnActiveSceneChanged(Scene previousScene, Scene newScene) {
-            PlayBgmForScene(newScene.name, true);
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode) {
+            PlayBgmForScene(scene.name, true);
         }
 
         private void PlayBgmForScene(string sceneName, bool useFade) {
             AudioClip clip = GetBgmClipForScene(sceneName);
-            
             if (clip != null) {
                 PlayBgm(clip, useFade);
             }
         }
 
         private AudioClip GetBgmClipForScene(string sceneName) {
+            if (string.Equals(sceneName, "SettingsMenu", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(sceneName, "LoadingPage", StringComparison.OrdinalIgnoreCase)) {
+                return null;
+            }
             if (_sceneBgmDict.TryGetValue(sceneName, out AudioClip clip)) {
                 return clip;
             }
-            // Fallback to "default" entry if no match found
-            if (_sceneBgmDict.TryGetValue("default", out AudioClip defaultClip)) {
-                return defaultClip;
+            // Fallback: if scene name starts with "Level_", use "default"; otherwise use "panel"
+            string fallbackKey = sceneName.StartsWith("Level_", StringComparison.OrdinalIgnoreCase)
+                ? "level"
+                : "panel";
+            if (_sceneBgmDict.TryGetValue(fallbackKey, out AudioClip fallbackClip)) {
+                return fallbackClip;
             }
             return null;
         }

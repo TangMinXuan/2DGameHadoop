@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1112752824809538610}
   - component: {fileID: 4757233475515462674}
   m_Layer: 0
-  m_Name: SFXPlayer
+  m_Name: BtnPlayer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -42,7 +42,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 0}
+  m_audioClip: {fileID: 8300000, guid: 8492a7f1c5ea84aaf88b619b8857e1a4, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
@@ -171,10 +171,10 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 0789d7548e4df4472a87c02c70e4ece7, type: 3}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
-  Loop: 0
+  Loop: 1
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
@@ -305,11 +305,12 @@ MonoBehaviour:
   bgmSource: {fileID: 809046387515788336}
   sfxSource: {fileID: 4757233475515462674}
   sceneBgmMappings:
-  - sceneName: Level_3
+  - sceneName: level
     bgmClip: {fileID: 8300000, guid: 0789d7548e4df4472a87c02c70e4ece7, type: 3}
-  - sceneName: default
-    bgmClip: {fileID: 8300000, guid: 0789d7548e4df4472a87c02c70e4ece7, type: 3}
+  - sceneName: panel
+    bgmClip: {fileID: 8300000, guid: 778c641adad504231ba9c8de11b330f5, type: 3}
+  btnClickedSfx: {fileID: 8300000, guid: 8492a7f1c5ea84aaf88b619b8857e1a4, type: 3}
   enableFade: 1
   fadeDuration: 1
   defaultBgmVolume: 0.5
-  defaultSfxVolume: 0.5
+  defaultSfxVolume: 1

@@ -36,12 +36,6 @@ namespace HadoopCore.Scripts.SceneController {
             GameSaveData saveData = GameManager.Instance.GetSaveData();
             initLevelFixedItems(saveData);
             RefreshLevelContent(saveData);
-            
-            // TODO:
-            // 1) 两个翻页按钮
-            // 2) 对GameSaveData的封装. 一次游戏, 只从硬盘中读一次, 后续都在内存中操作, 直到需要保存时才写回硬盘
-            // 3) 回写操作, 用Action
-            // 
         }
 
         private void initLevelFixedItems(GameSaveData saveData) {
@@ -167,6 +161,7 @@ namespace HadoopCore.Scripts.SceneController {
                 button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() => PlayClickFeedbackAndEnterLevel(
                     assemblingLevelItem.transform, button, $"Level_{levelNumStr}"));
+                button.onClick.AddListener(() => AudioManager.Instance.PlayBtnSfx());
             }
         }
         

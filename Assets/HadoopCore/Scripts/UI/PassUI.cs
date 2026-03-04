@@ -71,7 +71,7 @@ namespace HadoopCore.Scripts.UI {
                 .Append(TweenNumCountUpFloat(bestTimeValue.GetComponent<TMP_Text>(), _bestTimeVal))
                 .AppendInterval(0.5f)
                 .Append(TweenStarsEnter())
-                .AppendInterval(3f) // 跳关之前先停几秒
+                .AppendInterval(2.5f) // 跳关之前先停几秒
                 // .Append(TransitionUI.Instance.GenerateTransition(menu, false))
                 .Append( GameManager.Instance.GenerateTransition(false) )
                 .OnComplete(() => JumpToNextLevelOrBackToMenu());
@@ -194,7 +194,7 @@ namespace HadoopCore.Scripts.UI {
         }
         
         Tween TweenNumCountUpFloat(TMP_Text tmp, float target, 
-            float duration = 1f, int decimals = 1, bool useUnscaledTime = true) {
+            float duration = 1f, int decimals = 2, bool useUnscaledTime = true) {
             // 预先准备 format，避免每帧拼字符串
             string fmt = decimals > 0 ? "{0:" + decimals + "}" : "{0:0}";
             

@@ -8,6 +8,7 @@ namespace HadoopCore.Scripts.UI {
         
         private void Start() {
             pauseBtn.onClick.AddListener(OnPauseBtnClicked);
+            pauseBtn.onClick.AddListener(() => AudioManager.Instance.PlayBtnSfx());
         }
 
         private void OnPauseBtnClicked() {

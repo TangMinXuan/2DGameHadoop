@@ -28,7 +28,6 @@ namespace HadoopCore.Scripts {
         
         [SerializeField] private float moveSpeed;
         [SerializeField] private float moveSpeedWhileFalling = 1f;
-        [SerializeField] private float raycastDistance; // 射线检测的最大距离
         [SerializeField] private Transform transformTemplate;
         [SerializeField] private CameraShakeSettings cameraShakeSettings = new CameraShakeSettings();
 
@@ -89,7 +88,8 @@ namespace HadoopCore.Scripts {
         }
 
         private void LateUpdate() {
-            UpdateCameraShake();
+            // 暂时取消摄像机震动，感觉有点晕
+            // UpdateCameraShake();
         }
 
         private void UpdateCameraShake() {

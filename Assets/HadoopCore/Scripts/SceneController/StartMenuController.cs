@@ -29,6 +29,7 @@ namespace HadoopCore.Scripts.SceneController {
         }
 
         private void OnStartGameClicked() {
+            AudioManager.Instance.PlayBtnSfx();
             _seq = DOTween.Sequence()
                 .SetId("StartGameBtnTween")
                 .Append(btnStartGame.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
@@ -38,6 +39,7 @@ namespace HadoopCore.Scripts.SceneController {
         }
 
         private void OnSettingsClicked() {
+            AudioManager.Instance.PlayBtnSfx();
             _seq = DOTween.Sequence()
                 .SetId("SettingsBtnTween")
                 .Append(btnSettings.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
@@ -47,10 +49,11 @@ namespace HadoopCore.Scripts.SceneController {
         }
 
         private void OnAboutClicked() {
+            AudioManager.Instance.PlayBtnSfx();
             _seq = DOTween.Sequence()
                 .SetId("AboutBtnTween")
-                .Append(btnSettings.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
-                .Append(btnSettings.transform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
+                .Append(btnAbout.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
+                .Append(btnAbout.transform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
                 .OnComplete(() => GameManager.Instance.loadSceneSynchronously("AboutPage"))
                 .SetLink(gameObject);
         }

@@ -1,4 +1,5 @@
 using HadoopCore.Scripts.InterfaceAbility;
+using HadoopCore.Scripts.Manager;
 using HadoopCore.Scripts.Shared;
 using UnityEngine;
 
@@ -16,6 +17,9 @@ namespace HadoopCore.Scripts {
 
             // 返回物体的局部 X 轴正方向(红色箭头方向)
             _direction = transform.right;
+            
+            LevelEventCenter.OnGameOver += StopShooting;
+            LevelEventCenter.OnGameSuccess += StopShooting;
         }
 
         private void FixedUpdate() {
@@ -27,7 +31,21 @@ namespace HadoopCore.Scripts {
         }
 
         private void OnTriggerEnter2D(Collider2D triggerObj) {
-            if (triggerObj.TryGetComponent<IExposeAbility>(out var victimAbility)) {
+            // if (triggerObj.TryGetComponent<IExposeAbility>(out var victimAbility)) {
+            //     if (!victimAbility.IsAlive()) {
+            //         return;
+            //     }
+            //     if (victimAbility.GetGameObject().tag == "Ballista") {
+            //         return;
+            //     }
+            //     victimAbility.SetStateWithLock(CharacterState.Dead, true);
+            // } else {
+            //     Destroy(gameObject);
+            // }
+        }
+
+        private void OnCollisionEnter2D(Collision2D collision) {
+            if (collision.rigidbody.gameObject.TryGetComponent<IExposeAbility>(out var victimAbility)) {
                 if (!victimAbility.IsAlive()) {
                     return;
                 }
@@ -35,9 +53,9 @@ namespace HadoopCore.Scripts {
                     return;
                 }
                 victimAbility.SetStateWithLock(CharacterState.Dead, true);
-            } else {
-                Destroy(gameObject);
+                
             }
+            Destroy(gameObject);
         }
 
         private bool IsOutOfCameraBounds() {
@@ -46,6 +64,15 @@ namespace HadoopCore.Scripts {
 
             return viewportPos.x < 0 || viewportPos.x > 1 ||
                    viewportPos.y < 0 || viewportPos.y > 1;
+        }
+        
+        private void StopShooting() {
+            Destroy(gameObject);
+        }
+        
+        private void OnDestroy() {
+            LevelEventCenter.OnGameOver -= StopShooting;
+            LevelEventCenter.OnGameSuccess -= StopShooting;
         }
     }
 }

@@ -13,6 +13,7 @@ TagManager:
   - Boss
   - Enemy
   - Ballista
+  - Spike
   layers:
   - Default
   - TransparentFX
@@ -27,10 +28,10 @@ TagManager:
   - TouchZone
   - FireLayer
   - DustLayer
-  - 
-  - 
-  - 
-  - 
+  - Enemy
+  - Chest
+  - Arrow
+  - Ballista
   - 
   - 
   - 

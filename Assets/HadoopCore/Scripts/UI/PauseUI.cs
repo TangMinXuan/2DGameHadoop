@@ -38,6 +38,10 @@ namespace HadoopCore.Scripts.UI {
             menuRefs.settingsBtn.onClick.AddListener(OnSettingsBtnClick);
             menuRefs.retryBtn.onClick.AddListener(OnRetryBtnClick);
             menuRefs.exitBtn.onClick.AddListener(OnExitBtnClick);
+            menuRefs.resumeBtn.onClick.AddListener(() => AudioManager.Instance.PlayBtnSfx());
+            menuRefs.settingsBtn.onClick.AddListener(() => AudioManager.Instance.PlayBtnSfx());
+            menuRefs.retryBtn.onClick.AddListener(() => AudioManager.Instance.PlayBtnSfx());
+            menuRefs.exitBtn.onClick.AddListener(() => AudioManager.Instance.PlayBtnSfx());
 
             LevelEventCenter.OnGamePaused += OnGamePaused;
             LevelEventCenter.OnGameResumed += OnGameResumed;

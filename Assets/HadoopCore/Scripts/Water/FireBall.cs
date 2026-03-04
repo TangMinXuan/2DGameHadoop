@@ -33,6 +33,14 @@ namespace HadoopCore.Scripts.Water {
                 }
                 LevelEventCenter.TriggerGameOver();
             }
+            
+            if (collision.rigidbody.tag == "Spike") {
+                collision.rigidbody.gameObject.SetActive(false);
+                if (dustConvertVFX != null) {
+                    dustConvertVFX.SetActive(true);
+                    dustConvertVFX.GetComponentInChildren<ParticleSystem>()?.Play();
+                }
+            }
         }
     }
 }

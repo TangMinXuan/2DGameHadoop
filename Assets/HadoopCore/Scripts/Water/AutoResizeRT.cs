@@ -26,7 +26,6 @@ namespace HadoopCore.Scripts.Water {
 
             foreach (var pair in pairs) {
                 if (pair.metaCamera == null || pair.metaRawImage == null) {
-                    Debug.LogWarning("[AutoResizeRT] 存在未配置完整的 Camera/RawImage 组合，已跳过。");
                     continue;
                 }
 
