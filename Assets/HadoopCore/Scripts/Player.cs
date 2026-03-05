@@ -33,7 +33,13 @@ namespace HadoopCore.Scripts {
 
         private static readonly int StatusKey = Animator.StringToHash("Status");
 
-        private Vector2 _moveInput;
+        // 键盘 / InputSystem 的输入
+        private Vector2 _keyboardInput;
+        // UI 按钮的输入
+        private Vector2 _uiInput;
+        // 合并后的最终输入（只读属性，供 FixedUpdate 使用）
+        private Vector2 _moveInput => _keyboardInput + _uiInput;
+
         private Rigidbody2D _rb;
         private Animator _animator;
         private Collider2D _collider;
@@ -63,14 +69,15 @@ namespace HadoopCore.Scripts {
             if (_animLock) {
                 return;
             }
-            
         }
 
         void FixedUpdate() {
             if (_animLock) {
                 return;
             }
-            _rb.velocity = new Vector2(_moveInput.x * _curSpeed, _rb.velocity.y); // 这同时也会锁住水平速度，bomb的冲击波就无效了
+            
+            float normalizedInputX = _moveInput.x > 0 ? 1f : _moveInput.x < 0 ? -1f : 0f;
+            _rb.velocity = new Vector2(normalizedInputX * _curSpeed, _rb.velocity.y); // 这同时也会锁住水平速度，bomb的冲击波就无效了
             
             if (Mathf.Abs(_rb.velocity.y) > 3f && GetState() != CharacterState.Fall) {
                 _curSpeed = moveSpeedWhileFalling;
@@ -182,32 +189,38 @@ namespace HadoopCore.Scripts {
             }
         }
         
-        // Input System 回调：绑定到 Actions 里的 Move
+        // ── InputSystem 回调：键盘 / 手柄 ──────────────────────────────
         public void OnMove(InputAction.CallbackContext context) {
-            _moveInput = context.ReadValue<Vector2>();
-            HandleMovementInput();
+            _keyboardInput = context.ReadValue<Vector2>();
+            HandleMovementInput(_keyboardInput);
         }
 
-        private void HandleMovementInput() {
+        // ── UI 按钮调用：只写 _uiInput，不影响 _keyboardInput ──────────
+        /// <summary>
+        /// 供 InGameUI 按钮驱动移动（触屏）。
+        /// 传入 Vector2.left / Vector2.right / Vector2.zero。
+        /// </summary>
+        public void SetUIMoveInput(Vector2 input) {
+            _uiInput = input;
+            HandleMovementInput(_moveInput); // 用合并值处理朝向
+        }
+
+        private void HandleMovementInput(Vector2 input) {
             if (GetState() == CharacterState.Dead || GetState() == CharacterState.UnderAttack) {
                 return;
             }
 
-            if (GetState() == CharacterState.Fall) {
-                _curSpeed = moveSpeedWhileFalling;
-            } else {
-                _curSpeed = moveSpeed;
-            }
-            
-            if (_moveInput.x > 0) {
+            // 只处理朝向翻转，速度由 FixedUpdate 状态机统一管理
+            if (input.x > 0) {
                 transformTemplate.localRotation = Quaternion.Euler(0, 120, 0);
-            } else if (_moveInput.x < 0) {
+            } else if (input.x < 0) {
                 transformTemplate.localRotation = Quaternion.Euler(0, -120, 0);
             }
         }
 
         private void StopMovement() {
-            _moveInput = Vector2.zero;
+            _keyboardInput = Vector2.zero;
+            _uiInput = Vector2.zero;
             _rb.velocity = Vector2.zero;
         }
     }

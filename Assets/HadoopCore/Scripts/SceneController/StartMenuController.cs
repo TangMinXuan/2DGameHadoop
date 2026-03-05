@@ -1,3 +1,4 @@
+using System;
 using DG.Tweening;
 using HadoopCore.Scripts.Manager;
 using UnityEngine;
@@ -26,6 +27,20 @@ namespace HadoopCore.Scripts.SceneController {
             if (btnAbout != null) {
                 btnAbout.onClick.AddListener(OnAboutClicked);
             }
+        }
+
+        private void Start() {
+            // 1. 帧率设置：尝试跑满 120Hz，普通设备会自动降级到 60Hz
+            QualitySettings.vSyncCount = 0;
+            Application.targetFrameRate = 120;
+            
+            // 2. 沉浸式设置：防止误触 Home 条 (仅 iOS 有效)
+            #if UNITY_IOS
+            UnityEngine.iOS.Device.deferSystemGesturesMode = UnityEngine.iOS.SystemGestureDeferMode.All;
+            #endif
+        
+            // 3. 永不息屏 (可选，防止玩家思考时手机自动黑屏)
+            Screen.sleepTimeout = SleepTimeout.NeverSleep;
         }
 
         private void OnStartGameClicked() {

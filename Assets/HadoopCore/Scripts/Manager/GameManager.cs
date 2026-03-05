@@ -12,13 +12,13 @@ namespace HadoopCore.Scripts.Manager {
     public class GameManager : MonoBehaviour {
         public static GameManager Instance { get; private set; }
 
-        private GameObject player;
+        private static int levelCnt = 35;
 
+        private GameObject player;
         private bool _isPaused;
         private float _cachedScale = 1f; // 缓存时间缩放值. 缺少这个变量会导致下落的物体停止在半空
         private InputAction _esc;
         private string _previousSceneName = "GameStartPage";
-        
         private GameSaveData _gameSaveData;
 
 
@@ -96,14 +96,14 @@ namespace HadoopCore.Scripts.Manager {
         
         /// <summary>
         /// 计算解锁某一层所需的最低星数。
-        /// 公式：t*50%*1 + t*30%*2 + t*20%*3，其中 t = 上一层最大关卡 id，结果向上取整。
+        /// 公式：t*50%*1 + t*40%*2 + t*10%*3，其中 t = 上一层最大关卡 id，结果向上取整。
         /// 第1层（levels 1-5）无需星星，返回 0。
         /// </summary>
         private static int CalcRequiredStarsForLayer(int layer) {
             if (layer <= 1) return 0;
             // 上一层最大关卡 id = (layer - 1) * 5
             int t = (layer - 1) * 5;
-            float required = t * 0.5f * 1 + t * 0.3f * 2 + t * 0.2f * 3;
+            float required = t * 0.5f * 1 + t * 0.4f * 2 + t * 0.1f * 3;
             return Mathf.CeilToInt(required);
         }
         
@@ -115,14 +115,14 @@ namespace HadoopCore.Scripts.Manager {
             };
 
             // 默认 settings
-            data.Settings.Add("musicVolume", 0.8f);
-            data.Settings.Add("sfxVolume", 0.8f);
+            data.Settings.Add("musicVolume", 0.4f);
+            data.Settings.Add("sfxVolume", 0.9f);
             data.Settings.Add("language", "en");
 
             // 初始化50个关卡，每5关为一层，共10层
             // 第1层（Level_1~5）直接解锁，其余层初始锁定
-            // 解锁下一层所需星数：t*50%*1 + t*30%*2 + t*20%*3，t = 上一层最大关卡 id
-            for (int i = 1; i <= 50; i++) {
+            // 解锁下一层所需星数：t*50%*1 + t*40%*2 + t*10%*3，t = 上一层最大关卡 id
+            for (int i = 1; i <= levelCnt; i++) {
                 string levelName = $"Level_{i}";
                 int layer = Mathf.CeilToInt(i / 5f); // 第几层（1-based）
                 bool unlocked = layer == 1;           // 只有第1层默认解锁

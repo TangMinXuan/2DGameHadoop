@@ -1,20 +1,18 @@
+using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 
-namespace HadoopCore.Scripts.UI
-{
-    public class GridPageSnap : MonoBehaviour, IEndDragHandler, IBeginDragHandler
-    {
-        [Header("设置")]
-        public ScrollRect scrollRect;
+namespace HadoopCore.Scripts.UI {
+    public class GridPageSnap : MonoBehaviour, IEndDragHandler, IBeginDragHandler {
+        [Header("设置")] public ScrollRect scrollRect;
         public GridLayoutGroup gridLayout;
         public int itemsPerPage = 5; // 每页显示几个
         public float snapSpeed = 10f; // 吸附速度
 
-        [Header("动态布局")]
-        [Tooltip("cell 之间的间距占 cell 宽度的比例，例如 0.5 表示间距 = cellSize * 0.5")]
+        [Header("动态布局")] [Tooltip("cell 之间的间距占 cell 宽度的比例，例如 0.5 表示间距 = cellSize * 0.5")]
         public float spacingRatio = 1.0f; // 默认间距等于cellSize（与原始300:300比例一致）
 
         [Tooltip("左右 padding 占 spacing 的比例，例如 0.5 表示 padding = spacing * 0.5")]
@@ -25,8 +23,8 @@ namespace HadoopCore.Scripts.UI
         private bool isSnapping = false;
         private int maxPage; // 最大页索引
 
-        void Start()
-        {
+        private IEnumerator Start() {
+            yield return null; // 等待下一帧，等待 @LevelSelectMenuController 的 Start() 先执行
             AdjustLayout();
         }
 
@@ -34,8 +32,7 @@ namespace HadoopCore.Scripts.UI
         /// 根据 viewport 实际宽度，动态计算 cellSize、spacing 和 padding，
         /// 确保每页恰好显示 itemsPerPage 个完整的 item。
         /// </summary>
-        private void AdjustLayout()
-        {
+        private void AdjustLayout() {
             // 强制在当前帧重建布局，确保 RectTransform 尺寸已经正确
             Canvas.ForceUpdateCanvases();
 
@@ -105,14 +102,12 @@ namespace HadoopCore.Scripts.UI
                       $"spacing={spacing:F1}, padding={padding}, pageWidth={pageWidth:F1}, maxPage={maxPage}");
         }
 
-        public void OnBeginDrag(PointerEventData eventData)
-        {
+        public void OnBeginDrag(PointerEventData eventData) {
             // 开始拖拽时，打断吸附，允许用户自由滑动
             isSnapping = false;
         }
 
-        public void OnEndDrag(PointerEventData eventData)
-        {
+        public void OnEndDrag(PointerEventData eventData) {
             scrollRect.velocity = Vector2.zero;
             float currentX = scrollRect.content.anchoredPosition.x;
 
@@ -123,12 +118,10 @@ namespace HadoopCore.Scripts.UI
             int currentPage = Mathf.RoundToInt(Mathf.Abs(currentX) / pageWidth);
 
             // 检测甩动方向 (eventData.delta.x)
-            if (eventData.delta.x < -10)
-            {
+            if (eventData.delta.x < -10) {
                 currentPage++;
             }
-            else if (eventData.delta.x > 10 && currentPage > 0)
-            {
+            else if (eventData.delta.x > 10 && currentPage > 0) {
                 currentPage--;
             }
 
@@ -139,10 +132,8 @@ namespace HadoopCore.Scripts.UI
             isSnapping = true;
         }
 
-        void Update()
-        {
-            if (isSnapping)
-            {
+        void Update() {
+            if (isSnapping) {
                 // 平滑移动到目标位置
                 float newX = Mathf.Lerp(scrollRect.content.anchoredPosition.x, targetX,
                     Time.deltaTime * snapSpeed);
@@ -151,8 +142,7 @@ namespace HadoopCore.Scripts.UI
                 scrollRect.content.anchoredPosition = newPos;
 
                 // 如果非常接近了，就直接对齐并停止计算，节省性能
-                if (Mathf.Abs(newX - targetX) < 1f)
-                {
+                if (Mathf.Abs(newX - targetX) < 1f) {
                     newPos.x = targetX;
                     scrollRect.content.anchoredPosition = newPos;
                     isSnapping = false;
