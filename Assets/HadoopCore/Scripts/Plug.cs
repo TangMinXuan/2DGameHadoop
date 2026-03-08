@@ -43,6 +43,13 @@ namespace HadoopCore.Scripts {
         [SerializeField] private Sprite[] phaseSprites;
         [SerializeField] private GameObject plugBreakVFXPrefab;
         [SerializeField] private GameObject exclamationMarkVFX;
+        [SerializeField] private GameObject hammerStrikeVFX;
+
+        [Header("Touch Zones")]
+        [SerializeField] private Transform shaftCollider;
+        [SerializeField] private Transform ringCollider;
+        [SerializeField] private Transform shaftTouchZone;
+        [SerializeField] private Transform ringTouchZone;
 
         private SpriteRenderer _spriteRenderer;
         private Rigidbody2D _rb;
@@ -50,6 +57,7 @@ namespace HadoopCore.Scripts {
         private int _phase = 0;
         private bool _isShaking = false;
         private Vector3 mouseClickPosition = Vector3.zero;
+        private HammerController _hammerController;
 
         private void Awake() {
             _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
@@ -58,6 +66,14 @@ namespace HadoopCore.Scripts {
 
         private void Start() {
             LoadSpriteForPhase();
+
+            // 尝试在场景中寻找已有的 HammerController
+            _hammerController = FindObjectOfType<HammerController>();
+            if (_hammerController == null && hammerStrikeVFX != null) {
+                // 没找到则在同级节点下创建一个
+                GameObject instance = Instantiate(hammerStrikeVFX, transform.parent);
+                _hammerController = instance.GetComponent<HammerController>();
+            }
         }
 
         public void OnPointerClick(PointerEventData eventData) {
@@ -67,7 +83,9 @@ namespace HadoopCore.Scripts {
 
             _clickCount++;
             mouseClickPosition = MouseClickPositionUtil.get(eventData);
-            if (_clickCount > 6) {
+            ActivateOnceHammerStrikeVFX(mouseClickPosition);
+            
+            if (_clickCount > 4) {
                 DestroyPlug();
                 return;
             }
@@ -78,7 +96,7 @@ namespace HadoopCore.Scripts {
             else if (_clickCount == 3) {
                 _phase = 2;
             }
-            else if (_clickCount == 6) {
+            else if (_clickCount == 4) {
                 _phase = 3;
                 ActivateOnceExclamationMarkVFX(mouseClickPosition + new Vector3(1f, 1f, 0));
             }
@@ -138,7 +156,7 @@ namespace HadoopCore.Scripts {
                 particleSystem.Play();
             }
 
-            Destroy(gameObject);
+            gameObject.SetActive(false);
         }
 
         private IEnumerator ShakeRoutine(float posAmp, float rotAmp, float duration, float frequencyHz,
@@ -224,6 +242,61 @@ namespace HadoopCore.Scripts {
             if (exclamationMarkVFX != null) {
                 exclamationMarkVFX.transform.position = position;
                 exclamationMarkVFX.SetActive(true);
+            }
+        }
+
+        private void ActivateOnceHammerStrikeVFX(Vector3 position) {
+            if (_hammerController != null) {
+                _hammerController.Strike(position);
+            }
+        }
+        
+        [ContextMenu("Setup Touch Zones")]
+        public void SetupTouchZones() {
+            if (shaftCollider == null || ringCollider == null ||
+                shaftTouchZone == null || ringTouchZone == null) {
+                Debug.LogWarning("[Plug] SetupTouchZones: 请先在 Inspector 中指定 ShaftCollider / RingCollider / ShaftTouchZone / RingTouchZone！");
+                return;
+            }
+
+            ApplyTouchZone(
+                source: shaftCollider,
+                target: shaftTouchZone,
+                scaleXMultiplier: 5f
+            );
+
+            ApplyTouchZone(
+                source: ringCollider,
+                target: ringTouchZone,
+                scaleXMultiplier: 2f
+            );
+
+            Debug.Log("[Plug] SetupTouchZones 完成。");
+        }
+
+        private static void ApplyTouchZone(Transform source, Transform target, float scaleXMultiplier) {
+            // 复制 position / rotation
+            target.position = source.position;
+            target.rotation = source.rotation;
+
+            // scale: x * 倍率，y / z 不变
+            Vector3 srcScale = source.localScale;
+            target.localScale = new Vector3(srcScale.x * scaleXMultiplier, srcScale.y, srcScale.z);
+
+            // 复制 BoxCollider2D 的 offset 和 size
+            // 若 source 的 BoxCollider2D 不存在或未激活，则回退到 CapsuleCollider2D
+            var srcBox = source.GetComponent<BoxCollider2D>();
+            var dstCol = target.GetComponent<BoxCollider2D>();
+            if (srcBox != null && srcBox.enabled) {
+                dstCol.offset = srcBox.offset;
+                dstCol.size   = srcBox.size;
+            } else {
+                // 回退：尝试 CapsuleCollider2D
+                var srcCapsule = source.GetComponent<CapsuleCollider2D>();
+                if (srcCapsule != null && srcCapsule.enabled) {
+                    dstCol.offset = srcCapsule.offset;
+                    dstCol.size   = srcCapsule.size;
+                }
             }
         }
 
