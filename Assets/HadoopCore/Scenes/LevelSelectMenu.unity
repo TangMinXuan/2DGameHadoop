@@ -1422,7 +1422,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Break The Plugs
+  m_text: Tap And Break The Plugs !
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: bfcd2671c891744ef96e343267ae5fca, type: 2}
   m_sharedMaterial: {fileID: 3290489748706849551, guid: bfcd2671c891744ef96e343267ae5fca, type: 2}

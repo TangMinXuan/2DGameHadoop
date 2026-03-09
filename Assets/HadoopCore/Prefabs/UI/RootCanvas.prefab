@@ -3559,6 +3559,7 @@ MonoBehaviour:
     obj: {fileID: 0}
   retryBtn: {fileID: 0}
   exitBtn: {fileID: 0}
+  wastedSFX: {fileID: 8300000, guid: 0e1e89402b51b455fa6300eaf03b91a4, type: 3}
   uiCamera: {fileID: 0}
 --- !u!1 &5001078446281276621
 GameObject:
@@ -4804,6 +4805,7 @@ MonoBehaviour:
   star_2: {fileID: 0}
   star_3: {fileID: 0}
   start: {fileID: -1846516162, guid: 4cf41f05f344b4edea183abbdc0674fa, type: 3}
+  passSFX: {fileID: 8300000, guid: 8c09ce583523440548c28cd89b33d94f, type: 3}
 --- !u!1 &6508800080589608720
 GameObject:
   m_ObjectHideFlags: 0

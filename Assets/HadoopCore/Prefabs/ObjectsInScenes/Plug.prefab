@@ -434,6 +434,12 @@ MonoBehaviour:
   ringCollider: {fileID: 3406160020718379748}
   shaftTouchZone: {fileID: 5442951936396909009}
   ringTouchZone: {fileID: 5426326500110735269}
+  strikeAudioClips:
+  - {fileID: 8300000, guid: 4eead3470f140417b97ff3b102c4f77f, type: 3}
+  - {fileID: 8300000, guid: db54158158f4a4fb294c45c62a1713f6, type: 3}
+  - {fileID: 8300000, guid: 1a135a1a2e6af4f3584c7797902925ad, type: 3}
+  - {fileID: 8300000, guid: 9cda6a78b48694cd8ad676a3de6a0039, type: 3}
+  - {fileID: 8300000, guid: b8ac0a9b5fc994dbbb4a071f50647c31, type: 3}
 --- !u!50 &8018854484457763782
 Rigidbody2D:
   serializedVersion: 4

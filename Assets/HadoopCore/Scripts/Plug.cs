@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using HadoopCore.Scripts.Manager;
 using HadoopCore.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -51,6 +53,9 @@ namespace HadoopCore.Scripts {
         [SerializeField] private Transform shaftTouchZone;
         [SerializeField] private Transform ringTouchZone;
 
+        [Header("Strike Audio")]
+        [SerializeField] private List<AudioClip> strikeAudioClips;
+
         private SpriteRenderer _spriteRenderer;
         private Rigidbody2D _rb;
         private int _clickCount = 0;
@@ -83,7 +88,7 @@ namespace HadoopCore.Scripts {
 
             _clickCount++;
             mouseClickPosition = MouseClickPositionUtil.get(eventData);
-            ActivateOnceHammerStrikeVFX(mouseClickPosition);
+            ActivateOnceStrikeFX(mouseClickPosition);
             
             if (_clickCount > 4) {
                 DestroyPlug();
@@ -245,9 +250,14 @@ namespace HadoopCore.Scripts {
             }
         }
 
-        private void ActivateOnceHammerStrikeVFX(Vector3 position) {
+        private void ActivateOnceStrikeFX(Vector3 position) {
             if (_hammerController != null) {
                 _hammerController.Strike(position);
+            }
+
+            if (strikeAudioClips != null && strikeAudioClips.Count > 0) {
+                AudioClip clip = strikeAudioClips[Random.Range(0, strikeAudioClips.Count)];
+                AudioManager.Instance.PlaySfx(clip);
             }
         }
         

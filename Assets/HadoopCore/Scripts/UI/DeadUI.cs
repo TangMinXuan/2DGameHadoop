@@ -41,6 +41,7 @@ namespace HadoopCore.Scripts.UI {
         [SerializeField] private DeathContentRefs deathContentRefs;
         [SerializeField] private GameObject retryBtn;
         [SerializeField] private GameObject exitBtn;
+        [SerializeField] private AudioClip wastedSFX;
 
         [SerializeField] private Camera uiCamera;
 
@@ -87,6 +88,12 @@ namespace HadoopCore.Scripts.UI {
             UIUtil.SetUIVisible(_canvasGroup, true);
             deathFXRefs.obj.GetComponent<Volume>().weight = 1;
             _vCamDeath.Priority = 2;
+            
+            // 0. 播放 Wasted 音效
+            if (wastedSFX != null) {
+                AudioManager.Instance.PauseBgm();
+                AudioManager.Instance.PlaySfx(wastedSFX);
+            }
 
             // 1. 时间缩放 - 渐进式慢动作
             _seq = DOTween.Sequence()

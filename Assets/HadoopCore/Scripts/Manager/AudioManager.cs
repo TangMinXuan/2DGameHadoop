@@ -48,8 +48,8 @@ namespace HadoopCore.Scripts.Manager {
         [SerializeField] private float fadeDuration = 0.5f;
 
         [Header("Default Volumes")]
-        [SerializeField] private float defaultBgmVolume = 0.8f;
-        [SerializeField] private float defaultSfxVolume = 0.8f;
+        [SerializeField] private float bgmVolume = 0.8f;
+        [SerializeField] private float sfxVolume = 0.8f;
 
         private Coroutine _fadeCoroutine;
 
@@ -75,11 +75,11 @@ namespace HadoopCore.Scripts.Manager {
 
             // Initialize volumes
             if (bgmSource != null) {
-                bgmSource.volume = defaultBgmVolume;
+                bgmSource.volume = bgmVolume;
                 bgmSource.loop = true;
             }
             if (sfxSource != null) {
-                sfxSource.volume = defaultSfxVolume;
+                sfxSource.volume = sfxVolume;
             }
         }
 
@@ -110,7 +110,7 @@ namespace HadoopCore.Scripts.Manager {
         /// </summary>
         /// <param name="clip">The AudioClip to play</param>
         /// <param name="volumeScale">Volume multiplier (0-1)</param>
-        private void PlaySfx(AudioClip clip) {
+        public void PlaySfx(AudioClip clip) {
             if (sfxSource == null) {
                 Debug.LogError("[AudioManager] sfxSource is not assigned");
                 return;
@@ -128,6 +128,11 @@ namespace HadoopCore.Scripts.Manager {
                 Debug.LogError("[AudioManager] bgmSource is not assigned");
                 return;
             }
+            // 如果当前处于暂停状态且播放的 clip 与目标 clip 相同，则继续播放
+            if (bgmSource.clip == clip && !bgmSource.isPlaying) {
+                bgmSource.UnPause();
+                return;
+            }
 
             // Skip if same clip is already playing
             if (bgmSource.clip == clip && bgmSource.isPlaying) {
@@ -142,7 +147,7 @@ namespace HadoopCore.Scripts.Manager {
             } else {
                 bgmSource.Stop();
                 bgmSource.clip = clip;
-                bgmSource.volume = defaultBgmVolume;
+                bgmSource.volume = bgmVolume;
                 if (clip != null) {
                     bgmSource.Play();
                 }
@@ -165,24 +170,29 @@ namespace HadoopCore.Scripts.Manager {
                 bgmSource.Stop();
             }
         }
+        
+        public void PauseBgm() {
+            if (bgmSource == null) return;
+            bgmSource.Pause();
+        }
 
         /// <summary>
         /// Get current BGM volume (0-1).
         /// </summary>
-        public float GetBgmVolume() => defaultBgmVolume;
+        public float GetBgmVolume() => bgmVolume;
 
         /// <summary>
         /// Get current SFX volume (0-1).
         /// </summary>
-        public float GetSfxVolume() => defaultSfxVolume;
+        public float GetSfxVolume() => sfxVolume;
 
         /// <summary>
         /// Set BGM volume (0-1).
         /// </summary>
         public void SetBgmVolume(float volume) {
-            defaultBgmVolume = Mathf.Clamp01(volume);
+            bgmVolume = Mathf.Clamp01(volume);
             if (bgmSource != null) {
-                bgmSource.volume = defaultBgmVolume;
+                bgmSource.volume = bgmVolume;
             }
         }
 
@@ -190,9 +200,9 @@ namespace HadoopCore.Scripts.Manager {
         /// Set SFX volume (0-1).
         /// </summary>
         public void SetSfxVolume(float volume) {
-            defaultSfxVolume = Mathf.Clamp01(volume);
+            sfxVolume = Mathf.Clamp01(volume);
             if (sfxSource != null) {
-                sfxSource.volume = defaultSfxVolume;
+                sfxSource.volume = sfxVolume;
             }
         }
 
@@ -251,13 +261,13 @@ namespace HadoopCore.Scripts.Manager {
                 elapsed = 0f;
                 while (elapsed < fadeDuration) {
                     elapsed += Time.unscaledDeltaTime;
-                    bgmSource.volume = Mathf.Lerp(0f, defaultBgmVolume, elapsed / fadeDuration);
+                    bgmSource.volume = Mathf.Lerp(0f, bgmVolume, elapsed / fadeDuration);
                     yield return null;
                 }
-                bgmSource.volume = defaultBgmVolume;
+                bgmSource.volume = bgmVolume;
             } else {
                 // Fade-out only: restore default volume for next play
-                bgmSource.volume = defaultBgmVolume;
+                bgmSource.volume = bgmVolume;
             }
 
             _fadeCoroutine = null;

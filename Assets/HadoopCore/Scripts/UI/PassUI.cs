@@ -22,6 +22,8 @@ namespace HadoopCore.Scripts.UI {
 
         [Header("Star Sprites")]
         [SerializeField] private Sprite start;
+        
+        [SerializeField] private AudioClip passSFX;
 
         private CinemachineVirtualCamera _vCamGameplay;
         private CanvasGroup _canvasGroup;
@@ -60,6 +62,11 @@ namespace HadoopCore.Scripts.UI {
             RefreshContent();
 
             UIUtil.SetUIVisible(_canvasGroup, true);
+            
+            if (passSFX != null) {
+                AudioManager.Instance.PauseBgm();
+                AudioManager.Instance.PlaySfx(passSFX);
+            }
             
             _seq?.Kill();
             _seq = DOTween.Sequence()
