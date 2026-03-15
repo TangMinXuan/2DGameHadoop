@@ -1,11 +1,14 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
 using HadoopCore.Scripts.Annotation;
 using HadoopCore.Scripts.Manager;
+using HadoopCore.Scripts.UI;
 using HadoopCore.Scripts.Utils;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HadoopCore.Scripts.SceneController {
@@ -13,7 +16,10 @@ namespace HadoopCore.Scripts.SceneController {
         
         [SerializeField] private GameObject levelGridContainer;
         [SerializeField] private GameObject starsValue;
+        [SerializeField] private Button backBtn;
+        [SerializeField] private Button cartBtn;
         [SerializeField, DontNeedAutoFind] private GameObject levelItemPrefab;
+        [SerializeField] private RemovedAdPurchaseUI removedAdPurchaseUI;
         
         // Sprites for level item background
         [SerializeField] private Sprite bgUnlockSprite;
@@ -34,6 +40,20 @@ namespace HadoopCore.Scripts.SceneController {
 
         private void Start() {
             GameSaveData saveData = GameManager.Instance.GetSaveData();
+            if (backBtn != null) {
+                backBtn.onClick.AddListener(() => AudioManager.Instance.PlayBtnSfx());
+                backBtn.onClick.AddListener(() => {
+                    DOTween.Sequence()
+                        .SetUpdate(true)
+                        .Append(backBtn.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
+                        .Append(backBtn.transform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
+                        .SetLink(gameObject)
+                        .OnComplete(() => GameManager.Instance.loadSceneSynchronously("GameStartPage"));
+                });
+            }
+            if (cartBtn != null) {
+                cartBtn.onClick.AddListener(OnCartBtnClicked);
+            }
             initLevelFixedItems(saveData);
             RefreshLevelContent(saveData);
         }
@@ -229,9 +249,7 @@ namespace HadoopCore.Scripts.SceneController {
         }
         
         private void PlayClickFeedbackAndEnterLevel(Transform levelItemTransform, Button button, string level) {
-            if (levelItemTransform == null)
-            {
-                OnLevelButtonClicked(level);
+            if (levelItemTransform == null) {
                 return;
             }
 
@@ -243,14 +261,24 @@ namespace HadoopCore.Scripts.SceneController {
             DOTween.Kill(tweenId);
 
             levelItemTransform.localScale = Vector3.one;
-
             Sequence seq = DOTween.Sequence()
                 .SetId(tweenId)
                 .Append(levelItemTransform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
                 .Append(levelItemTransform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
-                .OnComplete(() => OnLevelButtonClicked(level));
+                .SetLink(levelItemTransform.gameObject)
+                .OnComplete(() => TryPopupEnterLevelAd(level));
 
             seq.Play();
+        }
+        
+        private void OnCartBtnClicked() {
+            AudioManager.Instance.PlayBtnSfx();
+            _seq = DOTween.Sequence()
+                .SetId("CartBtnTween")
+                .Append(cartBtn.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
+                .Append(cartBtn.transform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
+                .OnComplete(() => removedAdPurchaseUI.PopupPanel(closeBtnDelay:0))
+                .SetLink(gameObject);
         }
 
         private Sequence PadlockAnim(GameObject levelItem) {
@@ -268,8 +296,36 @@ namespace HadoopCore.Scripts.SceneController {
                 .AppendInterval(0.1f)
                 .AppendCallback(() => LockIconImage.sprite = unlockSprite);
         }
-        
-        public void OnLevelButtonClicked(string level) {
+
+        private void TryPopupEnterLevelAd(string level) {
+            // 1) 判断是否已经购买去广告
+            if (IAPManager.Instance.IsRemoveAdsOwned) {
+                LoadTargetLevel(level); // 进入关卡
+                return;
+            }
+            
+            // 2) 如果没有购买，直接弹广告
+            // 理论上, 在IAPManager中, 已经把购买成功写进磁盘了, 每次点击都会去判断是否购买, 所以应该不需要reload当前场景
+            UnityAction reloadCurrentSceneAction = () => GameManager.Instance.ReloadCurrentSceneSynchronously(); 
+            bool popAdRez = AdManager.Instance.ShowRewardedVideoAd( () => {
+                if (AdManager.Instance.ConsumeRewardTicket()) {
+                    LoadTargetLevel(level);
+                } else {
+                    // 进入这里是因为玩家主动关闭了广告
+                    // 弹出内购panel, 说明广告很重要, 但是还是要进入关卡(不然不让过审)
+                    // panel中可以有个按钮是"我知道了"，玩家点了之后才真正进入关卡
+                    removedAdPurchaseUI.PopupPanel(closeBtnDelay:5);
+                    Debug.Log("玩家主动关闭了广告");
+                }
+            } );
+            // 3) 如果没有广告可看(比如玩家关闭了网络)，弹出内购panel, 说明广告很重要, 但还是要进入关卡(不然不让过审)
+            if (!popAdRez) {
+                Debug.Log("没有广告可看");
+                removedAdPurchaseUI.PopupPanel(closeBtnDelay:5);
+            }
+        }
+
+        private void LoadTargetLevel(string level) {
             GameManager.Instance.LoadScene(level);
         }
         

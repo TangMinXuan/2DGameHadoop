@@ -345,11 +345,6 @@ PlayerSettings:
       m_Kind: 0
       m_SubKind: iPad
     - m_Textures: []
-      m_Width: 1024
-      m_Height: 1024
-      m_Kind: 4
-      m_SubKind: App Store
-    - m_Textures: []
       m_Width: 60
       m_Height: 60
       m_Kind: 2
@@ -394,6 +389,11 @@ PlayerSettings:
       m_Height: 29
       m_Kind: 1
       m_SubKind: iPad
+    - m_Textures: []
+      m_Width: 1024
+      m_Height: 1024
+      m_Kind: 4
+      m_SubKind: App Store
   m_BuildTargetBatching: []
   m_BuildTargetShaderSettings: []
   m_BuildTargetGraphicsJobs:
@@ -724,7 +724,7 @@ PlayerSettings:
     WebGL: 
     Windows Store Apps: 
     XboxOne: 
-    iPhone: 
+    iPhone: LEVELPLAY_DEPENDENCIES_INSTALLED;IAP_FAKESTORE
     tvOS: 
   additionalCompilerArguments: {}
   platformArchitecture: {}
@@ -813,7 +813,8 @@ PlayerSettings:
   XboxOneOverrideIdentityName: 
   XboxOneOverrideIdentityPublisher: 
   vrEditorSettings: {}
-  cloudServicesEnabled: {}
+  cloudServicesEnabled:
+    Purchasing: 1
   luminIcon:
     m_Name: 
     m_ModelFolderPath: 
@@ -833,11 +834,11 @@ PlayerSettings:
   apiCompatibilityLevel: 6
   activeInputHandler: 2
   windowsGamepadBackendHint: 0
-  cloudProjectId: 
+  cloudProjectId: c311948e-553a-451b-9d4f-4abbccf36333
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: 
-  organizationId: 
+  projectName: Chest & Plug
+  organizationId: wechat_os_qy0y_l8al44wbqezwgpzsktoy
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}

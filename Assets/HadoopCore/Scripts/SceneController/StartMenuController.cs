@@ -1,6 +1,7 @@
 using System;
 using DG.Tweening;
 using HadoopCore.Scripts.Manager;
+using HadoopCore.Scripts.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -12,8 +13,17 @@ namespace HadoopCore.Scripts.SceneController {
 
         [SerializeField] private Button btnSettings;
         [SerializeField] private Button btnAbout;
+        [SerializeField] private Button logoBtn;
+        [SerializeField] private Button cartBtn;
+        [SerializeField] private RemovedAdPurchaseUI removedAdPurchaseUI;
 
         private Sequence _seq;
+
+        // Easter egg: 连续点击 logoBtn 5次触发
+        private int _logoClickCount = 0;
+        private float _lastLogoClickTime = 0f;
+        private const int EggClickThreshold = 5;
+        private const float EggTimeWindow = 1.5f;
 
         private void Awake() {
             if (btnStartGame != null) {
@@ -26,6 +36,14 @@ namespace HadoopCore.Scripts.SceneController {
 
             if (btnAbout != null) {
                 btnAbout.onClick.AddListener(OnAboutClicked);
+            }
+            
+            if (logoBtn != null) {
+                logoBtn.onClick.AddListener(OnLogoClicked);
+            }
+            
+            if (cartBtn != null) {
+                cartBtn.onClick.AddListener(OnCartBtnClicked);
             }
         }
 
@@ -73,6 +91,38 @@ namespace HadoopCore.Scripts.SceneController {
                 .SetLink(gameObject);
         }
 
+        private void OnLogoClicked() {
+            float now = Time.unscaledTime;
+            if (now - _lastLogoClickTime > EggTimeWindow) {
+                _logoClickCount = 1;
+            } else {
+                _logoClickCount++;
+            }
+            _lastLogoClickTime = now;
+
+            // 每次点击给轻微弹跳反馈，让玩家感知"正在积攒"
+            logoBtn.transform.DOPunchScale(Vector3.one * 0.15f, 0.2f, 5, 0.5f).SetLink(gameObject);
+
+            if (_logoClickCount >= EggClickThreshold) {
+                _logoClickCount = 0;
+                TriggerEasterEgg();
+            }
+        }
+
+        private void TriggerEasterEgg() {
+            Debug.Log("[EasterEgg] 彩蛋触发！连续点击Logo 5次，你发现了隐藏彩蛋！");
+        }
+        
+        private void OnCartBtnClicked() {
+            AudioManager.Instance.PlayBtnSfx();
+            _seq = DOTween.Sequence()
+                .SetId("CartBtnTween")
+                .Append(cartBtn.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
+                .Append(cartBtn.transform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
+                .OnComplete(() => removedAdPurchaseUI.PopupPanel(closeBtnDelay:0))
+                .SetLink(gameObject);
+        }
+        
         private void OnDestroy() {
             _seq?.Kill();
             _seq = null;
@@ -88,6 +138,10 @@ namespace HadoopCore.Scripts.SceneController {
 
             if (btnAbout != null) {
                 btnAbout.onClick.RemoveListener(OnAboutClicked);
+            }
+
+            if (logoBtn != null) {
+                logoBtn.onClick.RemoveListener(OnLogoClicked);
             }
         }
     }

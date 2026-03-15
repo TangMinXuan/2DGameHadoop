@@ -48,10 +48,6 @@ namespace HadoopCore.Scripts.Manager {
         }
 
         private void Start() {
-            // TODO for test
-            // DOVirtual.DelayedCall(15f, () => {
-            //     LevelEventCenter.TriggerGameSuccess();
-            // }).SetUpdate(true);
         }
 
         // ===== Public API =====

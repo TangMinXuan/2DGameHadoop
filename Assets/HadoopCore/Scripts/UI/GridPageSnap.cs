@@ -1,5 +1,6 @@
-using System;
 using System.Collections;
+using DG.Tweening;
+using HadoopCore.Scripts.Manager;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -18,14 +19,82 @@ namespace HadoopCore.Scripts.UI {
         [Tooltip("左右 padding 占 spacing 的比例，例如 0.5 表示 padding = spacing * 0.5")]
         public float paddingRatio = 0.5f; // 左右留半个 spacing 的边距
 
+        [Header("引导动画")]
+        [Tooltip("向左偷看的距离（像素）")]
+        public float peekDistance = 80f;
+        [Tooltip("滑出动画时长")]
+        public float peekOutDuration = 0.4f;
+        [Tooltip("停留时间")]
+        public float peekHoldDuration = 0.3f;
+        [Tooltip("弹回动画时长")]
+        public float peekBackDuration = 0.3f;
+
         private float pageWidth;
         private float targetX;
         private bool isSnapping = false;
         private int maxPage; // 最大页索引
 
+        private Sequence peekSequence;
+
         private IEnumerator Start() {
             yield return null; // 等待下一帧，等待 @LevelSelectMenuController 的 Start() 先执行
             AdjustLayout();
+            yield return new WaitForSeconds(0.1f);
+            GameSaveData saveData = GameManager.Instance.GetSaveData();
+            ScrollToCurrentLevelPage(saveData);
+        }
+
+        /// <summary>
+        /// 读取存档，找到玩家当前正在打的关卡（已解锁但未通关的第一关），
+        /// 快速跳转到对应页。若在第一页（新玩家），则改为播放 PlayPeekHint() 引导动画。
+        /// </summary>
+        private void ScrollToCurrentLevelPage(GameSaveData saveData) {
+            // 找到第一个"已解锁 且 未通关"的关卡，即玩家当前正在打的关卡
+            int currentLevelId = -1;
+            foreach (var kv in saveData.LevelDic) {
+                LevelProgress lp = kv.Value;
+                if (lp.Unlocked && !lp.IsPass) {
+                    if (currentLevelId < 0 || lp.LevelId < currentLevelId) {
+                        currentLevelId = lp.LevelId;
+                    }
+                }
+            }
+
+            // 若所有关卡都已通关，则跳到最后一页
+            if (currentLevelId < 0) {
+                currentLevelId = saveData.LevelDic.Count;
+            }
+
+            // 计算关卡所在页（0-based）
+            int targetPage = (currentLevelId - 1) / itemsPerPage;
+            targetPage = Mathf.Clamp(targetPage, 0, maxPage);
+
+            if (targetPage == 0) {
+                // 新玩家：在第一页，播放 peek 引导动画
+                PlayPeekHint();
+            } else {
+                // 老玩家：快速翻页动画，逐页滚动到目标页
+                float destX = -targetPage * pageWidth;
+                targetX = destX;
+                isSnapping = false;
+
+                // 每翻一页间隔 0.12s，营造逐页滚动感；总时长不超过 0.6s
+                float perPageDuration = Mathf.Min(0.12f, 0.6f / targetPage);
+
+                Sequence flipSeq = DOTween.Sequence();
+                for (int p = 1; p <= targetPage; p++) {
+                    float pageX = -p * pageWidth;
+                    flipSeq.Append(
+                        scrollRect.content.DOAnchorPosX(pageX, perPageDuration).SetEase(Ease.OutQuad)
+                    );
+                }
+                flipSeq.OnComplete(() => {
+                    // 最终精确对齐，防止浮点误差
+                    Vector2 pos = scrollRect.content.anchoredPosition;
+                    pos.x = destX;
+                    scrollRect.content.anchoredPosition = pos;
+                });
+            }
         }
 
         /// <summary>
@@ -103,8 +172,9 @@ namespace HadoopCore.Scripts.UI {
         }
 
         public void OnBeginDrag(PointerEventData eventData) {
-            // 开始拖拽时，打断吸附，允许用户自由滑动
+            // 开始拖拽时，打断吸附和引导动画，允许用户自由滑动
             isSnapping = false;
+            peekSequence?.Kill(true);
         }
 
         public void OnEndDrag(PointerEventData eventData) {
@@ -118,10 +188,10 @@ namespace HadoopCore.Scripts.UI {
             int currentPage = Mathf.RoundToInt(Mathf.Abs(currentX) / pageWidth);
 
             // 检测甩动方向 (eventData.delta.x)
-            if (eventData.delta.x < -10) {
+            if (eventData.delta.x < -5) {
                 currentPage++;
             }
-            else if (eventData.delta.x > 10 && currentPage > 0) {
+            else if (eventData.delta.x > 5 && currentPage > 0) {
                 currentPage--;
             }
 
@@ -148,6 +218,40 @@ namespace HadoopCore.Scripts.UI {
                     isSnapping = false;
                 }
             }
+        }
+
+        /// <summary>
+        /// 播放向右 peek 引导动画，暗示玩家右边还有更多内容。
+        /// 可在外部调用，例如在 Start() 延迟后调用。
+        /// </summary>
+        public void PlayPeekHint() {
+            if (maxPage <= 0) return; // 只有一页时不需要引导
+
+            peekSequence?.Kill(true);
+            isSnapping = false;
+
+            float startX = scrollRect.content.anchoredPosition.x;
+            float peekX = startX - peekDistance;
+
+            peekSequence = DOTween.Sequence();
+            // 1. 滑出（先快后慢）
+            peekSequence.Append(
+                scrollRect.content.DOAnchorPosX(peekX, peekOutDuration).SetEase(Ease.OutQuad)
+            );
+            // 2. 停留
+            peekSequence.AppendInterval(peekHoldDuration);
+            // 3. 弹回（带弹性果冻感）
+            peekSequence.Append(
+                scrollRect.content.DOAnchorPosX(startX, peekBackDuration).SetEase(Ease.OutBack)
+            );
+            peekSequence.OnComplete(() => {
+                targetX = startX;
+                isSnapping = false;
+            });
+        }
+
+        private void OnDestroy() {
+            peekSequence?.Kill();
         }
     }
 }
