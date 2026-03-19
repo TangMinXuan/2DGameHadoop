@@ -1,8 +1,6 @@
 namespace HadoopCore.Scripts.Shared {
     public static class AdConfig {
         public static string AppKey => GetAppKey();
-        public static string BannerAdUnitId => GetBannerAdUnitId();
-        public static string InterstitalAdUnitId => GetInterstitialAdUnitId();
         public static string RewardedVideoAdUnitId => GetRewardedVideoAdUnitId();
 
         static string GetAppKey() {

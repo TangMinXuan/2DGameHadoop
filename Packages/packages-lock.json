@@ -8,7 +8,7 @@
         "com.unity.inputsystem": "1.1.1",
         "com.unity.cloud.gltfast": "6.12.1"
       },
-      "hash": "ee55171e6a57a1a55381bf0adbcba13837c4d66f"
+      "hash": "7d4ecbd3bf148efbb6c9c07b28fdedd5c44855e8"
     },
     "com.unity.2d.animation": {
       "version": "9.2.0",
@@ -270,22 +270,13 @@
       "url": "https://packages.unity.cn"
     },
     "com.unity.services.core": {
-      "version": "1.15.1",
+      "version": "1.14.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {
         "com.unity.modules.androidjni": "1.0.0",
         "com.unity.nuget.newtonsoft-json": "3.2.1",
         "com.unity.modules.unitywebrequest": "1.0.0"
-      },
-      "url": "https://packages.unity.cn"
-    },
-    "com.unity.services.levelplay": {
-      "version": "9.3.0",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.services.core": "1.15.1"
       },
       "url": "https://packages.unity.cn"
     },

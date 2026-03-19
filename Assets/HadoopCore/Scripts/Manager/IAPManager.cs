@@ -1,36 +1,18 @@
-// ============================================================================
-// IAPManager.cs  —  Single entry point for all Unity IAP logic.
-//
-// Platform : iOS only (v1, Google Play not in scope)
-//
-// ── 平台分支说明 ────────────────────────────────────────────────────────────
-//   • UNITY_IOS 已定义 (真机/上架)  → 连接 App Store, 支持 RestorePurchases.
-//   • UNITY_IOS 未定义 (Editor/其他) → 自动使用 Fake Store 弹窗, 无需任何额外
-//     Scripting Define Symbol, receipt 不可靠, 权限以 PlayerPrefs 为准.
-//
-// ── 使用示例 (UI / 业务代码) ────────────────────────────────────────────────
-//   IAPManager.Instance.OnInitializedSuccessfully    += () => RefreshPriceUI();
-//   IAPManager.Instance.OnPurchaseSucceeded          += pid => Debug.Log($"Purchased {pid}");
-//   IAPManager.Instance.OnRemoveAdsEntitlementChanged += owned => adBanner.SetActive(!owned);
-//
-//   // 初始化 (通常在启动场景 Awake/Start 中调用一次)
-//   IAPManager.Instance.Initialize();
-//
-//   // 购买去广告 (绑定 Button.onClick)
-//   buyBtn.onClick.AddListener(() => IAPManager.Instance.BuyRemoveAds());
-//
-//   // 查询是否已去广告
-//   if (IAPManager.Instance.IsRemoveAdsOwned) { /* 隐藏广告 */ }
-// ============================================================================
-
 using System;
 using Unity.Services.Core;
-using Unity.Services.LevelPlay;
 using UnityEngine;
 using UnityEngine.Purchasing;
 using UnityEngine.Purchasing.Extension;
 
 namespace HadoopCore.Scripts.Manager {
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // ★ 开发 / 打包 切换开关
+    //   开发阶段 → PlatformTarget.Editor
+    //   打包前   → PlatformTarget.IOS
+    // ══════════════════════════════════════════════════════════════════════════
+    internal enum PlatformTarget { Editor, IOS }
+    
     /// <summary>
     /// Production-ready IAP manager – Singleton / DontDestroyOnLoad.
     /// Implements <see cref="IDetailedStoreListener"/> for full purchase lifecycle handling.
@@ -39,6 +21,8 @@ namespace HadoopCore.Scripts.Manager {
         // ────────────────────── Singleton ──────────────────────
         public static IAPManager Instance { get; private set; }
 
+        // ────────────────────── ★ 平台开关 (Inspector 中切换) ──────────────────────
+        [SerializeField] private PlatformTarget currentBuildTarget = PlatformTarget.Editor;
         // ────────────────────── Product IDs ──────────────────────
         public static class ProductIds {
             public const string RemoveAds = "remove_ads";
@@ -105,15 +89,9 @@ namespace HadoopCore.Scripts.Manager {
             // TODO 临时测试, 删除持久化的购买凭证
             PlayerPrefs.DeleteKey(PrefKeys.AdsRemoved);
             PlayerPrefs.Save();
-
             
-            await UnityServices.InitializeAsync(); // 必须先初始化 Unity Services 才能使用 IAP
+            await UnityServices.InitializeAsync();
             Initialize();
-            #if UNITY_IOS
-            Debug.Log($"{Tag} Platform: iOS – connecting to App Store.");
-            #else
-            Debug.Log($"{Tag} Platform: non-iOS – Fake Store mode active.");
-            #endif
         }
 
         private void OnDestroy() {
@@ -133,12 +111,23 @@ namespace HadoopCore.Scripts.Manager {
 
             var module = StandardPurchasingModule.Instance();
 
-            #if !UNITY_IOS
-            // 非 iOS 平台 (Editor / 其他) 自动启用 Fake Store
-            module.useFakeStoreUIMode = FakeStoreUIMode.StandardUser;
-            module.useFakeStoreAlways = true;
-            Debug.Log($"{Tag} [FakeStore] Non-iOS platform detected – Fake Store enabled.");
-            #endif
+            if (currentBuildTarget == PlatformTarget.IOS) {
+                // ── 真机 iOS，连接 App Store ──────────────────────────────
+                Debug.Log($"{Tag} [iOS] Connecting to App Store.");
+            } else if (currentBuildTarget == PlatformTarget.Editor) {
+                // ── Fake Store 模式 (Editor 开发阶段) ────────────────────
+                // Default: 全自动成功，不弹任何窗口
+                // StandardUser: 购买时弹窗，初始化自动成功
+                // DeveloperUser: 初始化+购买都弹窗
+                module.useFakeStoreUIMode = FakeStoreUIMode.StandardUser;
+                module.useFakeStoreAlways = true;
+                Debug.Log($"{Tag} [FakeStore] Fake Store enabled.");
+            } else {
+                // ── 不支持的平台，拒绝初始化 ─────────────────────────────
+                Debug.LogError($"{Tag} Unsupported platform – IAP initialization aborted.");
+                _initializeCalled = false;
+                return;
+            }
 
             var builder = ConfigurationBuilder.Instance(module);
             builder.AddProduct(ProductIds.RemoveAds, ProductType.NonConsumable);
@@ -169,29 +158,29 @@ namespace HadoopCore.Scripts.Manager {
         /// 恢复购买 (仅 iOS 真实商店). Fake Store 模式下仅打印日志.
         /// </summary>
         public void RestorePurchases() {
-            #if UNITY_IOS
-            if (!IsInitialized) {
-                Debug.LogWarning($"{Tag} Cannot restore – IAP not initialized.");
-                return;
+            if (currentBuildTarget == PlatformTarget.IOS) {
+                if (!IsInitialized) {
+                    Debug.LogWarning($"{Tag} Cannot restore – IAP not initialized.");
+                    return;
+                }
+                Debug.Log($"{Tag} Restoring purchases on iOS …");
+                var apple = _extensionProvider.GetExtension<IAppleExtensions>();
+                apple.RestoreTransactions((success, error) => {
+                    if (success)
+                        Debug.Log($"{Tag} Restore completed successfully.");
+                    else
+                        Debug.LogWarning($"{Tag} Restore failed: {error}");
+                });
             }
-
-            Debug.Log($"{Tag} Restoring purchases on iOS …");
-            var apple = _extensionProvider.GetExtension<IAppleExtensions>();
-            apple.RestoreTransactions((success, error) => {
-                if (success) {
-                    Debug.Log($"{Tag} Restore completed successfully.");
-                    // 恢复的每笔交易会再次触发 ProcessPurchase
-                }
-                else {
-                    Debug.LogWarning($"{Tag} Restore failed: {error}");
-                }
-            });
-            #else
-            // Fake Store 模式: 权限由 PlayerPrefs 持久化, 无需走商店恢复流程.
-            Debug.Log($"{Tag} [FakeStore] RestorePurchases skipped – checking local PlayerPrefs.");
-            if (PlayerPrefs.GetInt(PrefKeys.AdsRemoved, 0) == 1)
-                OnRemoveAdsEntitlementChanged?.Invoke(true);
-            #endif
+            else if (currentBuildTarget == PlatformTarget.Editor) {
+                // Fake Store 模式: 权限由 PlayerPrefs 持久化, 无需走商店恢复流程.
+                Debug.Log($"{Tag} [FakeStore] RestorePurchases skipped – checking local PlayerPrefs.");
+                if (PlayerPrefs.GetInt(PrefKeys.AdsRemoved, 0) == 1)
+                    OnRemoveAdsEntitlementChanged?.Invoke(true);
+            }
+            else {
+                Debug.LogWarning($"{Tag} RestorePurchases not supported on this platform.");
+            }
         }
 
         /// <summary>
@@ -200,13 +189,14 @@ namespace HadoopCore.Scripts.Manager {
         /// 返回 null 表示产品不存在或 IAP 未初始化.
         /// </summary>
         public string GetLocalizedPrice(string productId) {
-            #if UNITY_IOS
-            if (!IsInitialized) return null;
-            var product = _storeController.products.WithID(productId);
-            return product?.metadata?.localizedPriceString;
-            #else
-            return "$1.99";
-            #endif
+            if (currentBuildTarget == PlatformTarget.IOS) {
+                if (!IsInitialized) return null;
+                var product = _storeController.products.WithID(productId);
+                return product?.metadata?.localizedPriceString;
+            }
+            if (currentBuildTarget == PlatformTarget.Editor)
+                return "$1.99";
+            return null;
         }
 
         // ────────────────────── IStoreListener Implementation ──────────────────────
@@ -261,7 +251,7 @@ namespace HadoopCore.Scripts.Manager {
             if (failureDescription.reason == PurchaseFailureReason.UserCancelled)
                 Debug.Log($"{Tag} Purchase cancelled by user: {productId}");
             else
-                Debug.LogError($"{Tag} Purchase failed: {productId}, reason={failureDescription.reason}, msg={failureDescription.message}");
+                Debug.Log($"{Tag} Purchase failed: {productId}, reason={failureDescription.reason}, msg={failureDescription.message}");
         }
 
         /// <summary>购买失败回调 (IStoreListener 基础接口, 不会被调用因为实现了 IDetailedStoreListener).</summary>
@@ -308,47 +298,3 @@ namespace HadoopCore.Scripts.Manager {
         #endif
     }
 }
-
-// ============================================================================
-// ── 最小使用示例 (例如挂到按钮所在 Canvas 上的脚本) ──────────────────────────
-// ============================================================================
-//
-// using UnityEngine;
-// using UnityEngine.UI;
-// using HadoopCore.Scripts.Manager;
-//
-// public class IAPUIExample : MonoBehaviour {
-//     [SerializeField] private Button buyRemoveAdsBtn;
-//     [SerializeField] private Button restoreBtn;
-//     [SerializeField] private GameObject adBanner;
-//     [SerializeField] private Text priceLabel;
-//
-//     void Start() {
-//         var iap = IAPManager.Instance;
-//
-//         // 1) 订阅事件
-//         iap.OnInitializedSuccessfully += () => {
-//             Debug.Log("IAP Ready!");
-//             string price = iap.GetLocalizedPrice("remove_ads");
-//             if (price != null) priceLabel.text = price;
-//         };
-//
-//         iap.OnPurchaseSucceeded += pid => Debug.Log($"Purchased: {pid}");
-//
-//         iap.OnRemoveAdsEntitlementChanged += owned => {
-//             adBanner.SetActive(!owned);
-//             buyRemoveAdsBtn.gameObject.SetActive(!owned);
-//         };
-//
-//         // 2) 初始化 (仅需调用一次, 内部防重入)
-//         iap.Initialize();
-//
-//         // 3) 按钮绑定
-//         buyRemoveAdsBtn.onClick.AddListener(() => iap.BuyRemoveAds());
-//         restoreBtn.onClick.AddListener(() => iap.RestorePurchases());
-//
-//         // 4) 立即刷新 UI (应对已购买的情况)
-//         adBanner.SetActive(!iap.IsRemoveAdsOwned);
-//         buyRemoveAdsBtn.gameObject.SetActive(!iap.IsRemoveAdsOwned);
-//     }
-// }

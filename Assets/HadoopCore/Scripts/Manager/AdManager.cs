@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using HadoopCore.Scripts.Shared;
 using Unity.Services.LevelPlay;
 using UnityEngine;
 
@@ -64,11 +65,10 @@ namespace HadoopCore.Scripts.Manager {
         void SdkInitializationCompletedEvent(LevelPlayConfiguration config) {
             // Register to ImpressionDataReadyEvent
             LevelPlay.OnImpressionDataReady += ImpressionDataReadyEvent;
-            rewardedVideoAd = new LevelPlayRewardedAd(AdConfig.RewardedVideoAdUnitId);
+            rewardedVideoAd = new LevelPlayRewardedAd(Shared.AdConfig.RewardedVideoAdUnitId);
             rewardedVideoAd.OnAdLoaded += RewardedVideoOnLoadedEvent;
             rewardedVideoAd.OnAdLoadFailed += RewardedVideoOnAdLoadFailedEvent;
             rewardedVideoAd.OnAdDisplayed += RewardedVideoOnAdDisplayedEvent;
-            rewardedVideoAd.OnAdDisplayFailed += RewardedVideoOnAdDisplayedFailedEvent;
             rewardedVideoAd.OnAdRewarded += RewardedVideoOnAdRewardedEvent;
             rewardedVideoAd.OnAdClosed += RewardedVideoOnAdClosedEvent;
             rewardedVideoAd.OnAdInfoChanged += RewardedVideoOnAdInfoChangedEvent;
@@ -146,7 +146,6 @@ namespace HadoopCore.Scripts.Manager {
                 rewardedVideoAd.OnAdLoaded -= RewardedVideoOnLoadedEvent;
                 rewardedVideoAd.OnAdLoadFailed -= RewardedVideoOnAdLoadFailedEvent;
                 rewardedVideoAd.OnAdDisplayed -= RewardedVideoOnAdDisplayedEvent;
-                rewardedVideoAd.OnAdDisplayFailed -= RewardedVideoOnAdDisplayedFailedEvent;
                 rewardedVideoAd.OnAdRewarded -= RewardedVideoOnAdRewardedEvent;
                 rewardedVideoAd.OnAdClosed -= RewardedVideoOnAdClosedEvent;
                 rewardedVideoAd.OnAdInfoChanged -= RewardedVideoOnAdInfoChangedEvent;
