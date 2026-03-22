@@ -24,6 +24,9 @@ namespace HadoopCore.Scripts.UI {
         [SerializeField] private Sprite start;
         
         [SerializeField] private AudioClip passSFX;
+        
+        [SerializeField] private RemovedAdPurchaseUI removedAdPurchaseUI;
+        [SerializeField] private ToastUI toastUI;
 
         private CinemachineVirtualCamera _vCamGameplay;
         private CanvasGroup _canvasGroup;
@@ -72,15 +75,14 @@ namespace HadoopCore.Scripts.UI {
             _seq = DOTween.Sequence()
                 .SetId("PassPresentation")
                 .SetUpdate(true)
+                .SetLink(gameObject)
                 .Join(TweenZoomIn(5f))
                 .Insert(2f, MenuDOTweenAnimation.GetTweens()[0])
                 .Append(TweenNumCountUpFloat(timeValue.GetComponent<TMP_Text>(), _timeVal))
                 .Append(TweenNumCountUpFloat(bestTimeValue.GetComponent<TMP_Text>(), _bestTimeVal))
                 .AppendInterval(0.5f)
                 .Append(TweenStarsEnter())
-                .AppendInterval(2.5f) // 跳关之前先停几秒
-                // .Append(TransitionUI.Instance.GenerateTransition(menu, false))
-                .Append( GameManager.Instance.GenerateTransition(false) )
+                .AppendInterval(2f) // 跳关之前先停几秒
                 .OnComplete(() => JumpToNextLevelOrBackToMenu());
         }
 
@@ -160,10 +162,51 @@ namespace HadoopCore.Scripts.UI {
         private void JumpToNextLevelOrBackToMenu() {
             bool isUnlock = _saveData.LevelDic[GameManager.Instance.GetNextLevelName()].Unlocked;
             if (isUnlock) {
-                GameManager.Instance.LoadScene(GameManager.Instance.GetNextLevelName());
+                TryPopupEnterLevelAd();
             } else {
-                GameManager.Instance.loadSceneSynchronously("LevelSelectMenu");
+                JumpWithTransition(() => GameManager.Instance.loadSceneSynchronously("LevelSelectMenu"));
             }
+        }
+        
+        private void TryPopupEnterLevelAd() {
+            // 0) 如果当前关卡比较低, 说明是新用户, 不展示广告
+            if (GameManager.Instance.getCurrentLevelNumber() <= 3) {
+                JumpWithTransition(() => GameManager.Instance.LoadScene(GameManager.Instance.GetNextLevelName()));
+                return;
+            }
+            
+            // 1) 判断是否已经购买去广告
+            if (IAPManager.Instance.IsRemoveAdsOwned) {
+                JumpWithTransition(() => GameManager.Instance.LoadScene(GameManager.Instance.GetNextLevelName()));
+                return;
+            }
+            
+            // 2) 如果没有购买，直接弹广告
+            bool popAdRez = AdManager.Instance.ShowInterstitialAd( () => {
+                JumpWithTransition(() => GameManager.Instance.LoadScene(GameManager.Instance.GetNextLevelName()));
+            });
+            
+            // 3) 如果没有广告可看(比如玩家关闭了网络 或者 没有广告填充)，弹出内购panel, 说明广告很重要, 但还是要进入关卡(不然不让过审)
+            if (!popAdRez) {
+                Debug.Log("没有广告可看");
+                if (IAPManager.Instance.IsInitialized && toastUI! != null && removedAdPurchaseUI != null) {
+                    toastUI.ShowToastMsg("No ad available at the moment, please try again later", 2);
+                    removedAdPurchaseUI.PopupPanel(onCloseBtnClicked: () => 
+                            JumpWithTransition(() => 
+                                GameManager.Instance.LoadScene(GameManager.Instance.GetNextLevelName())), 
+                        closeBtnDelay:5);
+                } else {
+                    JumpWithTransition(() => GameManager.Instance.LoadScene(GameManager.Instance.GetNextLevelName()));
+                }
+            }
+        }
+
+        private void JumpWithTransition(TweenCallback onComplete) {
+            _seq?.Kill();
+            _seq = DOTween.Sequence()
+                .SetLink(gameObject)
+                .Append(GameManager.Instance.GenerateTransition(false))
+                .OnComplete(onComplete);
         }
 
         private Sequence TweenZoomIn(float orthographicSize) {

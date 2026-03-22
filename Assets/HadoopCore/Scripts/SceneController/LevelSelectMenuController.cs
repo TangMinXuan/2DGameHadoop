@@ -17,9 +17,11 @@ namespace HadoopCore.Scripts.SceneController {
         [SerializeField] private GameObject levelGridContainer;
         [SerializeField] private GameObject starsValue;
         [SerializeField] private Button backBtn;
-        [SerializeField] private Button cartBtn;
+        [SerializeField] private Button shoppingCartBtn;
+        [SerializeField] private Button adRemovedOwnedIcon;
         [SerializeField, DontNeedAutoFind] private GameObject levelItemPrefab;
         [SerializeField] private RemovedAdPurchaseUI removedAdPurchaseUI;
+        [SerializeField] private ToastUI toastUI;
         
         // Sprites for level item background
         [SerializeField] private Sprite bgUnlockSprite;
@@ -51,11 +53,25 @@ namespace HadoopCore.Scripts.SceneController {
                         .OnComplete(() => GameManager.Instance.loadSceneSynchronously("GameStartPage"));
                 });
             }
-            if (cartBtn != null) {
-                cartBtn.onClick.AddListener(OnCartBtnClicked);
+            if (shoppingCartBtn != null) {
+                shoppingCartBtn.onClick.AddListener(OnCartBtnClicked);
+            }            
+            if (adRemovedOwnedIcon != null) {
+                adRemovedOwnedIcon.onClick.AddListener(OnAdRemovedOwnedIconClicked);
             }
             initLevelFixedItems(saveData);
             RefreshLevelContent(saveData);
+            
+            // 如果IAP初始化成功, 根据玩家是否已购买去显示对应UI
+            if (IAPManager.Instance.IsRemoveAdsOwned) {
+                shoppingCartBtn.gameObject.SetActive(false);
+                adRemovedOwnedIcon.gameObject.SetActive(true);
+            } else {
+                shoppingCartBtn.gameObject.SetActive(true);
+                adRemovedOwnedIcon.gameObject.SetActive(false);
+            }
+            
+            AdManager.Instance.ShowBanner();
         }
 
         private void initLevelFixedItems(GameSaveData saveData) {
@@ -275,10 +291,14 @@ namespace HadoopCore.Scripts.SceneController {
             AudioManager.Instance.PlayBtnSfx();
             _seq = DOTween.Sequence()
                 .SetId("CartBtnTween")
-                .Append(cartBtn.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
-                .Append(cartBtn.transform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
+                .Append(shoppingCartBtn.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
+                .Append(shoppingCartBtn.transform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
                 .OnComplete(() => removedAdPurchaseUI.PopupPanel(closeBtnDelay:0))
                 .SetLink(gameObject);
+        }
+        
+        private void OnAdRemovedOwnedIconClicked() {
+            toastUI.ShowToastMsg("Remove Ads is already owned");
         }
 
         private Sequence PadlockAnim(GameObject levelItem) {
@@ -305,23 +325,18 @@ namespace HadoopCore.Scripts.SceneController {
             }
             
             // 2) 如果没有购买，直接弹广告
-            // 理论上, 在IAPManager中, 已经把购买成功写进磁盘了, 每次点击都会去判断是否购买, 所以应该不需要reload当前场景
-            UnityAction reloadCurrentSceneAction = () => GameManager.Instance.ReloadCurrentSceneSynchronously(); 
-            bool popAdRez = AdManager.Instance.ShowRewardedVideoAd( () => {
-                if (AdManager.Instance.ConsumeRewardTicket()) {
-                    LoadTargetLevel(level);
-                } else {
-                    // 进入这里是因为玩家主动关闭了广告
-                    // 弹出内购panel, 说明广告很重要, 但是还是要进入关卡(不然不让过审)
-                    // panel中可以有个按钮是"我知道了"，玩家点了之后才真正进入关卡
-                    removedAdPurchaseUI.PopupPanel(closeBtnDelay:5);
-                    Debug.Log("玩家主动关闭了广告");
-                }
-            } );
+            bool popAdRez = AdManager.Instance.ShowInterstitialAd(() => {
+                LoadTargetLevel(level);
+            });
             // 3) 如果没有广告可看(比如玩家关闭了网络)，弹出内购panel, 说明广告很重要, 但还是要进入关卡(不然不让过审)
             if (!popAdRez) {
                 Debug.Log("没有广告可看");
-                removedAdPurchaseUI.PopupPanel(closeBtnDelay:5);
+                if (IAPManager.Instance.IsInitialized) {
+                    toastUI.ShowToastMsg("No ad available at the moment, please try again later", 2);
+                    removedAdPurchaseUI.PopupPanel(onCloseBtnClicked: () => LoadTargetLevel(level), closeBtnDelay:3);
+                } else {
+                    LoadTargetLevel(level);
+                }
             }
         }
 
@@ -346,6 +361,9 @@ namespace HadoopCore.Scripts.SceneController {
                     DOTween.Kill(unlockTweenId);
                 }
             }
+            
+            // 防止Banner进入其他Scene
+            AdManager.Instance.HideBanner();
         }
         
     }

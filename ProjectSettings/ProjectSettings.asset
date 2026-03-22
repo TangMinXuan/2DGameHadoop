@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: FanStudio
-  productName: Chest & Plug
+  productName: Break the Plugs
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -40,7 +40,7 @@ PlayerSettings:
     width: 1
     height: 1
   m_SplashScreenLogos: []
-  m_VirtualRealitySplashScreen: {fileID: 0}
+  m_VirtualRealitySplashScreen: {fileID: 2800000, guid: 8bb3170b123ca46cba84ec77c45a3451, type: 3}
   m_HolographicTrackingLossScreen: {fileID: 0}
   defaultScreenWidth: 1920
   defaultScreenHeight: 1080
@@ -164,7 +164,7 @@ PlayerSettings:
   androidMaxAspectRatio: 2.1
   applicationIdentifier:
     Standalone: com.DefaultCompany.2DProject
-    iPhone: com.FanStudio.ChestPlug
+    iPhone: com.FanStudio.BreakThePlugs
   buildNumber:
     Standalone: 0
     VisionOS: 0
@@ -241,14 +241,14 @@ PlayerSettings:
   metalCompileShaderBinary: 0
   iOSRenderExtraFrameOnPause: 0
   iosCopyPluginsCodeInsteadOfSymlink: 0
-  appleDeveloperTeamID: 
+  appleDeveloperTeamID: 76S77R942K
   iOSManualSigningProvisioningProfileID: 
   tvOSManualSigningProvisioningProfileID: 
   VisionOSManualSigningProvisioningProfileID: 
   iOSManualSigningProvisioningProfileType: 0
   tvOSManualSigningProvisioningProfileType: 0
   VisionOSManualSigningProvisioningProfileType: 0
-  appleEnableAutomaticSigning: 0
+  appleEnableAutomaticSigning: 1
   iOSRequireARKit: 0
   iOSAutomaticallyDetectAndAddCapabilities: 1
   appleEnableProMotion: 0
@@ -837,7 +837,7 @@ PlayerSettings:
   cloudProjectId: c311948e-553a-451b-9d4f-4abbccf36333
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: Chest & Plug
+  projectName: Break the Plugs
   organizationId: wechat_os_qy0y_l8al44wbqezwgpzsktoy
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0

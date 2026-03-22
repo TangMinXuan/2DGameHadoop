@@ -1,31 +1,26 @@
 using System;
+using System.Collections;
+using HadoopCore.Scripts.Shared;
+using HadoopCore.Scripts.UI;
 using Unity.Services.Core;
 using UnityEngine;
 using UnityEngine.Purchasing;
 using UnityEngine.Purchasing.Extension;
+using UnityEngine.SceneManagement;
 
 namespace HadoopCore.Scripts.Manager {
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // ★ 开发 / 打包 切换开关
-    //   开发阶段 → PlatformTarget.Editor
-    //   打包前   → PlatformTarget.IOS
-    // ══════════════════════════════════════════════════════════════════════════
-    internal enum PlatformTarget { Editor, IOS }
-    
-    /// <summary>
-    /// Production-ready IAP manager – Singleton / DontDestroyOnLoad.
-    /// Implements <see cref="IDetailedStoreListener"/> for full purchase lifecycle handling.
-    /// </summary>
     public class IAPManager : MonoBehaviour, IDetailedStoreListener {
         // ────────────────────── Singleton ──────────────────────
         public static IAPManager Instance { get; private set; }
 
-        // ────────────────────── ★ 平台开关 (Inspector 中切换) ──────────────────────
-        [SerializeField] private PlatformTarget currentBuildTarget = PlatformTarget.Editor;
+        // ────────────────────── ★ 平台开关: 统一从 BuildConfig.Instance.CurrentTarget 读取 ──────────────────────
+        private PlatformTarget CurrentBuildTarget => BuildEnvConfig.Instance != null
+            ? BuildEnvConfig.Instance.CurrentTarget
+            : PlatformTarget.IOS;
         // ────────────────────── Product IDs ──────────────────────
         public static class ProductIds {
-            public const string RemoveAds = "remove_ads";
+            public const string RemoveAds = "ads_removed";
         }
 
         // ────────────────────── Persistence Keys ──────────────────────
@@ -52,6 +47,14 @@ namespace HadoopCore.Scripts.Manager {
         private IStoreController _storeController;
         private IExtensionProvider _extensionProvider;
         private bool _initializeCalled;
+        [SerializeField] private float retryDelay = 5f;
+        private ToastUI _toastUI;
+
+        private void RefreshToastUI() {
+            var go = GameObject.Find("ToastPanel");
+            if (go != null)
+                _toastUI = go.GetComponent<ToastUI>();
+        }
 
         // ────────────────────── Public Properties ──────────────────────
 
@@ -83,19 +86,23 @@ namespace HadoopCore.Scripts.Manager {
 
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            SceneManager.sceneLoaded += OnSceneLoaded;
+            RefreshToastUI();
         }
 
         private async void Start() {
-            // TODO 临时测试, 删除持久化的购买凭证
-            PlayerPrefs.DeleteKey(PrefKeys.AdsRemoved);
-            PlayerPrefs.Save();
-            
             await UnityServices.InitializeAsync();
             Initialize();
         }
 
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode) {
+            _toastUI = null; // 清除旧引用，强制重新查找
+            RefreshToastUI();
+        }
+
         private void OnDestroy() {
             if (Instance != this) return;
+            SceneManager.sceneLoaded -= OnSceneLoaded;
             Instance = null;
         }
 
@@ -106,15 +113,15 @@ namespace HadoopCore.Scripts.Manager {
         /// 重复调用会被忽略并 log 提示.
         /// </summary>
         private void Initialize() {
-            if (IsInitialized || _initializeCalled) { /* ... */ return; }
+            if (IsInitialized || _initializeCalled) { return; }
             _initializeCalled = true;
 
             var module = StandardPurchasingModule.Instance();
 
-            if (currentBuildTarget == PlatformTarget.IOS) {
+            if (CurrentBuildTarget == PlatformTarget.IOS) {
                 // ── 真机 iOS，连接 App Store ──────────────────────────────
                 Debug.Log($"{Tag} [iOS] Connecting to App Store.");
-            } else if (currentBuildTarget == PlatformTarget.Editor) {
+            } else if (CurrentBuildTarget == PlatformTarget.Editor) {
                 // ── Fake Store 模式 (Editor 开发阶段) ────────────────────
                 // Default: 全自动成功，不弹任何窗口
                 // StandardUser: 购买时弹窗，初始化自动成功
@@ -134,45 +141,52 @@ namespace HadoopCore.Scripts.Manager {
             UnityPurchasing.Initialize(this, builder);
         }
 
-        /// <summary>
-        /// 发起购买去广告. 若已拥有则不会重复购买.
-        /// </summary>
         public void BuyRemoveAds() {
             if (IsRemoveAdsOwned) {
-                Debug.Log($"{Tag} Remove-Ads already owned. Purchase skipped.");
+                Debug.Log($"{Tag} Remove Ads is already owned. Purchase skipped.");
+                _toastUI?.ShowToastMsg("Remove Ads is already owned");
                 OnPurchaseSucceeded?.Invoke(ProductIds.RemoveAds);
                 return;
-            }
+            } 
 
             if (!IsInitialized) {
                 Debug.LogWarning($"{Tag} IAP not initialized yet.");
+                _toastUI?.ShowToastMsg("App Store is temporarily unavailable, please try again later", 2);
+                return;
+            }
+            
+            var product = _storeController.products.WithID(ProductIds.RemoveAds);
+            if (product == null || !product.availableToPurchase) {
+                Debug.LogWarning($"{Tag} Product not available: {ProductIds.RemoveAds}. " +
+                                 "Check App Store Connect configuration.");
+                _toastUI?.ShowToastMsg($"Product not available: {ProductIds.RemoveAds}. please try again later", 2);
                 return;
             }
 
             Debug.Log($"{Tag} Initiating purchase: {ProductIds.RemoveAds}");
             _storeController.InitiatePurchase(ProductIds.RemoveAds);
         }
-
-
-        /// <summary>
-        /// 恢复购买 (仅 iOS 真实商店). Fake Store 模式下仅打印日志.
-        /// </summary>
+        
         public void RestorePurchases() {
-            if (currentBuildTarget == PlatformTarget.IOS) {
+            if (CurrentBuildTarget == PlatformTarget.IOS) {
                 if (!IsInitialized) {
                     Debug.LogWarning($"{Tag} Cannot restore – IAP not initialized.");
                     return;
                 }
                 Debug.Log($"{Tag} Restoring purchases on iOS …");
+                _toastUI?.ShowToastMsg("Restoring purchases on iOS …");
                 var apple = _extensionProvider.GetExtension<IAppleExtensions>();
                 apple.RestoreTransactions((success, error) => {
-                    if (success)
+                    if (success) {
                         Debug.Log($"{Tag} Restore completed successfully.");
-                    else
+                        _toastUI?.ShowToastMsg("Product: Removed Ad restore successfully");
+                    } else {
                         Debug.LogWarning($"{Tag} Restore failed: {error}");
+                        _toastUI?.ShowToastMsg("Product: Removed Ad restore failed");
+                    }
                 });
             }
-            else if (currentBuildTarget == PlatformTarget.Editor) {
+            else if (CurrentBuildTarget == PlatformTarget.Editor) {
                 // Fake Store 模式: 权限由 PlayerPrefs 持久化, 无需走商店恢复流程.
                 Debug.Log($"{Tag} [FakeStore] RestorePurchases skipped – checking local PlayerPrefs.");
                 if (PlayerPrefs.GetInt(PrefKeys.AdsRemoved, 0) == 1)
@@ -189,12 +203,14 @@ namespace HadoopCore.Scripts.Manager {
         /// 返回 null 表示产品不存在或 IAP 未初始化.
         /// </summary>
         public string GetLocalizedPrice(string productId) {
-            if (currentBuildTarget == PlatformTarget.IOS) {
-                if (!IsInitialized) return null;
+            if (CurrentBuildTarget == PlatformTarget.IOS) {
+                if (!IsInitialized) {
+                    return null;
+                }
                 var product = _storeController.products.WithID(productId);
                 return product?.metadata?.localizedPriceString;
             }
-            if (currentBuildTarget == PlatformTarget.Editor)
+            if (CurrentBuildTarget == PlatformTarget.Editor)
                 return "$1.99";
             return null;
         }
@@ -219,13 +235,15 @@ namespace HadoopCore.Scripts.Manager {
         }
 
         public void OnInitializeFailed(InitializationFailureReason error) {
-            _initializeCalled = false; // 允许重试
-            Debug.LogError($"{Tag} Initialization failed: {error}");
+            _initializeCalled = false;
+            Debug.LogError($"{Tag} Initialization failed: {error}. Retrying in {retryDelay}s…");
+            StartCoroutine(RetryInitializeAfterDelay());
         }
 
         public void OnInitializeFailed(InitializationFailureReason error, string message) {
             _initializeCalled = false;
-            Debug.LogError($"{Tag} Initialization failed: {error} – {message}");
+            Debug.LogError($"{Tag} Initialization failed: {error} – {message}. Retrying in {retryDelay}s…");
+            StartCoroutine(RetryInitializeAfterDelay());
         }
 
         /// <summary>
@@ -254,7 +272,6 @@ namespace HadoopCore.Scripts.Manager {
                 Debug.Log($"{Tag} Purchase failed: {productId}, reason={failureDescription.reason}, msg={failureDescription.message}");
         }
 
-        /// <summary>购买失败回调 (IStoreListener 基础接口, 不会被调用因为实现了 IDetailedStoreListener).</summary>
         public void OnPurchaseFailed(Product product, PurchaseFailureReason failureReason) {
             string productId = product.definition.id;
             if (failureReason == PurchaseFailureReason.UserCancelled)
@@ -270,10 +287,18 @@ namespace HadoopCore.Scripts.Manager {
         /// 幂等操作, 多次调用安全.
         /// </summary>
         private void GrantRemoveAdsEntitlement() {
+            if (PlayerPrefs.GetInt(PrefKeys.AdsRemoved, 0) == 0) {
+                _toastUI?.ShowToastMsg("Product: Removed Ad purchased successfully"); // 仅第一次购买时显示成功消息
+            }
             PlayerPrefs.SetInt(PrefKeys.AdsRemoved, 1);
             PlayerPrefs.Save();
             Debug.Log($"{Tag} Entitlement granted: Remove-Ads.");
             OnRemoveAdsEntitlementChanged?.Invoke(true);
+        }
+
+        private IEnumerator RetryInitializeAfterDelay() {
+            yield return new WaitForSeconds(retryDelay);
+            Initialize();
         }
 
         #if UNITY_EDITOR
@@ -289,11 +314,6 @@ namespace HadoopCore.Scripts.Manager {
         private void DebugSimulateOwnRemoveAds() {
             GrantRemoveAdsEntitlement();
             Debug.Log($"{Tag} [Debug] Remove-Ads simulated as owned.");
-        }
-
-        [ContextMenu("Debug/Simulate RestorePurchases")]
-        private void DebugSimulateRestore() {
-            RestorePurchases();
         }
         #endif
     }

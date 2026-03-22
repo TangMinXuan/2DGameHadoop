@@ -13,6 +13,7 @@ namespace HadoopCore.Scripts.UI {
         [SerializeField] private GameObject menuPanel;
         [SerializeField] private Button purchaseBtn;
         [SerializeField] private Button closeBtn;
+        [SerializeField] private Button restorePurchaseBtn;
         [SerializeField] private TMP_Text removeAdPriceText;
 
         private TMP_Text _closeBtnText;
@@ -27,6 +28,7 @@ namespace HadoopCore.Scripts.UI {
             UIUtil.SetUIVisible(_menuCanvasGroup, false);
             purchaseBtn.onClick.AddListener(OnPurchaseBtnClicked);
             closeBtn.onClick.AddListener(OnCloseBtnClicked);
+            restorePurchaseBtn.onClick.AddListener(OnRestorePurchaseBtnClicked);
 
             _closeBtnText = closeBtn.GetComponentInChildren<TMP_Text>();
             if (_closeBtnText != null) {
@@ -37,6 +39,7 @@ namespace HadoopCore.Scripts.UI {
         }
 
         public void PopupPanel(UnityAction onPurchaseBtnClicked = null, UnityAction onCloseBtnClicked = null, int closeBtnDelay = 0) {
+            removeAdPriceText.SetText(IAPManager.Instance.GetLocalizedPrice(IAPManager.ProductIds.RemoveAds));
             UIUtil.SetUIVisible(_menuCanvasGroup, true);
             menuPanel.transform.DOScale(1f, 0.3f)
                 .SetUpdate(true)
@@ -104,6 +107,26 @@ namespace HadoopCore.Scripts.UI {
                 })
                 .SetLink(gameObject);
         }
+        
+        private void OnRestorePurchaseBtnClicked() {
+            _seq = DOTween.Sequence()
+                .SetId("RestorePurchase")
+                .Append(restorePurchaseBtn.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
+                .Append(restorePurchaseBtn.transform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
+                .OnComplete(() => {
+                    menuPanel.transform.DOScale(0.1f, 0.3f)
+                        .SetUpdate(true)
+                        .SetEase(Ease.OutBack)
+                        .OnComplete( () => {
+                            UIUtil.SetUIVisible(_menuCanvasGroup, false);
+                            IAPManager.Instance.RestorePurchases();
+                        })
+                        .SetLink(gameObject);
+                })
+                .SetLink(gameObject);
+        }
+        
+        
 
         private void OnDestroy() {
             _countdownSeq?.Kill();

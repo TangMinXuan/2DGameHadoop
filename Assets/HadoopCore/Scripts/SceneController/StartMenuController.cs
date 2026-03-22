@@ -14,8 +14,10 @@ namespace HadoopCore.Scripts.SceneController {
         [SerializeField] private Button btnSettings;
         [SerializeField] private Button btnAbout;
         [SerializeField] private Button logoBtn;
-        [SerializeField] private Button cartBtn;
+        [SerializeField] private Button shoppingCartBtn;
+        [SerializeField] private Button adRemovedOwnedIcon;
         [SerializeField] private RemovedAdPurchaseUI removedAdPurchaseUI;
+        [SerializeField] private ToastUI toastUI;
 
         private Sequence _seq;
 
@@ -42,8 +44,12 @@ namespace HadoopCore.Scripts.SceneController {
                 logoBtn.onClick.AddListener(OnLogoClicked);
             }
             
-            if (cartBtn != null) {
-                cartBtn.onClick.AddListener(OnCartBtnClicked);
+            if (shoppingCartBtn != null) {
+                shoppingCartBtn.onClick.AddListener(OnCartBtnClicked);
+            }            
+            
+            if (adRemovedOwnedIcon != null) {
+                adRemovedOwnedIcon.onClick.AddListener(OnAdRemovedOwnedIconClicked);
             }
         }
 
@@ -59,6 +65,15 @@ namespace HadoopCore.Scripts.SceneController {
         
             // 3. 永不息屏 (可选，防止玩家思考时手机自动黑屏)
             Screen.sleepTimeout = SleepTimeout.NeverSleep;
+            
+            // 4. 如果IAP初始化成功, 根据玩家是否已购买去显示对应UI
+            if (IAPManager.Instance.IsRemoveAdsOwned) {
+                shoppingCartBtn.gameObject.SetActive(false);
+                adRemovedOwnedIcon.gameObject.SetActive(true);
+            } else {
+                shoppingCartBtn.gameObject.SetActive(true);
+                adRemovedOwnedIcon.gameObject.SetActive(false);
+            }
         }
 
         private void OnStartGameClicked() {
@@ -112,13 +127,17 @@ namespace HadoopCore.Scripts.SceneController {
         private void TriggerEasterEgg() {
             Debug.Log("[EasterEgg] 彩蛋触发！连续点击Logo 5次，你发现了隐藏彩蛋！");
         }
+
+        private void OnAdRemovedOwnedIconClicked() {
+            toastUI.ShowToastMsg("Remove Ads is already owned");
+        }
         
         private void OnCartBtnClicked() {
             AudioManager.Instance.PlayBtnSfx();
             _seq = DOTween.Sequence()
                 .SetId("CartBtnTween")
-                .Append(cartBtn.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
-                .Append(cartBtn.transform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
+                .Append(shoppingCartBtn.transform.DOScale(1.1f, 0.08f).SetEase(Ease.OutQuad))
+                .Append(shoppingCartBtn.transform.DOScale(1.0f, 0.08f).SetEase(Ease.InQuad))
                 .OnComplete(() => removedAdPurchaseUI.PopupPanel(closeBtnDelay:0))
                 .SetLink(gameObject);
         }

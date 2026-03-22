@@ -68,10 +68,6 @@ namespace HadoopCore.Scripts.Manager {
             LevelEventCenter.TriggerLevelFinishedSignReset();
             SceneManager.LoadScene(sceneName, mode);
         }
-        
-        public void loadPreviousScene() {
-            loadSceneSynchronously(_previousSceneName);
-        }
 
         #region 存档相关
         public GameSaveData GetSaveData() {
@@ -149,6 +145,11 @@ namespace HadoopCore.Scripts.Manager {
             string currentSceneName = GetCurrentSceneName();
             int currentLevelNumber = int.Parse(currentSceneName.Split('_')[1]);
             return "Level_" + (currentLevelNumber + 1);
+        }
+
+        public int getCurrentLevelNumber() {
+            string currentSceneName = GetCurrentSceneName();
+            return int.Parse(currentSceneName.Split('_')[1]);
         }
 
         public void CalculateHorizontalSlidePositions(RectTransform panel,

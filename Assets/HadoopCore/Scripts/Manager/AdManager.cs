@@ -3,6 +3,8 @@ using System.Collections;
 using HadoopCore.Scripts.Shared;
 using Unity.Services.LevelPlay;
 using UnityEngine;
+using LevelPlayAdSize = com.unity3d.mediation.LevelPlayAdSize;
+using LevelPlayBannerPosition = com.unity3d.mediation.LevelPlayBannerPosition;
 
 namespace HadoopCore.Scripts.Manager {
     public class AdManager : MonoBehaviour {
@@ -10,11 +12,26 @@ namespace HadoopCore.Scripts.Manager {
         
         [SerializeField] private float RetryDelay = 5f;
         
+        // ────────────────────── ★ 平台开关: 统一从 BuildConfig.Instance.CurrentTarget 读取 ──────────────────────
+        private PlatformTarget CurrentBuildTarget => BuildEnvConfig.Instance != null
+            ? BuildEnvConfig.Instance.CurrentTarget
+            : PlatformTarget.IOS;
+
+        // ────────────────────── Rewarded ──────────────────────
         private LevelPlayRewardedAd rewardedVideoAd;
         private bool isAdsEnabled = false;
         private bool _isLoading = false;
         private bool _hasRewardTicket = false;
         private Action _onAdClosed = null;
+
+        // ────────────────────── Interstitial ──────────────────────
+        private LevelPlayInterstitialAd interstitialAd;
+        private bool _isInterstitialLoading = false;
+        private Action _onInterstitialClosed = null;
+
+        // ────────────────────── Banner ──────────────────────
+        private LevelPlayBannerAd bannerAd;
+        private bool _bannerVisible = false;
 
         private void Awake() {
             if (Instance != null && Instance != this) {
@@ -26,11 +43,13 @@ namespace HadoopCore.Scripts.Manager {
         }
 
         private void Start() {
-            LevelPlay.ValidateIntegration();
-            LevelPlay.SetMetaData("is_test_suite", "enable"); 
+            if (CurrentBuildTarget == PlatformTarget.Editor) {
+                LevelPlay.ValidateIntegration();
+                LevelPlay.SetMetaData("is_test_suite", "enable");
+            }
             LevelPlay.OnInitSuccess += SdkInitializationCompletedEvent;
             LevelPlay.OnInitFailed += SdkInitializationFailedEvent;
-            LevelPlay.Init(Shared.AdConfig.AppKey);
+            LevelPlay.Init(AdConfig.AppKey);
         }
         
         public bool ShowRewardedVideoAd(Action onClosed) {
@@ -63,21 +82,39 @@ namespace HadoopCore.Scripts.Manager {
         }
 
         void SdkInitializationCompletedEvent(LevelPlayConfiguration config) {
-            // Register to ImpressionDataReadyEvent
             LevelPlay.OnImpressionDataReady += ImpressionDataReadyEvent;
-            rewardedVideoAd = new LevelPlayRewardedAd(Shared.AdConfig.RewardedVideoAdUnitId);
+
+            // Rewarded
+            rewardedVideoAd = new LevelPlayRewardedAd(AdConfig.RewardedVideoAdUnitId);
             rewardedVideoAd.OnAdLoaded += RewardedVideoOnLoadedEvent;
             rewardedVideoAd.OnAdLoadFailed += RewardedVideoOnAdLoadFailedEvent;
             rewardedVideoAd.OnAdDisplayed += RewardedVideoOnAdDisplayedEvent;
             rewardedVideoAd.OnAdRewarded += RewardedVideoOnAdRewardedEvent;
             rewardedVideoAd.OnAdClosed += RewardedVideoOnAdClosedEvent;
             rewardedVideoAd.OnAdInfoChanged += RewardedVideoOnAdInfoChangedEvent;
+
+            // Interstitial
+            interstitialAd = new LevelPlayInterstitialAd(AdConfig.InterstitialAdUnitId);
+            interstitialAd.OnAdLoaded += InterstitialOnLoadedEvent;
+            interstitialAd.OnAdLoadFailed += InterstitialOnAdLoadFailedEvent;
+            interstitialAd.OnAdDisplayed += InterstitialOnAdDisplayedEvent;
+            interstitialAd.OnAdClosed += InterstitialOnAdClosedEvent;
+
+            // Banner
+            bannerAd = new LevelPlayBannerAd(AdConfig.BannerAdUnitId, LevelPlayAdSize.BANNER, LevelPlayBannerPosition.BottomCenter);
+            bannerAd.OnAdLoaded += BannerOnAdLoadedEvent;
+            bannerAd.OnAdLoadFailed += BannerOnAdLoadFailedEvent;
+
             isAdsEnabled = true;
             
-            LevelPlay.LaunchTestSuite();
-            
+            if (CurrentBuildTarget == PlatformTarget.Editor) {
+                Debug.Log("[AdManager] 当前为 Editor 模式，已启用 LevelPlay 测试套件");
+                LevelPlay.LaunchTestSuite();
+            }
+
             // 进入游戏立即预加载
-            LoadRewardedVideoAd();
+            // LoadRewardedVideoAd();
+            LoadInterstitialAd();
         }
 
         void SdkInitializationFailedEvent(LevelPlayInitError error) {
@@ -97,10 +134,12 @@ namespace HadoopCore.Scripts.Manager {
         }
 
         void RewardedVideoOnAdDisplayedEvent(LevelPlayAdInfo adInfo) {
+            AudioManager.Instance?.PauseBgm();
         }
 
         void RewardedVideoOnAdDisplayedFailedEvent(LevelPlayAdInfo adInfo, LevelPlayAdError error) {
             Debug.LogError($"[RewardedAdManager] 广告展示失败: {error}");
+            AudioManager.Instance?.ResumeBgm();
             // 展示失败也要重新加载
             LoadRewardedVideoAd();
         }
@@ -115,6 +154,7 @@ namespace HadoopCore.Scripts.Manager {
 
         void RewardedVideoOnAdClosedEvent(LevelPlayAdInfo adInfo) {
             Debug.Log("[RewardedAdManager] 广告已关闭，立即预加载下一个");
+            AudioManager.Instance?.ResumeBgm();
             LoadRewardedVideoAd();
             
             // 延迟一帧再判断，给 OnAdRewarded 留一点时间（极端情况下回调顺序颠倒）
@@ -141,7 +181,100 @@ namespace HadoopCore.Scripts.Manager {
             LoadRewardedVideoAd();
         }
 
+        // ════════════════════════════════════════════
+        // Interstitial  公开 API
+        // ════════════════════════════════════════════
+
+        /// <summary>展示插屏广告，无广告可用时返回 false。onClosed 在广告关闭后回调。</summary>
+        public bool ShowInterstitialAd(Action onClosed = null) {
+            if (!isAdsEnabled || interstitialAd == null || !interstitialAd.IsAdReady()) return false;
+            _onInterstitialClosed = onClosed;
+            interstitialAd.ShowAd();
+            return true;
+        }
+
+        private void LoadInterstitialAd() {
+            if (!isAdsEnabled || interstitialAd == null) return;
+            if (_isInterstitialLoading) return;
+            _isInterstitialLoading = true;
+            interstitialAd.LoadAd();
+        }
+
+        // ────── Interstitial 事件回调 ──────
+
+        void InterstitialOnLoadedEvent(LevelPlayAdInfo adInfo) {
+            _isInterstitialLoading = false;
+            Debug.Log("[InterstitialAd] 加载成功，已就绪");
+        }
+
+        void InterstitialOnAdLoadFailedEvent(LevelPlayAdError error) {
+            _isInterstitialLoading = false;
+            Debug.LogWarning($"[InterstitialAd] 加载失败: {error}，{RetryDelay}秒后重试");
+            StartCoroutine(RetryInterstitialAfterDelay());
+        }
+
+        void InterstitialOnAdDisplayedEvent(LevelPlayAdInfo adInfo) {
+            AudioManager.Instance?.PauseBgm();
+        }
+
+        void InterstitialOnAdClosedEvent(LevelPlayAdInfo adInfo) {
+            Debug.Log("[InterstitialAd] 广告已关闭，立即预加载下一个");
+            AudioManager.Instance?.ResumeBgm();
+            LoadInterstitialAd();
+            StartCoroutine(DelayedInterstitialClosedCallback());
+        }
+
+        private IEnumerator DelayedInterstitialClosedCallback() {
+            yield return new WaitForSeconds(0.5f);
+            var callback = _onInterstitialClosed;
+            _onInterstitialClosed = null;
+            callback?.Invoke();
+        }
+
+        private IEnumerator RetryInterstitialAfterDelay() {
+            yield return new WaitForSeconds(RetryDelay);
+            LoadInterstitialAd();
+        }
+
+        // ════════════════════════════════════════════
+        // Banner  公开 API
+        // ════════════════════════════════════════════
+        public void ShowBanner() {
+            if (!isAdsEnabled || bannerAd == null) return;
+            if (IAPManager.Instance.IsRemoveAdsOwned) {
+                Debug.Log("[BannerAd] 已购买去广告，跳过 Banner 展示");
+                return;
+            }
+            _bannerVisible = true;
+            bannerAd.LoadAd();
+        }
+
+        public void HideBanner() {
+            if (bannerAd == null) return;
+            _bannerVisible = false;
+            bannerAd.HideAd();
+        }
+
+        // ────── Banner 事件回调 ──────
+
+        void BannerOnAdLoadedEvent(LevelPlayAdInfo adInfo) {
+            Debug.Log("[BannerAd] 加载成功，已展示");
+        }
+
+        void BannerOnAdLoadFailedEvent(LevelPlayAdError error) {
+            Debug.LogWarning($"[BannerAd] 加载失败: {error}，{RetryDelay}秒后重试");
+            StartCoroutine(RetryBannerAfterDelay());
+        }
+
+        private IEnumerator RetryBannerAfterDelay() {
+            yield return new WaitForSeconds(RetryDelay);
+            if (bannerAd != null && isAdsEnabled && _bannerVisible) {
+                bannerAd.LoadAd();
+            }
+        }
+
         private void OnDisable() {
+            // Rewarded
             if (rewardedVideoAd != null) {
                 rewardedVideoAd.OnAdLoaded -= RewardedVideoOnLoadedEvent;
                 rewardedVideoAd.OnAdLoadFailed -= RewardedVideoOnAdLoadFailedEvent;
@@ -149,16 +282,31 @@ namespace HadoopCore.Scripts.Manager {
                 rewardedVideoAd.OnAdRewarded -= RewardedVideoOnAdRewardedEvent;
                 rewardedVideoAd.OnAdClosed -= RewardedVideoOnAdClosedEvent;
                 rewardedVideoAd.OnAdInfoChanged -= RewardedVideoOnAdInfoChangedEvent;
-
                 rewardedVideoAd.DestroyAd();
                 rewardedVideoAd = null;
+            }
+
+            // Interstitial
+            if (interstitialAd != null) {
+                interstitialAd.OnAdLoaded -= InterstitialOnLoadedEvent;
+                interstitialAd.OnAdLoadFailed -= InterstitialOnAdLoadFailedEvent;
+                interstitialAd.OnAdDisplayed -= InterstitialOnAdDisplayedEvent;
+                interstitialAd.OnAdClosed -= InterstitialOnAdClosedEvent;
+                interstitialAd.DestroyAd();
+                interstitialAd = null;
+            }
+
+            // Banner
+            if (bannerAd != null) {
+                bannerAd.OnAdLoaded -= BannerOnAdLoadedEvent;
+                bannerAd.OnAdLoadFailed -= BannerOnAdLoadFailedEvent;
+                bannerAd.DestroyAd();
+                bannerAd = null;
             }
         }
 
         private void OnDestroy() {
-            if (Instance != this) {
-                return;
-            }
+            if (Instance != this) return;
         }
     }
 }

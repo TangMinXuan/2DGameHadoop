@@ -105,11 +105,6 @@ namespace HadoopCore.Scripts.Manager {
             PlaySfx(btnClickedSfx);
         }
 
-        /// <summary>
-        /// Play a sound effect. Can be hooked to UI Button OnClick events.
-        /// </summary>
-        /// <param name="clip">The AudioClip to play</param>
-        /// <param name="volumeScale">Volume multiplier (0-1)</param>
         public void PlaySfx(AudioClip clip) {
             if (sfxSource == null) {
                 Debug.LogError("[AudioManager] sfxSource is not assigned");
@@ -118,11 +113,6 @@ namespace HadoopCore.Scripts.Manager {
             sfxSource.PlayOneShot(clip);
         }
 
-        /// <summary>
-        /// Manually play a specific BGM clip.
-        /// </summary>
-        /// <param name="clip">The BGM clip to play</param>
-        /// <param name="useFade">Whether to fade transition</param>
         private void PlayBgm(AudioClip clip, bool useFade = true) {
             if (bgmSource == null) {
                 Debug.LogError("[AudioManager] bgmSource is not assigned");
@@ -154,10 +144,6 @@ namespace HadoopCore.Scripts.Manager {
             }
         }
 
-        /// <summary>
-        /// Stop the current BGM.
-        /// </summary>
-        /// <param name="useFade">Whether to fade out</param>
         public void StopBgm(bool useFade = true) {
             if (bgmSource == null) return;
 
@@ -176,19 +162,15 @@ namespace HadoopCore.Scripts.Manager {
             bgmSource.Pause();
         }
 
-        /// <summary>
-        /// Get current BGM volume (0-1).
-        /// </summary>
+        public void ResumeBgm() {
+            if (bgmSource == null) return;
+            bgmSource.UnPause();
+        }
+
         public float GetBgmVolume() => bgmVolume;
 
-        /// <summary>
-        /// Get current SFX volume (0-1).
-        /// </summary>
         public float GetSfxVolume() => sfxVolume;
 
-        /// <summary>
-        /// Set BGM volume (0-1).
-        /// </summary>
         public void SetBgmVolume(float volume) {
             bgmVolume = Mathf.Clamp01(volume);
             if (bgmSource != null) {
@@ -196,9 +178,6 @@ namespace HadoopCore.Scripts.Manager {
             }
         }
 
-        /// <summary>
-        /// Set SFX volume (0-1).
-        /// </summary>
         public void SetSfxVolume(float volume) {
             sfxVolume = Mathf.Clamp01(volume);
             if (sfxSource != null) {
