@@ -7,7 +7,7 @@ namespace HadoopCore.Scripts.Shared {
     //   开发阶段 → PlatformTarget.Editor
     //   打包前   → PlatformTarget.IOS
     // ══════════════════════════════════════════════════════════════════════════
-    public enum PlatformTarget { Editor, IOS }
+    public enum PlatformTarget { Editor, IOS, Android, PC}
 
     /// <summary>
     /// 全局构建配置 – Singleton / DontDestroyOnLoad.<br/>
@@ -21,12 +21,6 @@ namespace HadoopCore.Scripts.Shared {
 
         /// <summary>当前构建目标平台.</summary>
         public PlatformTarget CurrentTarget => currentTarget;
-
-        /// <summary>快捷判断: 是否为编辑器/开发阶段.</summary>
-        public bool IsEditor => currentTarget == PlatformTarget.Editor;
-
-        /// <summary>快捷判断: 是否为 iOS 正式包.</summary>
-        public bool IsIOS => currentTarget == PlatformTarget.IOS;
 
         private void Awake() {
             if (Instance != null && Instance != this) {

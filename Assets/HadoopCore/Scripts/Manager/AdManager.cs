@@ -1,25 +1,26 @@
 using System;
 using System.Collections;
 using HadoopCore.Scripts.Shared;
-using Unity.Services.LevelPlay;
 using UnityEngine;
-using LevelPlayAdSize = com.unity3d.mediation.LevelPlayAdSize;
-using LevelPlayBannerPosition = com.unity3d.mediation.LevelPlayBannerPosition;
 
 namespace HadoopCore.Scripts.Manager {
     public class AdManager : MonoBehaviour {
         public static AdManager Instance { get; private set; }
         
+        public bool IsInitialized { get; private set; }
+        
+        [SerializeField] public bool enableAdInitialization; // 总开关: 关闭时不进入平台判断, 不初始化广告
+        
         [SerializeField] private float RetryDelay = 5f;
         
+        
         // ────────────────────── ★ 平台开关: 统一从 BuildConfig.Instance.CurrentTarget 读取 ──────────────────────
-        private PlatformTarget CurrentBuildTarget => BuildEnvConfig.Instance != null
-            ? BuildEnvConfig.Instance.CurrentTarget
-            : PlatformTarget.IOS;
+        private PlatformTarget CurrentBuildTarget => BuildEnvConfig.Instance.CurrentTarget;
+        private bool IsAdPlatformSupported => CurrentBuildTarget == PlatformTarget.IOS ||
+                                              CurrentBuildTarget == PlatformTarget.Editor;
 
         // ────────────────────── Rewarded ──────────────────────
         private LevelPlayRewardedAd rewardedVideoAd;
-        private bool isAdsEnabled = false;
         private bool _isLoading = false;
         private bool _hasRewardTicket = false;
         private Action _onAdClosed = null;
@@ -43,6 +44,16 @@ namespace HadoopCore.Scripts.Manager {
         }
 
         private void Start() {
+            if (!enableAdInitialization) {
+                Debug.Log("[AdManager] Ad initialization is disabled by switch.");
+                return;
+            }
+
+            if (!IsAdPlatformSupported) {
+                Debug.LogWarning($"[AdManager] Ad initialization blocked on platform: {CurrentBuildTarget}");
+                return;
+            }
+
             if (CurrentBuildTarget == PlatformTarget.Editor) {
                 LevelPlay.ValidateIntegration();
                 LevelPlay.SetMetaData("is_test_suite", "enable");
@@ -54,7 +65,7 @@ namespace HadoopCore.Scripts.Manager {
         
         public bool ShowRewardedVideoAd(Action onClosed) {
             if (onClosed == null) return false;
-            if (isAdsEnabled && rewardedVideoAd != null && rewardedVideoAd.IsAdReady()) {
+            if (IsInitialized && rewardedVideoAd != null && rewardedVideoAd.IsAdReady()) {
                 _onAdClosed = onClosed;
                 rewardedVideoAd.ShowAd();
                 return true;
@@ -71,7 +82,7 @@ namespace HadoopCore.Scripts.Manager {
         }
         
         private void LoadRewardedVideoAd() {
-            if (!isAdsEnabled || rewardedVideoAd == null) {
+            if (!IsInitialized || rewardedVideoAd == null) {
                 return;
             }
             if (_isLoading) {
@@ -105,7 +116,7 @@ namespace HadoopCore.Scripts.Manager {
             bannerAd.OnAdLoaded += BannerOnAdLoadedEvent;
             bannerAd.OnAdLoadFailed += BannerOnAdLoadFailedEvent;
 
-            isAdsEnabled = true;
+            IsInitialized = true;
             
             if (CurrentBuildTarget == PlatformTarget.Editor) {
                 Debug.Log("[AdManager] 当前为 Editor 模式，已启用 LevelPlay 测试套件");
@@ -118,6 +129,7 @@ namespace HadoopCore.Scripts.Manager {
         }
 
         void SdkInitializationFailedEvent(LevelPlayInitError error) {
+            IsInitialized = false;
             Debug.Log($"[LevelPlaySample] Received SdkInitializationFailedEvent with Error: {error}");
         }
 
@@ -187,14 +199,14 @@ namespace HadoopCore.Scripts.Manager {
 
         /// <summary>展示插屏广告，无广告可用时返回 false。onClosed 在广告关闭后回调。</summary>
         public bool ShowInterstitialAd(Action onClosed = null) {
-            if (!isAdsEnabled || interstitialAd == null || !interstitialAd.IsAdReady()) return false;
+            if (!IsInitialized || interstitialAd == null || !interstitialAd.IsAdReady()) return false;
             _onInterstitialClosed = onClosed;
             interstitialAd.ShowAd();
             return true;
         }
 
         private void LoadInterstitialAd() {
-            if (!isAdsEnabled || interstitialAd == null) return;
+            if (!IsInitialized || interstitialAd == null) return;
             if (_isInterstitialLoading) return;
             _isInterstitialLoading = true;
             interstitialAd.LoadAd();
@@ -240,7 +252,7 @@ namespace HadoopCore.Scripts.Manager {
         // Banner  公开 API
         // ════════════════════════════════════════════
         public void ShowBanner() {
-            if (!isAdsEnabled || bannerAd == null) return;
+            if (!IsInitialized || bannerAd == null) return;
             if (IAPManager.Instance.IsRemoveAdsOwned) {
                 Debug.Log("[BannerAd] 已购买去广告，跳过 Banner 展示");
                 return;
@@ -268,12 +280,13 @@ namespace HadoopCore.Scripts.Manager {
 
         private IEnumerator RetryBannerAfterDelay() {
             yield return new WaitForSeconds(RetryDelay);
-            if (bannerAd != null && isAdsEnabled && _bannerVisible) {
+            if (bannerAd != null && IsInitialized && _bannerVisible) {
                 bannerAd.LoadAd();
             }
         }
 
         private void OnDisable() {
+            IsInitialized = false;
             // Rewarded
             if (rewardedVideoAd != null) {
                 rewardedVideoAd.OnAdLoaded -= RewardedVideoOnLoadedEvent;

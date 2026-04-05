@@ -62,7 +62,15 @@ namespace HadoopCore.Scripts.SceneController {
             initLevelFixedItems(saveData);
             RefreshLevelContent(saveData);
             
-            // 如果IAP初始化成功, 根据玩家是否已购买去显示对应UI
+            if (IAPManager.Instance.enableIapInitialization && AdManager.Instance.enableAdInitialization) {
+                ShoppingCartUI();
+            }
+            
+            AdManager.Instance.ShowBanner(); // 如果没初始化, 他自己会return
+        }
+        
+        private void ShoppingCartUI() {
+            // 4. 如果IAP初始化成功, 根据玩家是否已购买去显示对应UI
             if (IAPManager.Instance.IsRemoveAdsOwned) {
                 shoppingCartBtn.gameObject.SetActive(false);
                 adRemovedOwnedIcon.gameObject.SetActive(true);
@@ -70,8 +78,6 @@ namespace HadoopCore.Scripts.SceneController {
                 shoppingCartBtn.gameObject.SetActive(true);
                 adRemovedOwnedIcon.gameObject.SetActive(false);
             }
-            
-            AdManager.Instance.ShowBanner();
         }
 
         private void initLevelFixedItems(GameSaveData saveData) {

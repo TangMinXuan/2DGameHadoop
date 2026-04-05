@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/HadoopCore/Scenes/Bootstrap.unity
+    guid: ffe7566d4565740dda110f98e2419f0d
+  - enabled: 1
     path: Assets/HadoopCore/Scenes/GameStartPage.unity
     guid: 5f6bdce36362f435f944e2d26e5fde64
   - enabled: 1

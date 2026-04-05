@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Purchasing;
 using UnityEngine.Purchasing.Extension;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
 namespace HadoopCore.Scripts.Manager {
 
@@ -15,9 +16,8 @@ namespace HadoopCore.Scripts.Manager {
         public static IAPManager Instance { get; private set; }
 
         // ────────────────────── ★ 平台开关: 统一从 BuildConfig.Instance.CurrentTarget 读取 ──────────────────────
-        private PlatformTarget CurrentBuildTarget => BuildEnvConfig.Instance != null
-            ? BuildEnvConfig.Instance.CurrentTarget
-            : PlatformTarget.IOS;
+        private PlatformTarget CurrentBuildTarget => BuildEnvConfig.Instance.CurrentTarget;
+        
         // ────────────────────── Product IDs ──────────────────────
         public static class ProductIds {
             public const string RemoveAds = "ads_removed";
@@ -48,7 +48,12 @@ namespace HadoopCore.Scripts.Manager {
         private IExtensionProvider _extensionProvider;
         private bool _initializeCalled;
         [SerializeField] private float retryDelay = 5f;
+        [SerializeField] public bool enableIapInitialization; // 总开关: 关闭时不进入平台判断, 不初始化 IAP
         private ToastUI _toastUI;
+
+        // 平台是否允许初始化 (仅在总开关开启后才会判断)
+        private bool IsIapPlatformSupported => CurrentBuildTarget == PlatformTarget.IOS ||
+                                              CurrentBuildTarget == PlatformTarget.Editor;
 
         private void RefreshToastUI() {
             var go = GameObject.Find("ToastPanel");
@@ -91,6 +96,14 @@ namespace HadoopCore.Scripts.Manager {
         }
 
         private async void Start() {
+            if (!enableIapInitialization) {
+                Debug.Log($"{Tag} IAP initialization is disabled by switch.");
+                return;
+            }
+            if (!IsIapPlatformSupported) {
+                Debug.LogWarning($"{Tag} IAP initialization blocked on platform: {CurrentBuildTarget}");
+                return;
+            }
             await UnityServices.InitializeAsync();
             Initialize();
         }
@@ -113,15 +126,24 @@ namespace HadoopCore.Scripts.Manager {
         /// 重复调用会被忽略并 log 提示.
         /// </summary>
         private void Initialize() {
-            if (IsInitialized || _initializeCalled) { return; }
+            if (IsInitialized || _initializeCalled) {
+                return;
+            }
+            if (!enableIapInitialization) {
+                Debug.Log($"{Tag} IAP initialization is disabled by switch.");
+                return;
+            }
+            if (!IsIapPlatformSupported) {
+                Debug.LogWarning($"{Tag} IAP initialization blocked on platform: {CurrentBuildTarget}");
+                return;
+            }
             _initializeCalled = true;
-
             var module = StandardPurchasingModule.Instance();
 
             if (CurrentBuildTarget == PlatformTarget.IOS) {
                 // ── 真机 iOS，连接 App Store ──────────────────────────────
                 Debug.Log($"{Tag} [iOS] Connecting to App Store.");
-            } else if (CurrentBuildTarget == PlatformTarget.Editor) {
+            } else {
                 // ── Fake Store 模式 (Editor 开发阶段) ────────────────────
                 // Default: 全自动成功，不弹任何窗口
                 // StandardUser: 购买时弹窗，初始化自动成功
@@ -129,11 +151,6 @@ namespace HadoopCore.Scripts.Manager {
                 module.useFakeStoreUIMode = FakeStoreUIMode.StandardUser;
                 module.useFakeStoreAlways = true;
                 Debug.Log($"{Tag} [FakeStore] Fake Store enabled.");
-            } else {
-                // ── 不支持的平台，拒绝初始化 ─────────────────────────────
-                Debug.LogError($"{Tag} Unsupported platform – IAP initialization aborted.");
-                _initializeCalled = false;
-                return;
             }
 
             var builder = ConfigurationBuilder.Instance(module);

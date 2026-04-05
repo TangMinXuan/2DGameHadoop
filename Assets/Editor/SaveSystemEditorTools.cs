@@ -95,41 +95,6 @@ namespace HadoopCore.Editor {
             GameSaveData.Save(saveData);
             Debug.Log($"[SaveSystemEditorTools] Unlocked {unlockedCount} levels. All levels are now accessible!");
         }
-
-        /// <summary>
-        /// 为审核人员生成友好的存档：
-        /// - 解锁所有关卡
-        /// - levelId 之前的关卡：isPass=true, BestStars=3
-        /// - levelId 及之后的关卡：已解锁，但 isPass=false（模拟正在打的状态）
-        /// </summary>
-        [MenuItem("Tools/Save System/Generate Friendly Data For Reviewer (Level 30)")]
-        public static void GenerateFriendlyDataForReviewer() {
-            GenerateFriendlyDataForReviewer(30);
-        }
-
-        public static void GenerateFriendlyDataForReviewer(int levelId = 30) {
-            GameSaveData saveData = GameSaveData.LoadOrCreate();
-
-            foreach (var kvp in saveData.LevelDic) {
-                var level = kvp.Value;
-                level.Unlocked = true;
-
-                if (level.LevelId < levelId) {
-                    // levelId 之前：全部通关，满星
-                    level.IsPass = true;
-                    level.BestStars = 3;
-                } else {
-                    // levelId 及之后：已解锁但未通关
-                    level.IsPass = false;
-                    level.BestStars = 0;
-                }
-            }
-
-            GameSaveData.Save(saveData);
-            Debug.Log($"[SaveSystemEditorTools] Reviewer data generated: " +
-                      $"Levels 1~{levelId - 1} passed with 3 stars, " +
-                      $"Level {levelId}~end unlocked but not passed.");
-        }
         
     }
 }

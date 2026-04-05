@@ -1,5 +1,8 @@
+using System.Collections.Generic;
 using DG.Tweening;
 using HadoopCore.Scripts.Manager;
+using HadoopCore.Scripts.Shared;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -23,6 +26,10 @@ namespace HadoopCore.Scripts.SceneController {
         [Header("Navigation")] [SerializeField]
         private Button btnDone;
 
+        [Header("Display Settings")]
+        [SerializeField] private TMP_Dropdown dropdownDisplayMode;
+        [SerializeField] private TMP_Dropdown dropdownResolution;
+
         private Sequence _seq;
 
         // Mute state tracking
@@ -32,9 +39,10 @@ namespace HadoopCore.Scripts.SceneController {
         private float _sfxVolumeBeforeMute;
         private Image _bgmBtnImage;
         private Image _sfxBtnImage;
-
+        
         private void Awake() {
             RegisterButtonListeners();
+            InitDisplayDropdowns();
         }
 
         private void OnEnable() {
@@ -70,6 +78,73 @@ namespace HadoopCore.Scripts.SceneController {
             else {
                 Debug.LogWarning("SettingsMenuController: No Main Camera found in scene!");
             }
+        }
+
+        private void InitDisplayDropdowns() {
+            if (BuildEnvConfig.Instance.CurrentTarget != PlatformTarget.PC) {
+                return;
+            }
+            // --- Display Mode Dropdown ---
+            if (dropdownDisplayMode != null) {
+                dropdownDisplayMode.ClearOptions();
+                dropdownDisplayMode.AddOptions(new List<string> {
+                    "Borderless Fullscreen", "Windowed"
+                });
+                // Set current value based on actual screen mode
+                int modeIndex = Screen.fullScreenMode switch {
+                    FullScreenMode.FullScreenWindow => 0,
+                    FullScreenMode.Windowed => 1,
+                    _ => 2
+                };
+                dropdownDisplayMode.SetValueWithoutNotify(modeIndex);
+                dropdownDisplayMode.onValueChanged.AddListener(OnDisplayModeChanged);
+            }
+
+            // --- Resolution Dropdown ---
+            if (dropdownResolution != null) {
+                dropdownResolution.ClearOptions();
+                var labels = new List<string>();
+                int currentIndex = 0;
+                List<Vector2Int> availableResolutions = DisplaySettingTool.GetAvailableResolutionOptions();
+                for (int i = 0; i < availableResolutions.Count; i++) {
+                    labels.Add($"{availableResolutions[i].x} x {availableResolutions[i].y}");
+                    if (Screen.width == availableResolutions[i].x && Screen.height == availableResolutions[i].y)
+                        currentIndex = i;
+                }
+
+                if (Screen.fullScreenMode  == FullScreenMode.FullScreenWindow) {
+                    dropdownResolution.interactable = false;
+                } else {
+                    dropdownResolution.AddOptions(labels);
+                    dropdownResolution.SetValueWithoutNotify(currentIndex);
+                    dropdownResolution.onValueChanged.AddListener(OnResolutionChanged);
+                }
+            }
+        }
+
+        private void OnDisplayModeChanged(int index) {
+            FullScreenMode mode = index switch {
+                0 => FullScreenMode.FullScreenWindow,
+                1 => FullScreenMode.Windowed,
+                _ => Screen.fullScreenMode, // No change
+            };
+            if (mode == FullScreenMode.FullScreenWindow) {
+                DisplaySettingTool.ApplyDisplayMode(mode, Vector2Int.zero);
+                GameSaveData gameSaveData = GameManager.Instance.GetSaveData();
+                gameSaveData.Settings["displayMode"] = FullScreenMode.FullScreenWindow.ToString();
+                GameManager.Instance.SaveGameDataAsync(gameSaveData);
+            }
+        }
+
+        private void OnResolutionChanged(int index) {
+            string label = dropdownResolution.options[index].text;
+            int width = label.Split('x')[0].Trim() == "" ? Screen.width : int.Parse(label.Split('x')[0].Trim());
+            int height = label.Split('x')[1].Trim() == "" ? Screen.height : int.Parse(label.Split('x')[1].Trim());
+            DisplaySettingTool.ApplyDisplayMode(FullScreenMode.Windowed, new Vector2Int(width, height));
+            GameSaveData gameSaveData = GameManager.Instance.GetSaveData();
+            gameSaveData.Settings["resolution"] = $"{width}x{height}";
+            gameSaveData.Settings["displayMode"] = FullScreenMode.Windowed.ToString();
+            GameManager.Instance.SaveGameDataAsync(gameSaveData);
         }
 
         private void RegisterButtonListeners() {
@@ -146,6 +221,7 @@ namespace HadoopCore.Scripts.SceneController {
         }
 
         private void OnDoneClicked() {
+            // TODO 设置写进存档
             _seq = DOTween.Sequence()
                 .SetId("DoneBtnTween")
                 .SetUpdate(true)
@@ -194,6 +270,14 @@ namespace HadoopCore.Scripts.SceneController {
 
             if (sliderSFX != null) {
                 sliderSFX.onValueChanged.RemoveListener(OnSFXSliderChanged);
+            }
+
+            // Clean up dropdown listeners
+            if (dropdownDisplayMode != null) {
+                dropdownDisplayMode.onValueChanged.RemoveListener(OnDisplayModeChanged);
+            }
+            if (dropdownResolution != null) {
+                dropdownResolution.onValueChanged.RemoveListener(OnResolutionChanged);
             }
         }
     }

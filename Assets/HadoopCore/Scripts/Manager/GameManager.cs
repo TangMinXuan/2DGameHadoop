@@ -48,6 +48,7 @@ namespace HadoopCore.Scripts.Manager {
         }
 
         private void Start() {
+            
         }
 
         // ===== Public API =====
@@ -110,6 +111,8 @@ namespace HadoopCore.Scripts.Manager {
             data.Settings.Add("musicVolume", 0.4f);
             data.Settings.Add("sfxVolume", 0.9f);
             data.Settings.Add("language", "en");
+            data.Settings.Add("displayMode", FullScreenMode.FullScreenWindow.ToString());
+            data.Settings.Add("resolution", "1920x1080");  
 
             // 初始化50个关卡，每5关为一层，共10层
             // 第1层（Level_1~5）直接解锁，其余层初始锁定
